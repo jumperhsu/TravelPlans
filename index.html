@@ -1,0 +1,3574 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅遊計劃規劃應用程式</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff7e5f;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --light-text: #666666;
+            --border-color: #e0e0e0;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+
+        /* 配色方案 */
+        .theme-blue {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff7e5f;
+        }
+
+        .theme-green {
+            --primary-color: #4a9c7d;
+            --secondary-color: #6bb89c;
+            --accent-color: #ff9a5f;
+        }
+
+        .theme-purple {
+            --primary-color: #7a4a9c;
+            --secondary-color: #9c6bbc;
+            --accent-color: #5fd4ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .header-left {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .header-right {
+            flex-shrink: 0;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .tagline {
+            color: var(--light-text);
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            word-break: break-word;
+        }
+
+        h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            word-break: break-word;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: var(--text-color);
+        }
+
+        .theme-btn.blue {
+            background: linear-gradient(135deg, #4a6fa5 50%, #ff7e5f 50%);
+        }
+
+        .theme-btn.green {
+            background: linear-gradient(135deg, #4a9c7d 50%, #ff9a5f 50%);
+        }
+
+        .theme-btn.purple {
+            background: linear-gradient(135deg, #7a4a9c 50%, #5fd4ff 50%);
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: minmax(300px, 350px) 1fr;
+            gap: 30px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* 旅遊計劃面板 */
+        .plans-panel {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .plans-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .plan-item {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .plan-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .plan-item.active {
+            border-color: var(--accent-color);
+            background-color: rgba(255, 126, 95, 0.05);
+        }
+
+        .plan-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .plan-item-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            word-break: break-word;
+            max-width: 80%;
+        }
+
+        .plan-item-dates {
+            font-size: 0.85rem;
+            color: var(--light-text);
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .plan-item-days {
+            font-size: 0.85rem;
+            color: var(--light-text);
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background-color: #ff6b4a;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* 行程面板 */
+        .itinerary-panel {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            min-height: 800px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .no-plan-selected {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--light-text);
+            width: 100%;
+        }
+
+        .no-plan-selected i {
+            font-size: clamp(3rem, 10vw, 4rem);
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .plan-header-left {
+            flex: 1;
+            min-width: 200px;
+            max-width: 100%;
+        }
+
+        .plan-header-right {
+            flex-shrink: 0;
+        }
+
+        .days-tabs-container {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            margin-bottom: 30px;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .days-tabs {
+            display: flex;
+            min-width: min-content;
+            width: max-content;
+        }
+
+        .days-tabs-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .days-tabs-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .days-tabs-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .day-tab {
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            background-color: #f9f9f9;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-right: 5px;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .day-tab:hover {
+            background-color: #f0f0f0;
+        }
+
+        .day-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .day-content {
+            display: none;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .day-content.active {
+            display: block;
+        }
+
+        .day-title-input {
+            width: 100%;
+            max-width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: clamp(1rem, 2vw, 1.1rem);
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .activities-container {
+            min-height: 500px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .activity-item {
+            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: move;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .activity-item:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .activity-name {
+            font-weight: bold;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--primary-color);
+            word-break: break-word;
+            max-width: 100%;
+        }
+
+        .activity-category {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .activity-category.attraction {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .activity-category.transport {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .activity-category.activity {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .activity-category.accommodation {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .activity-category.other {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+
+        .activity-time {
+            color: var(--light-text);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .activity-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .activity-address, .activity-cost, .activity-links, .activity-notes {
+            font-size: 0.9rem;
+            word-break: break-word;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        .activity-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-right: 10px;
+            word-break: break-all;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .activity-links a:hover {
+            text-decoration: underline;
+        }
+
+        .transport-item {
+            background-color: #f0f7ff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            margin-left: clamp(20px, 5vw, 30px);
+            position: relative;
+            width: calc(100% - clamp(20px, 5vw, 30px));
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .transport-item::before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            width: 20px;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .transport-item::after {
+            content: "→";
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .transport-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            background-color: #e3f2fd;
+            color: #1565c0;
+            margin-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        .transport-main {
+            border-left: 4px solid #4caf50;
+        }
+
+        .transport-alternate {
+            border-left: 4px solid #ff9800;
+        }
+
+        /* 浮動按鈕 */
+        .floating-buttons {
+            position: fixed;
+            right: clamp(15px, 3vw, 30px);
+            bottom: clamp(15px, 3vw, 30px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .floating-btn {
+            width: clamp(50px, 10vw, 60px);
+            height: clamp(50px, 10vw, 60px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .floating-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .floating-btn.add-activity {
+            background-color: var(--primary-color);
+        }
+
+        .floating-btn.add-transport {
+            background-color: var(--accent-color);
+        }
+
+        .floating-btn-text {
+            display: none;
+            position: absolute;
+            right: calc(100% + 10px);
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .floating-btn:hover .floating-btn-text {
+            display: block;
+        }
+
+        /* 模態框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .modal-body {
+            padding: 25px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            word-break: break-word;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            max-width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        /* 費用統計面板 */
+        .cost-summary {
+            margin-top: 40px;
+            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            min-width: 300px;
+        }
+
+        .cost-table th, .cost-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            word-break: break-word;
+            white-space: nowrap;
+        }
+
+        .cost-table th {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .cost-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .total-cost {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* 手機選單按鈕 */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .plans-panel {
+                max-height: 500px;
+                overflow-y: auto;
+                max-width: 100%;
+            }
+            
+            .floating-buttons {
+                right: 20px;
+                bottom: 20px;
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .plans-panel {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                max-width: 350px;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+            }
+            
+            .plans-panel.active {
+                left: 0;
+            }
+            
+            .plan-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+            
+            .days-tabs {
+                width: max-content;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .activity-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .activity-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .activity-category {
+                margin-left: 0;
+                margin-top: 5px;
+            }
+            
+            .floating-buttons {
+                right: 15px;
+                bottom: 15px;
+                gap: 10px;
+            }
+            
+            .floating-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .floating-btn-text {
+                display: none !important;
+            }
+            
+            .plan-actions {
+                justify-content: center;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+            
+            .modal-content {
+                max-height: 85vh;
+            }
+            
+            .modal-body {
+                padding: 20px;
+            }
+            
+            .day-tab {
+                min-width: 70px;
+                padding: 10px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+            
+            .day-tab {
+                padding: 8px 12px;
+                min-width: 60px;
+                font-size: 0.8rem;
+            }
+            
+            .activity-item {
+                padding: 15px;
+            }
+            
+            .transport-item {
+                padding: 12px;
+                margin-left: 20px;
+                width: calc(100% - 20px);
+            }
+            
+            .mobile-menu-btn {
+                top: 15px;
+                left: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+        }
+
+        /* 遮罩層 */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+        
+        /* 防止內容超出 */
+        .scroll-prevention {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body class="theme-blue scroll-prevention">
+    <!-- 手機選單按鈕 -->
+    <div class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </div>
+    
+    <!-- 遮罩層 -->
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="container scroll-prevention">
+        <header>
+            <div class="header-left">
+                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃</h1>
+                <p class="tagline">輕鬆規劃您的完美旅程</p>
+            </div>
+            <div class="header-right">
+                <div class="theme-selector">
+                    <div class="theme-btn blue active" data-theme="theme-blue"></div>
+                    <div class="theme-btn green" data-theme="theme-green"></div>
+                    <div class="theme-btn purple" data-theme="theme-purple"></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-container">
+            <!-- 旅遊計劃面板 -->
+            <div class="plans-panel" id="plansPanel">
+                <h2><i class="fas fa-calendar-alt"></i> 旅遊計劃</h2>
+                <div class="plan-actions">
+                    <button class="btn btn-primary" id="addPlanBtn"><i class="fas fa-plus"></i> 新增計劃</button>
+                    <button class="btn btn-secondary" id="backupBtn"><i class="fas fa-download"></i> 備份</button>
+                    <button class="btn btn-secondary" id="restoreBtn"><i class="fas fa-upload"></i> 還原</button>
+                </div>
+                
+                <div class="plans-list" id="plansList">
+                    <!-- 計劃項目將動態生成 -->
+                </div>
+                
+                <div class="cost-summary">
+                    <h3><i class="fas fa-calculator"></i> 費用統計</h3>
+                    <table class="cost-table" id="costTable">
+                        <thead>
+                            <tr>
+                                <th>幣別</th>
+                                <th>總費用</th>
+                                <th>分攤人數</th>
+                                <th>每人費用</th>
+                            </tr>
+                        </thead>
+                        <tbody id="costTableBody">
+                            <!-- 費用統計將動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 行程面板 -->
+            <div class="itinerary-panel scroll-prevention">
+                <div id="noPlanSelected" class="no-plan-selected">
+                    <i class="fas fa-plane"></i>
+                    <h3>請選擇或建立一個旅遊計劃</h3>
+                    <p>從左側面板選擇一個計劃，或點擊「新增計劃」按鈕開始規劃</p>
+                </div>
+                
+                <div id="planContent" style="display: none;">
+                    <div class="plan-header">
+                        <div class="plan-header-left">
+                            <h2 id="currentPlanName">計劃名稱</h2>
+                            <p id="currentPlanDates">日期範圍</p>
+                        </div>
+                        <div class="plan-header-right">
+                            <div class="plan-actions">
+                                <button class="btn btn-accent" id="sharePlanBtn"><i class="fas fa-share-alt"></i> 分享</button>
+                                <button class="btn btn-danger" id="deletePlanBtn"><i class="fas fa-trash-alt"></i> 刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="days-tabs-container" id="daysTabsContainer">
+                        <div class="days-tabs" id="daysTabs">
+                            <!-- 天數標籤將動態生成 -->
+                        </div>
+                    </div>
+                    
+                    <div id="daysContent">
+                        <!-- 每日內容將動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 浮動按鈕 -->
+    <div class="floating-buttons">
+        <div class="floating-btn add-activity" id="addActivityBtn">
+            <i class="fas fa-plus"></i>
+            <span class="floating-btn-text">+行程</span>
+        </div>
+        <div class="floating-btn add-transport" id="addTransportBtn">
+            <i class="fas fa-plus"></i>
+            <span class="floating-btn-text">+交通</span>
+        </div>
+    </div>
+
+    <!-- 新增/編輯計劃模態框 -->
+    <div class="modal" id="planModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="planModalTitle">新增旅遊計劃</h3>
+                <button class="btn btn-secondary" id="closePlanModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="planForm">
+                    <div class="form-group">
+                        <label for="planName">計劃名稱</label>
+                        <input type="text" id="planName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="planStartDate">旅遊開始日期</label>
+                            <input type="date" id="planStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="planDays">預計旅遊天數</label>
+                            <input type="number" id="planDays" min="1" max="365" value="3" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelPlanBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯行程模態框 -->
+    <div class="modal" id="activityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="activityModalTitle">新增行程</h3>
+                <button class="btn btn-secondary" id="closeActivityModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="activityForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityStartTime">開始時間</label>
+                            <input type="text" id="activityStartTime" placeholder="例如：0900" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="activityEndTime">結束時間（非必填）</label>
+                            <input type="text" id="activityEndTime" placeholder="例如：1100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityName">行程名稱</label>
+                        <input type="text" id="activityName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityCategory">分類</label>
+                        <select id="activityCategory" required>
+                            <option value="attraction">景點</option>
+                            <option value="transport">交通</option>
+                            <option value="activity">活動</option>
+                            <option value="accommodation">住宿</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityLocation">地點</label>
+                            <input type="text" id="activityLocation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="activityAddress">地址</label>
+                            <input type="text" id="activityAddress">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityCost">費用</label>
+                            <input type="number" id="activityCost" min="0" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="activityCurrency">幣別</label>
+                            <select id="activityCurrency">
+                                <option value="TWD">新台幣 (TWD)</option>
+                                <option value="USD">美元 (USD)</option>
+                                <option value="JPY">日圓 (JPY)</option>
+                                <option value="EUR">歐元 (EUR)</option>
+                                <option value="CNY">人民幣 (CNY)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="activityParticipants">分攤人數</label>
+                            <input type="number" id="activityParticipants" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityLinkName">連結名稱</label>
+                            <input type="text" id="activityLinkName">
+                        </div>
+                        <div class="form-group">
+                            <label for="activityLink">連結</label>
+                            <input type="url" id="activityLink" placeholder="https://example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityNotes">行程備註</label>
+                        <textarea id="activityNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelActivityBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯交通方式模態框 -->
+    <div class="modal" id="transportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="transportModalTitle">新增交通方式</h3>
+                <button class="btn btn-secondary" id="closeTransportModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="transportForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportFromActivity">起始行程</label>
+                            <select id="transportFromActivity" required>
+                                <!-- 行程選項將動態生成 -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportToActivity">結束行程</label>
+                            <select id="transportToActivity" required>
+                                <!-- 行程選項將動態生成 -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportStartTime">開始時間</label>
+                            <input type="text" id="transportStartTime" placeholder="例如：0900" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportEndTime">結束時間</label>
+                            <input type="text" id="transportEndTime" placeholder="例如：0930" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transportType">交通類別</label>
+                        <select id="transportType" required>
+                            <option value="taxi">計程車</option>
+                            <option value="subway">地鐵</option>
+                            <option value="bus">公交</option>
+                            <option value="train">高鐵</option>
+                            <option value="walking">步行</option>
+                            <option value="flight">飛機</option>
+                            <option value="ship">輪船</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportCost">交通費用</label>
+                            <input type="number" id="transportCost" min="0" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="transportCurrency">幣別</label>
+                            <select id="transportCurrency">
+                                <option value="TWD">新台幣 (TWD)</option>
+                                <option value="USD">美元 (USD)</option>
+                                <option value="JPY">日圓 (JPY)</option>
+                                <option value="EUR">歐元 (EUR)</option>
+                                <option value="CNY">人民幣 (CNY)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportParticipants">分攤人數</label>
+                            <input type="number" id="transportParticipants" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportLinkName">連結名稱</label>
+                            <input type="text" id="transportLinkName">
+                        </div>
+                        <div class="form-group">
+                            <label for="transportLink">連結</label>
+                            <input type="url" id="transportLink" placeholder="https://example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transportNotes">備註</label>
+                        <textarea id="transportNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="transportIsMain">
+                            設為主要交通方式
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelTransportBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 應用狀態
+        const state = {
+            currentPlanId: null,
+            currentDay: 1,
+            plans: [],
+            nextId: 1
+        };
+
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('應用程式初始化...');
+            
+            // 載入儲存的計劃
+            loadPlansFromStorage();
+            
+            // 設置事件監聽器
+            setupEventListeners();
+            
+            // 初始化UI
+            updatePlansList();
+            updateCostSummary();
+            
+            // 設置時間格式化
+            setupTimeFormatting();
+            
+            console.log('應用程式初始化完成');
+        });
+
+        // 從本地儲存載入計劃
+        function loadPlansFromStorage() {
+            const savedPlans = localStorage.getItem('travelPlans');
+            if (savedPlans) {
+                try {
+                    state.plans = JSON.parse(savedPlans);
+                    // 找出最大的ID
+                    state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
+                    console.log('已載入計劃:', state.plans.length, '個');
+                } catch (error) {
+                    console.error('載入計劃時發生錯誤:', error);
+                    state.plans = [];
+                }
+            } else {
+                console.log('沒有找到儲存的計劃');
+            }
+            
+            // 如果有計劃，選擇第一個
+            if (state.plans.length > 0) {
+                state.currentPlanId = state.plans[0].id;
+                showPlanContent();
+            }
+        }
+
+        // 儲存計劃到本地儲存
+        function savePlansToStorage() {
+            try {
+                localStorage.setItem('travelPlans', JSON.stringify(state.plans));
+                console.log('計劃已儲存到本地儲存');
+                updateCostSummary();
+            } catch (error) {
+                console.error('儲存計劃時發生錯誤:', error);
+            }
+        }
+
+        // 設置事件監聽器
+        function setupEventListeners() {
+            console.log('設置事件監聽器...');
+            
+            // 主題選擇
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.body.className = this.dataset.theme;
+                });
+            });
+            
+            // 計劃相關按鈕
+            document.getElementById('addPlanBtn').addEventListener('click', showAddPlanModal);
+            document.getElementById('backupBtn').addEventListener('click', backupPlan);
+            document.getElementById('restoreBtn').addEventListener('click', restorePlan);
+            document.getElementById('sharePlanBtn').addEventListener('click', sharePlan);
+            document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
+            
+            // 手機選單按鈕
+            document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+                document.getElementById('plansPanel').classList.toggle('active');
+                document.getElementById('overlay').classList.toggle('active');
+            });
+            
+            // 遮罩層點擊關閉選單
+            document.getElementById('overlay').addEventListener('click', function() {
+                document.getElementById('plansPanel').classList.remove('active');
+                this.classList.remove('active');
+            });
+            
+            // 模態框關閉按鈕
+            document.getElementById('closePlanModal').addEventListener('click', closePlanModal);
+            document.getElementById('closeActivityModal').addEventListener('click', closeActivityModal);
+            document.getElementById('closeTransportModal').addEventListener('click', closeTransportModal);
+            
+            document.getElementById('cancelPlanBtn').addEventListener('click', closePlanModal);
+            document.getElementById('cancelActivityBtn').addEventListener('click', closeActivityModal);
+            document.getElementById('cancelTransportBtn').addEventListener('click', closeTransportModal);
+            
+            // 表單提交
+            document.getElementById('planForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('計劃表單提交');
+                savePlan();
+            });
+            
+            document.getElementById('activityForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('行程表單提交');
+                saveActivity();
+            });
+            
+            document.getElementById('transportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('交通表單提交');
+                saveTransport();
+            });
+            
+            // 浮動按鈕
+            document.getElementById('addActivityBtn').addEventListener('click', showAddActivityModal);
+            document.getElementById('addTransportBtn').addEventListener('click', showAddTransportModal);
+            
+            // 點擊模態框外部關閉
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('active');
+                    }
+                });
+            });
+            
+            // 窗口大小改變時更新UI
+            window.addEventListener('resize', function() {
+                updateDaysTabsScroll();
+            });
+            
+            console.log('事件監聽器設置完成');
+        }
+
+        // 設置時間格式化
+        function setupTimeFormatting() {
+            // 為時間輸入欄位添加失去焦點事件
+            document.addEventListener('blur', function(e) {
+                if (e.target.matches('#activityStartTime, #activityEndTime, #transportStartTime, #transportEndTime')) {
+                    formatTimeInput(e.target);
+                }
+            }, true);
+        }
+
+        // 格式化時間輸入
+        function formatTimeInput(input) {
+            let value = input.value.trim();
+            if (value.length === 4 && /^\d{4}$/.test(value)) {
+                const hours = value.substring(0, 2);
+                const minutes = value.substring(2, 4);
+                if (parseInt(hours) < 24 && parseInt(minutes) < 60) {
+                    input.value = `${hours}:${minutes}`;
+                }
+            }
+        }
+
+        // 更新天數標籤滾動
+        function updateDaysTabsScroll() {
+            const daysTabsContainer = document.getElementById('daysTabsContainer');
+            if (daysTabsContainer) {
+                daysTabsContainer.scrollLeft = 0;
+            }
+        }
+
+        // 更新計劃列表
+        function updatePlansList() {
+            const plansList = document.getElementById('plansList');
+            plansList.innerHTML = '';
+            
+            if (state.plans.length === 0) {
+                plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無旅遊計劃</div>';
+                return;
+            }
+            
+            state.plans.forEach(plan => {
+                const planElement = document.createElement('div');
+                planElement.className = `plan-item ${state.currentPlanId === plan.id ? 'active' : ''}`;
+                planElement.dataset.id = plan.id;
+                
+                const startDate = new Date(plan.startDate);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + plan.days - 1);
+                
+                planElement.innerHTML = `
+                    <div class="plan-item-header">
+                        <div class="plan-item-name">${plan.name}</div>
+                        <div>
+                            <button class="btn btn-small btn-secondary edit-plan" data-id="${plan.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="plan-item-dates">${formatDate(startDate)} - ${formatDate(endDate)}</div>
+                    <div class="plan-item-days">${plan.days} 天</div>
+                `;
+                
+                planElement.addEventListener('click', function(e) {
+                    if (!e.target.closest('.edit-plan')) {
+                        state.currentPlanId = plan.id;
+                        updatePlansList();
+                        showPlanContent();
+                        
+                        // 在手機上點擊後關閉選單
+                        if (window.innerWidth <= 1024) {
+                            document.getElementById('plansPanel').classList.remove('active');
+                            document.getElementById('overlay').classList.remove('active');
+                        }
+                    }
+                });
+                
+                const editBtn = planElement.querySelector('.edit-plan');
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showEditPlanModal(plan.id);
+                });
+                
+                plansList.appendChild(planElement);
+            });
+        }
+
+        // 顯示計劃內容
+        function showPlanContent() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                document.getElementById('noPlanSelected').style.display = 'block';
+                document.getElementById('planContent').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('noPlanSelected').style.display = 'none';
+            document.getElementById('planContent').style.display = 'block';
+            
+            document.getElementById('currentPlanName').textContent = plan.name;
+            
+            const startDate = new Date(plan.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + plan.days - 1);
+            document.getElementById('currentPlanDates').textContent = 
+                `${formatDate(startDate)} - ${formatDate(endDate)} (${plan.days} 天)`;
+            
+            // 更新天數標籤
+            updateDaysTabs(plan);
+            
+            // 顯示第一天內容
+            showDayContent(1);
+            
+            // 更新費用統計（僅顯示當前計劃）
+            updateCostSummary();
+        }
+
+        // 更新天數標籤 - 修正：只顯示 Day1, Day2...
+        function updateDaysTabs(plan) {
+            const daysTabsContainer = document.getElementById('daysTabsContainer');
+            const daysTabs = document.getElementById('daysTabs');
+            const daysContent = document.getElementById('daysContent');
+            
+            daysTabs.innerHTML = '';
+            daysContent.innerHTML = '';
+            
+            for (let i = 1; i <= plan.days; i++) {
+                // 天數標籤 - 只顯示 Day1, Day2...
+                const dayTab = document.createElement('div');
+                dayTab.className = `day-tab ${i === state.currentDay ? 'active' : ''}`;
+                dayTab.textContent = `Day ${i}`;
+                dayTab.dataset.day = i;
+                
+                dayTab.addEventListener('click', function() {
+                    state.currentDay = parseInt(this.dataset.day);
+                    document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
+                    this.classList.add('active');
+                    showDayContent(state.currentDay);
+                });
+                
+                daysTabs.appendChild(dayTab);
+                
+                // 天數內容
+                const dayContent = document.createElement('div');
+                dayContent.className = `day-content ${i === state.currentDay ? 'active' : ''}`;
+                dayContent.dataset.day = i;
+                
+                // 檢查是否有儲存的每日標題
+                const dayTitle = plan.dayTitles && plan.dayTitles[i] ? plan.dayTitles[i] : `第 ${i} 天`;
+                
+                dayContent.innerHTML = `
+                    <input type="text" class="day-title-input" value="${dayTitle}" data-day="${i}" placeholder="輸入當日標題">
+                    <div class="activities-container" data-day="${i}"></div>
+                `;
+                
+                // 添加每日標題變更事件
+                const titleInput = dayContent.querySelector('.day-title-input');
+                titleInput.addEventListener('change', function() {
+                    saveDayTitle(plan.id, parseInt(this.dataset.day), this.value);
+                });
+                
+                daysContent.appendChild(dayContent);
+            }
+            
+            // 更新活動容器
+            updateActivitiesContainer();
+        }
+
+        // 顯示指定天數的內容
+        function showDayContent(day) {
+            document.querySelectorAll('.day-content').forEach(content => {
+                content.classList.remove('active');
+                if (parseInt(content.dataset.day) === day) {
+                    content.classList.add('active');
+                }
+            });
+            
+            state.currentDay = day;
+            updateActivitiesContainer();
+        }
+
+        // 更新活動容器
+        function updateActivitiesContainer() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return;
+            
+            const day = state.currentDay;
+            const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
+            if (!activitiesContainer) return;
+            
+            activitiesContainer.innerHTML = '';
+            
+            // 獲取當天的活動
+            const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
+            const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
+            
+            // 如果沒有活動，顯示提示
+            if (dayActivities.length === 0) {
+                activitiesContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>還沒有行程安排，點擊右下角的「+行程」按鈕開始規劃</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按開始時間排序活動
+            dayActivities.sort((a, b) => {
+                const timeA = a.startTime ? parseTime(a.startTime) : 0;
+                const timeB = b.startTime ? parseTime(b.startTime) : 0;
+                return timeA - timeB;
+            });
+            
+            // 生成活動項目
+            dayActivities.forEach((activity, index) => {
+                const activityElement = createActivityElement(activity, index, day);
+                activitiesContainer.appendChild(activityElement);
+                
+                // 在活動之間插入交通方式
+                if (index < dayActivities.length - 1) {
+                    const nextActivity = dayActivities[index + 1];
+                    const transportsBetween = dayTransports.filter(t => 
+                        t.fromActivityId === activity.id && t.toActivityId === nextActivity.id
+                    );
+                    
+                    transportsBetween.forEach(transport => {
+                        const transportElement = createTransportElement(transport);
+                        activitiesContainer.appendChild(transportElement);
+                    });
+                }
+            });
+        }
+
+        // 創建活動元素
+        function createActivityElement(activity, index, day) {
+            const activityElement = document.createElement('div');
+            activityElement.className = 'activity-item';
+            activityElement.dataset.id = activity.id;
+            activityElement.dataset.type = 'activity';
+            activityElement.draggable = true;
+            
+            // 分類樣式
+            const categoryLabels = {
+                attraction: '景點',
+                transport: '交通',
+                activity: '活動',
+                accommodation: '住宿',
+                other: '其他'
+            };
+            
+            const categoryClasses = {
+                attraction: 'attraction',
+                transport: 'transport',
+                activity: 'activity',
+                accommodation: 'accommodation',
+                other: 'other'
+            };
+            
+            activityElement.innerHTML = `
+                <div class="activity-header">
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
+                        <span class="activity-name">${activity.name}</span>
+                        <span class="activity-category ${categoryClasses[activity.category]}">
+                            ${categoryLabels[activity.category]}
+                        </span>
+                    </div>
+                    <div class="activity-time">
+                        ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
+                    ${activity.address ? `<div class="activity-address" style="word-break: break-word;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+                </div>
+                <div class="activity-details">
+                    ${activity.cost > 0 ? `
+                        <div class="activity-cost">
+                            <i class="fas fa-money-bill-wave"></i> 
+                            ${activity.currency} ${activity.cost.toFixed(2)}
+                            ${activity.participants > 1 ? ` (每人 ${(activity.cost / activity.participants).toFixed(2)})` : ''}
+                        </div>
+                    ` : ''}
+                    ${activity.link && activity.linkName ? `
+                        <div class="activity-links">
+                            <a href="${activity.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${activity.linkName}</a>
+                        </div>
+                    ` : ''}
+                    ${activity.notes ? `
+                        <div class="activity-notes" style="word-break: break-word;">
+                            <i class="fas fa-sticky-note"></i> ${activity.notes}
+                        </div>
+                    ` : ''}
+                </div>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}">
+                        <i class="fas fa-edit"></i> 編輯
+                    </button>
+                    <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </button>
+                </div>
+            `;
+            
+            // 添加編輯和刪除事件
+            const editBtn = activityElement.querySelector('.edit-activity');
+            const deleteBtn = activityElement.querySelector('.delete-activity');
+            
+            if (editBtn) {
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showEditActivityModal(activity.id);
+                });
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteActivity(activity.id);
+                });
+            }
+            
+            // 拖放事件
+            activityElement.addEventListener('dragstart', handleDragStart);
+            activityElement.addEventListener('dragover', handleDragOver);
+            activityElement.addEventListener('drop', handleDrop);
+            activityElement.addEventListener('dragend', handleDragEnd);
+            
+            return activityElement;
+        }
+
+        // 創建交通方式元素
+        function createTransportElement(transport) {
+            const transportElement = document.createElement('div');
+            transportElement.className = `transport-item ${transport.isMain ? 'transport-main' : 'transport-alternate'}`;
+            transportElement.dataset.id = transport.id;
+            transportElement.dataset.type = 'transport';
+            
+            const transportLabels = {
+                taxi: '計程車',
+                subway: '地鐵',
+                bus: '公交',
+                train: '高鐵',
+                walking: '步行',
+                flight: '飛機',
+                ship: '輪船',
+                other: '其他'
+            };
+            
+            // 修正：使用行程地點而不是行程名稱
+            const routeDescription = transport.fromLocation && transport.toLocation 
+                ? `${transport.fromLocation} → ${transport.toLocation}`
+                : `${transport.fromActivityName} → ${transport.toActivityName}`;
+            
+            transportElement.innerHTML = `
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span class="transport-type">${transportLabels[transport.type]}</span>
+                    <span style="font-size: 0.9rem;">
+                        ${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}
+                    </span>
+                </div>
+                <div style="margin: 8px 0; word-break: break-word;">
+                    <i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}
+                </div>
+                <div style="margin: 8px 0; word-break: break-word;">
+                    <i class="fas fa-route"></i> ${routeDescription}
+                </div>
+                ${transport.cost > 0 ? `
+                    <div style="margin: 8px 0; word-break: break-word;">
+                        <i class="fas fa-money-bill-wave"></i> 
+                        ${transport.currency} ${transport.cost.toFixed(2)}
+                        ${transport.participants > 1 ? ` (每人 ${(transport.cost / transport.participants).toFixed(2)})` : ''}
+                    </div>
+                ` : ''}
+                ${transport.link && transport.linkName ? `
+                    <div style="margin: 8px 0; word-break: break-word;">
+                        <a href="${transport.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${transport.linkName}</a>
+                    </div>
+                ` : ''}
+                ${transport.notes ? `
+                    <div style="margin: 8px 0; word-break: break-word;">
+                        <i class="fas fa-sticky-note"></i> ${transport.notes}
+                    </div>
+                ` : ''}
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-small btn-secondary edit-transport" data-id="${transport.id}">
+                        <i class="fas fa-edit"></i> 編輯
+                    </button>
+                    <button class="btn btn-small btn-danger delete-transport" data-id="${transport.id}">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </button>
+                </div>
+            `;
+            
+            // 添加編輯和刪除事件
+            const editBtn = transportElement.querySelector('.edit-transport');
+            const deleteBtn = transportElement.querySelector('.delete-transport');
+            
+            if (editBtn) {
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showEditTransportModal(transport.id);
+                });
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteTransport(transport.id);
+                });
+            }
+            
+            return transportElement;
+        }
+
+        // 拖放事件處理函數
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            const draggedElement = document.querySelector(`[data-id="${id}"]`);
+            
+            if (draggedElement && this !== draggedElement) {
+                const container = this.parentNode;
+                const afterElement = getDragAfterElement(container, e.clientY);
+                
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+                
+                // 更新活動順序
+                updateActivitiesOrder();
+            }
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        // 拖放輔助函數
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.activity-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // 更新活動順序
+        function updateActivitiesOrder() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            
+            const day = state.currentDay;
+            const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
+            const activityElements = activitiesContainer.querySelectorAll('.activity-item');
+            
+            // 更新活動順序
+            activityElements.forEach((element, index) => {
+                const activityId = parseInt(element.dataset.id);
+                const activity = plan.activities.find(a => a.id === activityId);
+                if (activity) {
+                    activity.order = index;
+                }
+            });
+            
+            // 按新順序排序活動
+            plan.activities.sort((a, b) => {
+                if (a.day !== b.day) return a.day - b.day;
+                return (a.order || 0) - (b.order || 0);
+            });
+            
+            savePlansToStorage();
+        }
+
+        // 顯示新增計劃模態框
+        function showAddPlanModal() {
+            document.getElementById('planModalTitle').textContent = '新增旅遊計劃';
+            document.getElementById('planForm').reset();
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            document.getElementById('planStartDate').value = todayStr;
+            document.getElementById('planModal').classList.add('active');
+            
+            // 設置表單提交時知道是新增
+            delete document.getElementById('planForm').dataset.editingId;
+            
+            // 自動聚焦到第一個輸入框
+            setTimeout(() => {
+                document.getElementById('planName').focus();
+            }, 100);
+        }
+
+        // 顯示編輯計劃模態框
+        function showEditPlanModal(planId) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            document.getElementById('planModalTitle').textContent = '編輯旅遊計劃';
+            document.getElementById('planName').value = plan.name;
+            document.getElementById('planStartDate').value = plan.startDate;
+            document.getElementById('planDays').value = plan.days;
+            document.getElementById('planModal').classList.add('active');
+            
+            // 設置表單提交時知道是編輯
+            document.getElementById('planForm').dataset.editingId = planId;
+        }
+
+        // 關閉計劃模態框
+        function closePlanModal() {
+            document.getElementById('planModal').classList.remove('active');
+            document.getElementById('planForm').reset();
+            delete document.getElementById('planForm').dataset.editingId;
+        }
+
+        // 儲存計劃
+        function savePlan() {
+            console.log('開始儲存計劃...');
+            
+            const planName = document.getElementById('planName').value;
+            const startDate = document.getElementById('planStartDate').value;
+            const days = parseInt(document.getElementById('planDays').value);
+            
+            if (!planName || !startDate || !days) {
+                alert('請填寫所有必要欄位');
+                return;
+            }
+            
+            if (days < 1 || days > 365) {
+                alert('旅遊天數必須在1到365天之間');
+                return;
+            }
+            
+            const editingId = document.getElementById('planForm').dataset.editingId;
+            
+            if (editingId) {
+                // 編輯現有計劃
+                const plan = state.plans.find(p => p.id === parseInt(editingId));
+                if (plan) {
+                    const originalDays = plan.days;
+                    plan.name = planName;
+                    plan.startDate = startDate;
+                    plan.days = days;
+                    
+                    // 如果天數減少，刪除多餘的活動和交通
+                    if (days < originalDays) {
+                        plan.activities = plan.activities ? plan.activities.filter(a => a.day <= days) : [];
+                        plan.transports = plan.transports ? plan.transports.filter(t => t.day <= days) : [];
+                        if (plan.dayTitles) {
+                            Object.keys(plan.dayTitles).forEach(day => {
+                                if (parseInt(day) > days) delete plan.dayTitles[day];
+                            });
+                        }
+                    }
+                    console.log('計劃已更新:', plan);
+                }
+            } else {
+                // 新增計劃
+                const newPlan = {
+                    id: state.nextId++,
+                    name: planName,
+                    startDate: startDate,
+                    days: days,
+                    activities: [],
+                    transports: [],
+                    dayTitles: {}
+                };
+                
+                state.plans.push(newPlan);
+                state.currentPlanId = newPlan.id;
+                console.log('新計劃已建立:', newPlan);
+            }
+            
+            savePlansToStorage();
+            updatePlansList();
+            showPlanContent();
+            closePlanModal();
+        }
+
+        // 顯示新增活動模態框
+        function showAddActivityModal() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            document.getElementById('activityModalTitle').textContent = '新增行程';
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityCurrency').value = 'TWD';
+            document.getElementById('activityParticipants').value = 1;
+            document.getElementById('activityModal').classList.add('active');
+            
+            // 設置表單提交時知道是新增
+            delete document.getElementById('activityForm').dataset.editingId;
+            
+            // 自動聚焦到第一個輸入框
+            setTimeout(() => {
+                document.getElementById('activityStartTime').focus();
+            }, 100);
+        }
+
+        // 顯示編輯活動模態框
+        function showEditActivityModal(activityId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            
+            const activity = plan.activities.find(a => a.id === activityId);
+            if (!activity) return;
+            
+            document.getElementById('activityModalTitle').textContent = '編輯行程';
+            document.getElementById('activityStartTime').value = activity.startTime || '';
+            document.getElementById('activityEndTime').value = activity.endTime || '';
+            document.getElementById('activityName').value = activity.name;
+            document.getElementById('activityCategory').value = activity.category;
+            document.getElementById('activityLocation').value = activity.location;
+            document.getElementById('activityAddress').value = activity.address || '';
+            document.getElementById('activityCost').value = activity.cost || 0;
+            document.getElementById('activityCurrency').value = activity.currency || 'TWD';
+            document.getElementById('activityParticipants').value = activity.participants || 1;
+            document.getElementById('activityLinkName').value = activity.linkName || '';
+            document.getElementById('activityLink').value = activity.link || '';
+            document.getElementById('activityNotes').value = activity.notes || '';
+            document.getElementById('activityModal').classList.add('active');
+            
+            // 設置表單提交時知道是編輯
+            document.getElementById('activityForm').dataset.editingId = activityId;
+        }
+
+        // 關閉活動模態框
+        function closeActivityModal() {
+            document.getElementById('activityModal').classList.remove('active');
+            document.getElementById('activityForm').reset();
+            delete document.getElementById('activityForm').dataset.editingId;
+        }
+
+        // 儲存活動
+        function saveActivity() {
+            console.log('開始儲存活動...');
+            
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                alert('找不到選擇的計劃');
+                return;
+            }
+            
+            // 格式化時間
+            formatTimeInput(document.getElementById('activityStartTime'));
+            formatTimeInput(document.getElementById('activityEndTime'));
+            
+            // 獲取表單數據
+            const startTime = document.getElementById('activityStartTime').value;
+            const endTime = document.getElementById('activityEndTime').value || null;
+            const name = document.getElementById('activityName').value;
+            const category = document.getElementById('activityCategory').value;
+            const location = document.getElementById('activityLocation').value;
+            const address = document.getElementById('activityAddress').value || null;
+            const cost = parseFloat(document.getElementById('activityCost').value) || 0;
+            const currency = document.getElementById('activityCurrency').value;
+            const participants = parseInt(document.getElementById('activityParticipants').value) || 1;
+            const linkName = document.getElementById('activityLinkName').value || null;
+            const link = document.getElementById('activityLink').value || null;
+            const notes = document.getElementById('activityNotes').value || null;
+            
+            // 驗證必要欄位
+            if (!startTime || !name || !location) {
+                alert('請填寫必要欄位：開始時間、行程名稱、地點');
+                return;
+            }
+            
+            const activityData = {
+                startTime: startTime,
+                endTime: endTime,
+                name: name,
+                category: category,
+                location: location,
+                address: address,
+                cost: cost,
+                currency: currency,
+                participants: participants,
+                linkName: linkName,
+                link: link,
+                notes: notes,
+                day: state.currentDay
+            };
+            
+            console.log('活動數據:', activityData);
+            
+            const editingId = document.getElementById('activityForm').dataset.editingId;
+            
+            if (editingId) {
+                // 編輯現有活動
+                const activityIndex = plan.activities.findIndex(a => a.id === parseInt(editingId));
+                if (activityIndex !== -1) {
+                    activityData.id = parseInt(editingId);
+                    activityData.order = plan.activities[activityIndex].order;
+                    plan.activities[activityIndex] = activityData;
+                    console.log('編輯現有活動成功');
+                }
+            } else {
+                // 新增活動
+                activityData.id = Date.now(); // 使用時間戳作為ID
+                activityData.order = plan.activities.filter(a => a.day === state.currentDay).length;
+                if (!plan.activities) plan.activities = [];
+                plan.activities.push(activityData);
+                console.log('新增活動成功，ID:', activityData.id);
+            }
+            
+            savePlansToStorage();
+            updateActivitiesContainer();
+            closeActivityModal();
+        }
+
+        // 顯示新增交通方式模態框
+        function showAddTransportModal() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) {
+                alert('請先添加行程，然後才能添加交通方式');
+                return;
+            }
+            
+            // 獲取當天的活動
+            const dayActivities = plan.activities.filter(a => a.day === state.currentDay);
+            if (dayActivities.length < 2) {
+                alert('需要至少兩個行程才能添加交通方式');
+                return;
+            }
+            
+            // 填充起始和結束行程下拉選單
+            const fromSelect = document.getElementById('transportFromActivity');
+            const toSelect = document.getElementById('transportToActivity');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            dayActivities.forEach(activity => {
+                const option1 = document.createElement('option');
+                option1.value = activity.id;
+                option1.textContent = `${activity.startTime || ''} ${activity.name} (${activity.location})`;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = activity.id;
+                option2.textContent = `${activity.startTime || ''} ${activity.name} (${activity.location})`;
+                toSelect.appendChild(option2);
+            });
+            
+            // 設置預設值：第一個活動作為起始，第二個活動作為結束
+            fromSelect.selectedIndex = 0;
+            toSelect.selectedIndex = Math.min(1, dayActivities.length - 1);
+            
+            // 自動設置時間
+            const fromActivity = dayActivities[fromSelect.selectedIndex];
+            const toActivity = dayActivities[toSelect.selectedIndex];
+            
+            document.getElementById('transportStartTime').value = fromActivity.endTime || fromActivity.startTime || '';
+            document.getElementById('transportEndTime').value = toActivity.startTime || '';
+            
+            document.getElementById('transportModalTitle').textContent = '新增交通方式';
+            document.getElementById('transportForm').reset();
+            document.getElementById('transportCurrency').value = 'TWD';
+            document.getElementById('transportParticipants').value = 1;
+            document.getElementById('transportIsMain').checked = true;
+            document.getElementById('transportModal').classList.add('active');
+            
+            // 設置表單提交時知道是新增
+            delete document.getElementById('transportForm').dataset.editingId;
+            
+            // 添加活動變更事件來更新時間
+            fromSelect.addEventListener('change', updateTransportTimes);
+            toSelect.addEventListener('change', updateTransportTimes);
+            
+            // 自動聚焦到第一個輸入框
+            setTimeout(() => {
+                document.getElementById('transportStartTime').focus();
+            }, 100);
+        }
+
+        // 更新交通時間
+        function updateTransportTimes() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            
+            const dayActivities = plan.activities.filter(a => a.day === state.currentDay);
+            const fromSelect = document.getElementById('transportFromActivity');
+            const toSelect = document.getElementById('transportToActivity');
+            
+            const fromActivity = dayActivities.find(a => a.id === parseInt(fromSelect.value));
+            const toActivity = dayActivities.find(a => a.id === parseInt(toSelect.value));
+            
+            if (fromActivity) {
+                document.getElementById('transportStartTime').value = fromActivity.endTime || fromActivity.startTime || '';
+            }
+            
+            if (toActivity) {
+                document.getElementById('transportEndTime').value = toActivity.startTime || '';
+            }
+        }
+
+        // 顯示編輯交通方式模態框
+        function showEditTransportModal(transportId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.transports) return;
+            
+            const transport = plan.transports.find(t => t.id === transportId);
+            if (!transport) return;
+            
+            // 填充起始和結束行程下拉選單
+            const dayActivities = plan.activities.filter(a => a.day === state.currentDay);
+            const fromSelect = document.getElementById('transportFromActivity');
+            const toSelect = document.getElementById('transportToActivity');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            dayActivities.forEach(activity => {
+                const option1 = document.createElement('option');
+                option1.value = activity.id;
+                option1.textContent = `${activity.startTime || ''} ${activity.name} (${activity.location})`;
+                option1.selected = activity.id === transport.fromActivityId;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = activity.id;
+                option2.textContent = `${activity.startTime || ''} ${activity.name} (${activity.location})`;
+                option2.selected = activity.id === transport.toActivityId;
+                toSelect.appendChild(option2);
+            });
+            
+            document.getElementById('transportModalTitle').textContent = '編輯交通方式';
+            document.getElementById('transportStartTime').value = transport.startTime;
+            document.getElementById('transportEndTime').value = transport.endTime;
+            document.getElementById('transportType').value = transport.type;
+            document.getElementById('transportCost').value = transport.cost || 0;
+            document.getElementById('transportCurrency').value = transport.currency || 'TWD';
+            document.getElementById('transportParticipants').value = transport.participants || 1;
+            document.getElementById('transportLinkName').value = transport.linkName || '';
+            document.getElementById('transportLink').value = transport.link || '';
+            document.getElementById('transportNotes').value = transport.notes || '';
+            document.getElementById('transportIsMain').checked = transport.isMain || false;
+            document.getElementById('transportModal').classList.add('active');
+            
+            // 設置表單提交時知道是編輯
+            document.getElementById('transportForm').dataset.editingId = transportId;
+            
+            // 添加活動變更事件來更新時間
+            fromSelect.addEventListener('change', updateTransportTimes);
+            toSelect.addEventListener('change', updateTransportTimes);
+        }
+
+        // 關閉交通方式模態框
+        function closeTransportModal() {
+            document.getElementById('transportModal').classList.remove('active');
+            document.getElementById('transportForm').reset();
+            delete document.getElementById('transportForm').dataset.editingId;
+            
+            // 移除事件監聽器
+            const fromSelect = document.getElementById('transportFromActivity');
+            const toSelect = document.getElementById('transportToActivity');
+            
+            fromSelect.removeEventListener('change', updateTransportTimes);
+            toSelect.removeEventListener('change', updateTransportTimes);
+        }
+
+        // 儲存交通方式
+        function saveTransport() {
+            console.log('開始儲存交通方式...');
+            
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                alert('找不到選擇的計劃');
+                return;
+            }
+            
+            // 格式化時間
+            formatTimeInput(document.getElementById('transportStartTime'));
+            formatTimeInput(document.getElementById('transportEndTime'));
+            
+            // 獲取表單數據
+            const startTime = document.getElementById('transportStartTime').value;
+            const endTime = document.getElementById('transportEndTime').value;
+            const fromActivityId = parseInt(document.getElementById('transportFromActivity').value);
+            const toActivityId = parseInt(document.getElementById('transportToActivity').value);
+            const type = document.getElementById('transportType').value;
+            const cost = parseFloat(document.getElementById('transportCost').value) || 0;
+            const currency = document.getElementById('transportCurrency').value;
+            const participants = parseInt(document.getElementById('transportParticipants').value) || 1;
+            const linkName = document.getElementById('transportLinkName').value || null;
+            const link = document.getElementById('transportLink').value || null;
+            const notes = document.getElementById('transportNotes').value || null;
+            const isMain = document.getElementById('transportIsMain').checked;
+            
+            // 驗證必要欄位
+            if (!startTime || !endTime || !fromActivityId || !toActivityId) {
+                alert('請填寫所有必要欄位');
+                return;
+            }
+            
+            if (fromActivityId === toActivityId) {
+                alert('起始行程和結束行程不能相同');
+                return;
+            }
+            
+            // 獲取活動資訊
+            const fromActivity = plan.activities.find(a => a.id === fromActivityId);
+            const toActivity = plan.activities.find(a => a.id === toActivityId);
+            
+            if (!fromActivity || !toActivity) {
+                alert('無法找到選擇的行程，請重新選擇');
+                return;
+            }
+            
+            const transportData = {
+                startTime: startTime,
+                endTime: endTime,
+                fromActivityId: fromActivityId,
+                toActivityId: toActivityId,
+                fromActivityName: fromActivity.name,
+                toActivityName: toActivity.name,
+                fromLocation: fromActivity.location, // 新增：儲存行程地點
+                toLocation: toActivity.location,     // 新增：儲存行程地點
+                type: type,
+                cost: cost,
+                currency: currency,
+                participants: participants,
+                linkName: linkName,
+                link: link,
+                notes: notes,
+                isMain: isMain,
+                day: state.currentDay
+            };
+            
+            console.log('交通數據:', transportData);
+            
+            const editingId = document.getElementById('transportForm').dataset.editingId;
+            
+            if (editingId) {
+                // 編輯現有交通方式
+                const transportIndex = plan.transports.findIndex(t => t.id === parseInt(editingId));
+                if (transportIndex !== -1) {
+                    transportData.id = parseInt(editingId);
+                    plan.transports[transportIndex] = transportData;
+                    console.log('編輯交通方式成功');
+                }
+            } else {
+                // 新增交通方式
+                transportData.id = Date.now(); // 使用時間戳作為ID
+                if (!plan.transports) plan.transports = [];
+                plan.transports.push(transportData);
+                console.log('新增交通方式成功，ID:', transportData.id);
+            }
+            
+            savePlansToStorage();
+            updateActivitiesContainer();
+            closeTransportModal();
+        }
+
+        // 刪除活動
+        function deleteActivity(activityId) {
+            if (!confirm('確定要刪除這個行程嗎？')) return;
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            
+            // 刪除活動
+            plan.activities = plan.activities.filter(a => a.id !== activityId);
+            
+            // 刪除相關的交通方式
+            if (plan.transports) {
+                plan.transports = plan.transports.filter(t => 
+                    t.fromActivityId !== activityId && t.toActivityId !== activityId
+                );
+            }
+            
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+        }
+
+        // 刪除交通方式
+        function deleteTransport(transportId) {
+            if (!confirm('確定要刪除這個交通方式嗎？')) return;
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.transports) return;
+            
+            plan.transports = plan.transports.filter(t => t.id !== transportId);
+            
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+        }
+
+        // 儲存每日標題
+        function saveDayTitle(planId, day, title) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            if (!plan.dayTitles) plan.dayTitles = {};
+            plan.dayTitles[day] = title;
+            
+            savePlansToStorage();
+        }
+
+        // 刪除計劃
+        function deletePlan() {
+            if (!state.currentPlanId) return;
+            
+            if (!confirm('確定要刪除這個旅遊計劃嗎？此操作無法復原。')) return;
+            
+            state.plans = state.plans.filter(p => p.id !== state.currentPlanId);
+            
+            if (state.plans.length > 0) {
+                state.currentPlanId = state.plans[0].id;
+            } else {
+                state.currentPlanId = null;
+            }
+            
+            savePlansToStorage();
+            updatePlansList();
+            updateCostSummary();
+            
+            if (state.currentPlanId) {
+                showPlanContent();
+            } else {
+                document.getElementById('noPlanSelected').style.display = 'block';
+                document.getElementById('planContent').style.display = 'none';
+            }
+        }
+
+        // 備份計劃
+        function backupPlan() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return;
+            
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `旅遊計劃_${plan.name}_${dateStr}.json`;
+            
+            const dataStr = JSON.stringify(plan, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            // 創建下載連結
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 還原計劃
+        function restorePlan() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const planData = JSON.parse(event.target.result);
+                        
+                        // 檢查數據結構
+                        if (!planData.name || !planData.startDate || !planData.days) {
+                            alert('檔案格式不正確，無法還原計劃');
+                            return;
+                        }
+                        
+                        // 為還原的計劃分配新ID
+                        planData.id = state.nextId++;
+                        
+                        // 確保活動和交通方式有ID
+                        if (planData.activities) {
+                            planData.activities.forEach(activity => {
+                                if (!activity.id) activity.id = Date.now() + Math.random();
+                            });
+                        }
+                        
+                        if (planData.transports) {
+                            planData.transports.forEach(transport => {
+                                if (!transport.id) transport.id = Date.now() + Math.random();
+                            });
+                        }
+                        
+                        state.plans.push(planData);
+                        state.currentPlanId = planData.id;
+                        
+                        savePlansToStorage();
+                        updatePlansList();
+                        showPlanContent();
+                        
+                        alert('計劃已成功還原！');
+                    } catch (error) {
+                        alert('讀取檔案時發生錯誤：' + error.message);
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // 分享計劃 - 生成RWD自適應分享頁面
+        function sharePlan() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return;
+            
+            // 創建RWD自適應分享頁面HTML
+            let html = `
+            <!DOCTYPE html>
+            <html lang="zh-TW">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${plan.name} - 旅遊計劃</title>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    }
+                    
+                    body {
+                        background-color: #f8f9fa;
+                        color: #333;
+                        line-height: 1.6;
+                        min-height: 100vh;
+                        overflow-x: hidden;
+                        width: 100%;
+                        max-width: 100vw;
+                    }
+                    
+                    .container {
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        width: 100%;
+                        overflow-x: hidden;
+                    }
+                    
+                    header {
+                        background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+                        color: white;
+                        padding: 30px 20px;
+                        border-radius: 10px;
+                        margin-bottom: 30px;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                    }
+                    
+                    h1 {
+                        font-size: clamp(1.8rem, 4vw, 2.5rem);
+                        margin-bottom: 10px;
+                        word-break: break-word;
+                    }
+                    
+                    .header-info {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 20px;
+                        margin-top: 20px;
+                        background: rgba(255,255,255,0.1);
+                        padding: 20px;
+                        border-radius: 8px;
+                        backdrop-filter: blur(10px);
+                    }
+                    
+                    .info-item {
+                        font-size: clamp(0.9rem, 2vw, 1rem);
+                        word-break: break-word;
+                    }
+                    
+                    .info-item strong {
+                        display: block;
+                        margin-bottom: 5px;
+                        font-size: 0.9em;
+                        opacity: 0.9;
+                    }
+                    
+                    /* 天數導航 */
+                    .days-nav-container {
+                        width: 100%;
+                        max-width: 100%;
+                        overflow-x: auto;
+                        margin-bottom: 30px;
+                        padding-bottom: 10px;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: thin;
+                    }
+                    
+                    .days-nav {
+                        display: flex;
+                        min-width: min-content;
+                        width: max-content;
+                    }
+                    
+                    .days-nav-container::-webkit-scrollbar {
+                        height: 6px;
+                    }
+                    
+                    .days-nav-container::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 3px;
+                    }
+                    
+                    .days-nav-container::-webkit-scrollbar-thumb {
+                        background: #4a6fa5;
+                        border-radius: 3px;
+                    }
+                    
+                    .day-nav-btn {
+                        padding: 12px 20px;
+                        background: white;
+                        border: 2px solid #4a6fa5;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        white-space: nowrap;
+                        transition: all 0.3s;
+                        font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+                        min-width: 120px;
+                        text-align: center;
+                        font-weight: 600;
+                        color: #4a6fa5;
+                        margin-right: 10px;
+                    }
+                    
+                    .day-nav-btn:hover,
+                    .day-nav-btn.active {
+                        background: #4a6fa5;
+                        color: white;
+                    }
+                    
+                    /* 天數內容 */
+                    .day-content {
+                        display: none;
+                        background: white;
+                        border-radius: 10px;
+                        padding: 25px;
+                        margin-bottom: 30px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                        width: 100%;
+                        max-width: 100%;
+                        overflow-x: hidden;
+                    }
+                    
+                    .day-content.active {
+                        display: block;
+                    }
+                    
+                    .day-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 25px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #f0f0f0;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                    }
+                    
+                    .day-title {
+                        color: #4a6fa5;
+                        font-size: clamp(1.3rem, 3vw, 1.8rem);
+                        font-weight: bold;
+                        word-break: break-word;
+                    }
+                    
+                    .day-date {
+                        color: #666;
+                        font-size: clamp(0.9rem, 2vw, 1rem);
+                        background: #f8f9fa;
+                        padding: 8px 15px;
+                        border-radius: 20px;
+                        white-space: nowrap;
+                    }
+                    
+                    /* 活動項目 */
+                    .activities-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                        width: 100%;
+                        max-width: 100%;
+                    }
+                    
+                    .activity-item {
+                        background: #f9f9f9;
+                        border-left: 4px solid #4a6fa5;
+                        border-radius: 8px;
+                        padding: 20px;
+                        transition: all 0.3s;
+                        position: relative;
+                        width: 100%;
+                        max-width: 100%;
+                        overflow: hidden;
+                    }
+                    
+                    .activity-item:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                    }
+                    
+                    .activity-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-bottom: 15px;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                        width: 100%;
+                    }
+                    
+                    .activity-name {
+                        font-weight: bold;
+                        font-size: clamp(1rem, 2vw, 1.2rem);
+                        color: #4a6fa5;
+                        word-break: break-word;
+                        max-width: 100%;
+                    }
+                    
+                    .activity-category {
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: bold;
+                        margin-left: 10px;
+                        white-space: nowrap;
+                        flex-shrink: 0;
+                    }
+                    
+                    .activity-category.attraction {
+                        background-color: #e3f2fd;
+                        color: #1565c0;
+                    }
+                    
+                    .activity-category.transport {
+                        background-color: #f3e5f5;
+                        color: #7b1fa2;
+                    }
+                    
+                    .activity-category.activity {
+                        background-color: #e8f5e9;
+                        color: #2e7d32;
+                    }
+                    
+                    .activity-category.accommodation {
+                        background-color: #fff3e0;
+                        color: #ef6c00;
+                    }
+                    
+                    .activity-category.other {
+                        background-color: #f5f5f5;
+                        color: #616161;
+                    }
+                    
+                    .activity-time {
+                        color: #666;
+                        font-size: 0.9rem;
+                        white-space: nowrap;
+                        background: white;
+                        padding: 5px 10px;
+                        border-radius: 15px;
+                        border: 1px solid #e0e0e0;
+                        flex-shrink: 0;
+                    }
+                    
+                    .activity-details {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 15px;
+                        margin-top: 15px;
+                        width: 100%;
+                        max-width: 100%;
+                    }
+                    
+                    .activity-details div {
+                        font-size: 0.9rem;
+                        word-break: break-word;
+                        max-width: 100%;
+                    }
+                    
+                    .activity-details i {
+                        color: #4a6fa5;
+                        margin-right: 8px;
+                        width: 20px;
+                    }
+                    
+                    /* 交通方式 */
+                    .transport-item {
+                        background: #f0f7ff;
+                        border-left: 4px solid #6b8cbc;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin: 15px 0 15px 30px;
+                        position: relative;
+                        width: calc(100% - 30px);
+                        max-width: 100%;
+                        overflow: hidden;
+                    }
+                    
+                    .transport-item::before {
+                        content: "";
+                        position: absolute;
+                        left: -20px;
+                        top: 50%;
+                        width: 20px;
+                        height: 1px;
+                        background-color: #e0e0e0;
+                    }
+                    
+                    .transport-item::after {
+                        content: "→";
+                        position: absolute;
+                        left: -25px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #666;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .transport-type {
+                        display: inline-block;
+                        padding: 3px 10px;
+                        border-radius: 20px;
+                        font-size: 0.75rem;
+                        font-weight: bold;
+                        background-color: #e3f2fd;
+                        color: #1565c0;
+                        margin-bottom: 10px;
+                        white-space: nowrap;
+                    }
+                    
+                    .transport-main {
+                        border-left-color: #4caf50;
+                    }
+                    
+                    .transport-alternate {
+                        border-left-color: #ff9800;
+                    }
+                    
+                    /* 費用統計 */
+                    .cost-summary {
+                        background: white;
+                        border-radius: 10px;
+                        padding: 25px;
+                        margin-top: 30px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                        width: 100%;
+                        max-width: 100%;
+                        overflow-x: auto;
+                    }
+                    
+                    .cost-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 15px;
+                        font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+                        min-width: 300px;
+                    }
+                    
+                    .cost-table th, .cost-table td {
+                        padding: 12px 15px;
+                        text-align: left;
+                        border-bottom: 1px solid #e0e0e0;
+                        word-break: break-word;
+                        white-space: nowrap;
+                    }
+                    
+                    .cost-table th {
+                        background-color: #f0f0f0;
+                        color: #333;
+                        font-weight: 600;
+                    }
+                    
+                    .cost-table tr:last-child td {
+                        border-bottom: none;
+                    }
+                    
+                    .total-cost {
+                        font-weight: bold;
+                        color: #ff7e5f;
+                    }
+                    
+                    /* 響應式設計 */
+                    @media (max-width: 768px) {
+                        .container {
+                            padding: 15px;
+                        }
+                        
+                        header {
+                            padding: 20px 15px;
+                        }
+                        
+                        .header-info {
+                            grid-template-columns: 1fr;
+                            gap: 15px;
+                        }
+                        
+                        .day-nav-btn {
+                            min-width: 100px;
+                            padding: 10px 15px;
+                        }
+                        
+                        .day-content {
+                            padding: 20px;
+                        }
+                        
+                        .activity-details {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .activity-header {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 10px;
+                        }
+                        
+                        .activity-category {
+                            margin-left: 0;
+                            margin-top: 5px;
+                        }
+                        
+                        .transport-item {
+                            margin-left: 20px;
+                            width: calc(100% - 20px);
+                        }
+                        
+                        .days-nav {
+                            width: max-content;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .container {
+                            padding: 10px;
+                        }
+                        
+                        header {
+                            padding: 15px 10px;
+                        }
+                        
+                        h1 {
+                            font-size: 1.5rem;
+                        }
+                        
+                        .day-nav-btn {
+                            min-width: 80px;
+                            padding: 8px 12px;
+                            font-size: 0.8rem;
+                        }
+                        
+                        .activity-item {
+                            padding: 15px;
+                        }
+                        
+                        .transport-item {
+                            padding: 12px;
+                        }
+                    }
+                    
+                    /* 頁腳 */
+                    footer {
+                        text-align: center;
+                        margin-top: 50px;
+                        padding-top: 20px;
+                        border-top: 1px solid #e0e0e0;
+                        color: #666;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .print-btn {
+                        position: fixed;
+                        bottom: 20px;
+                        right: 20px;
+                        background: #4a6fa5;
+                        color: white;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.2rem;
+                        cursor: pointer;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                        transition: all 0.3s;
+                        z-index: 100;
+                        border: none;
+                    }
+                    
+                    .print-btn:hover {
+                        background: #6b8cbc;
+                        transform: scale(1.1);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <header>
+                        <h1><i class="fas fa-map-marked-alt"></i> ${plan.name}</h1>
+                        <div class="header-info">
+                            <div class="info-item">
+                                <strong>旅遊開始日期</strong>
+                                ${new Date(plan.startDate).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                            <div class="info-item">
+                                <strong>旅遊結束日期</strong>
+                                ${new Date(new Date(plan.startDate).getTime() + (plan.days - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                            <div class="info-item">
+                                <strong>旅遊天數</strong>
+                                ${plan.days} 天
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div class="days-nav-container" id="daysNavContainer">
+                        <div class="days-nav" id="daysNav">
+                            <!-- 天數導航按鈕將動態生成 -->
+                        </div>
+                    </div>
+                    
+                    <div id="daysContent">
+                        <!-- 天數內容將動態生成 -->
+                    </div>
+                    
+                    <div class="cost-summary">
+                        <h3><i class="fas fa-calculator"></i> 費用統計</h3>
+                        <table class="cost-table">
+                            <thead>
+                                <tr>
+                                    <th>幣別</th>
+                                    <th>總費用</th>
+                                    <th>分攤人數</th>
+                                    <th>每人費用</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shareCostTableBody">
+                                <!-- 費用統計將動態生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <footer>
+                        <p>使用「旅遊計劃規劃」應用程式創建 • ${new Date().toLocaleDateString('zh-TW')}</p>
+                    </footer>
+                </div>
+                
+                <button class="print-btn" onclick="window.print()">
+                    <i class="fas fa-print"></i>
+                </button>
+                
+                <script>
+                    // 分享頁面的JavaScript
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // 設置天數導航點擊事件
+                        document.querySelectorAll('.day-nav-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const day = this.dataset.day;
+                                showDayContent(day);
+                            });
+                        });
+                        
+                        // 顯示第一天
+                        showDayContent(1);
+                    });
+                    
+                    function showDayContent(day) {
+                        // 隱藏所有天數內容
+                        document.querySelectorAll('.day-content').forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        
+                        // 顯示選定的天數內容
+                        const dayContent = document.getElementById('dayContent' + day);
+                        if (dayContent) {
+                            dayContent.classList.add('active');
+                        }
+                        
+                        // 更新導航按鈕狀態
+                        document.querySelectorAll('.day-nav-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.dataset.day === day) {
+                                btn.classList.add('active');
+                            }
+                        });
+                        
+                        // 平滑滾動到天數內容
+                        dayContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                <\/script>
+            </body>
+            </html>
+            `;
+            
+            // 計算費用統計（僅當前計劃）
+            const costByCurrency = {};
+            
+            // 活動費用
+            if (plan.activities) {
+                plan.activities.forEach(activity => {
+                    if (activity.cost > 0) {
+                        const currency = activity.currency || 'TWD';
+                        if (!costByCurrency[currency]) {
+                            costByCurrency[currency] = {
+                                totalCost: 0,
+                                totalPersonalCost: 0,
+                                maxParticipants: 1
+                            };
+                        }
+                        
+                        costByCurrency[currency].totalCost += activity.cost;
+                        const personalCost = activity.cost / (activity.participants || 1);
+                        costByCurrency[currency].totalPersonalCost += personalCost;
+                        costByCurrency[currency].maxParticipants = Math.max(
+                            costByCurrency[currency].maxParticipants,
+                            activity.participants || 1
+                        );
+                    }
+                });
+            }
+            
+            // 交通費用
+            if (plan.transports) {
+                plan.transports.forEach(transport => {
+                    if (transport.cost > 0) {
+                        const currency = transport.currency || 'TWD';
+                        if (!costByCurrency[currency]) {
+                            costByCurrency[currency] = {
+                                totalCost: 0,
+                                totalPersonalCost: 0,
+                                maxParticipants: 1
+                            };
+                        }
+                        
+                        costByCurrency[currency].totalCost += transport.cost;
+                        const personalCost = transport.cost / (transport.participants || 1);
+                        costByCurrency[currency].totalPersonalCost += personalCost;
+                        costByCurrency[currency].maxParticipants = Math.max(
+                            costByCurrency[currency].maxParticipants,
+                            transport.participants || 1
+                        );
+                    }
+                });
+            }
+            
+            // 生成費用統計HTML
+            let costHtml = '';
+            let totalPersonalCostAll = 0;
+            
+            Object.keys(costByCurrency).forEach(currency => {
+                const costData = costByCurrency[currency];
+                costHtml += `
+                    <tr>
+                        <td>${currency}</td>
+                        <td>${costData.totalCost.toFixed(2)}</td>
+                        <td>${costData.maxParticipants}</td>
+                        <td class="total-cost">${costData.totalPersonalCost.toFixed(2)}</td>
+                    </tr>
+                `;
+                totalPersonalCostAll += costData.totalPersonalCost;
+            });
+            
+            if (Object.keys(costByCurrency).length > 0) {
+                costHtml += `
+                    <tr style="font-weight: bold; background-color: #f0f0f0;">
+                        <td colspan="3">總計 (每人)</td>
+                        <td class="total-cost">${totalPersonalCostAll.toFixed(2)}</td>
+                    </tr>
+                `;
+            } else {
+                costHtml = '<tr><td colspan="4" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
+            }
+            
+            // 替換費用統計
+            html = html.replace('<!-- 費用統計將動態生成 -->', costHtml);
+            
+            // 生成天數導航和內容
+            let daysNavHtml = '';
+            let daysContentHtml = '';
+            
+            for (let day = 1; day <= plan.days; day++) {
+                const dayDate = new Date(plan.startDate);
+                dayDate.setDate(dayDate.getDate() + day - 1);
+                
+                const dayTitle = plan.dayTitles && plan.dayTitles[day] ? plan.dayTitles[day] : `第 ${day} 天`;
+                const dateStr = dayDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+                
+                // 天數導航按鈕 - 只顯示 Day1, Day2...
+                daysNavHtml += `
+                    <button class="day-nav-btn ${day === 1 ? 'active' : ''}" data-day="${day}">
+                        Day ${day}
+                    </button>
+                `;
+                
+                // 當天的活動
+                const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
+                const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
+                
+                // 按開始時間排序活動
+                dayActivities.sort((a, b) => {
+                    const timeA = a.startTime ? parseTime(a.startTime) : 0;
+                    const timeB = b.startTime ? parseTime(b.startTime) : 0;
+                    return timeA - timeB;
+                });
+                
+                // 天數內容
+                let dayContentHtml = `<div class="day-content ${day === 1 ? 'active' : ''}" id="dayContent${day}">`;
+                dayContentHtml += `
+                    <div class="day-header">
+                        <div class="day-title">${dayTitle}</div>
+                        <div class="day-date">${dateStr}</div>
+                    </div>
+                    <div class="activities-container">
+                `;
+                
+                // 如果沒有活動
+                if (dayActivities.length === 0) {
+                    dayContentHtml += `
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                            <p>當日暫無行程安排</p>
+                        </div>
+                    `;
+                } else {
+                    // 生成活動項目
+                    dayActivities.forEach((activity, index) => {
+                        const categoryLabels = {
+                            attraction: '景點',
+                            transport: '交通',
+                            activity: '活動',
+                            accommodation: '住宿',
+                            other: '其他'
+                        };
+                        
+                        const categoryClasses = {
+                            attraction: 'attraction',
+                            transport: 'transport',
+                            activity: 'activity',
+                            accommodation: 'accommodation',
+                            other: 'other'
+                        };
+                        
+                        dayContentHtml += `
+                            <div class="activity-item">
+                                <div class="activity-header">
+                                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                                        <span class="activity-name">${activity.name}</span>
+                                        <span class="activity-category ${categoryClasses[activity.category]}">
+                                            ${categoryLabels[activity.category]}
+                                        </span>
+                                    </div>
+                                    <div class="activity-time">
+                                        ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
+                                    </div>
+                                </div>
+                                <div class="activity-details">
+                                    <div><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
+                                    ${activity.address ? `<div><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+                                    ${activity.cost > 0 ? `
+                                        <div><i class="fas fa-money-bill-wave"></i> 
+                                            ${activity.currency} ${activity.cost.toFixed(2)}
+                                            ${activity.participants > 1 ? ` (每人 ${(activity.cost / activity.participants).toFixed(2)})` : ''}
+                                        </div>
+                                    ` : ''}
+                                    ${activity.link && activity.linkName ? `
+                                        <div><i class="fas fa-link"></i> <a href="${activity.link}" target="_blank" style="word-break: break-all;">${activity.linkName}</a></div>
+                                    ` : ''}
+                                    ${activity.notes ? `<div><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 在活動之間插入交通方式
+                        if (index < dayActivities.length - 1) {
+                            const nextActivity = dayActivities[index + 1];
+                            const transportsBetween = dayTransports.filter(t => 
+                                t.fromActivityId === activity.id && t.toActivityId === nextActivity.id
+                            );
+                            
+                            transportsBetween.forEach(transport => {
+                                const transportLabels = {
+                                    taxi: '計程車',
+                                    subway: '地鐵',
+                                    bus: '公交',
+                                    train: '高鐵',
+                                    walking: '步行',
+                                    flight: '飛機',
+                                    ship: '輪船',
+                                    other: '其他'
+                                };
+                                
+                                // 使用行程地點而不是行程名稱
+                                const routeDescription = transport.fromLocation && transport.toLocation 
+                                    ? `${transport.fromLocation} → ${transport.toLocation}`
+                                    : `${transport.fromActivityName} → ${transport.toActivityName}`;
+                                
+                                dayContentHtml += `
+                                    <div class="transport-item ${transport.isMain ? 'transport-main' : 'transport-alternate'}">
+                                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                            <span class="transport-type">${transportLabels[transport.type]}</span>
+                                            <span style="font-size: 0.9rem;">
+                                                ${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}
+                                            </span>
+                                        </div>
+                                        <div><i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}</div>
+                                        <div><i class="fas fa-route"></i> ${routeDescription}</div>
+                                        ${transport.cost > 0 ? `
+                                            <div><i class="fas fa-money-bill-wave"></i> 
+                                                ${transport.currency} ${transport.cost.toFixed(2)}
+                                                ${transport.participants > 1 ? ` (每人 ${(transport.cost / transport.participants).toFixed(2)})` : ''}
+                                            </div>
+                                        ` : ''}
+                                        ${transport.link && transport.linkName ? `
+                                            <div><i class="fas fa-link"></i> <a href="${transport.link}" target="_blank" style="word-break: break-all;">${transport.linkName}</a></div>
+                                        ` : ''}
+                                        ${transport.notes ? `<div><i class="fas fa-sticky-note"></i> ${transport.notes}</div>` : ''}
+                                    </div>
+                                `;
+                            });
+                        }
+                    });
+                }
+                
+                dayContentHtml += `
+                        </div>
+                    </div>
+                `;
+                
+                daysContentHtml += dayContentHtml;
+            }
+            
+            // 替換天數導航和內容
+            html = html.replace('<!-- 天數導航按鈕將動態生成 -->', daysNavHtml);
+            html = html.replace('<!-- 天數內容將動態生成 -->', daysContentHtml);
+            
+            // 創建下載連結
+            const filename = `旅遊計劃_${plan.name}_分享.html`;
+            const dataBlob = new Blob([html], {type: 'text/html'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 更新費用統計（僅顯示當前選定的計劃）
+        function updateCostSummary() {
+            const costTableBody = document.getElementById('costTableBody');
+            costTableBody.innerHTML = '';
+            
+            if (!state.currentPlanId) {
+                costTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">請選擇一個旅遊計劃</td></tr>';
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                costTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">找不到計劃資料</td></tr>';
+                return;
+            }
+            
+            // 計算當前計劃的費用
+            const costByCurrency = {};
+            
+            // 活動費用
+            if (plan.activities) {
+                plan.activities.forEach(activity => {
+                    if (activity.cost > 0) {
+                        const currency = activity.currency || 'TWD';
+                        if (!costByCurrency[currency]) {
+                            costByCurrency[currency] = {
+                                totalCost: 0,
+                                totalPersonalCost: 0,
+                                maxParticipants: 1
+                            };
+                        }
+                        
+                        costByCurrency[currency].totalCost += activity.cost;
+                        const personalCost = activity.cost / (activity.participants || 1);
+                        costByCurrency[currency].totalPersonalCost += personalCost;
+                        costByCurrency[currency].maxParticipants = Math.max(
+                            costByCurrency[currency].maxParticipants,
+                            activity.participants || 1
+                        );
+                    }
+                });
+            }
+            
+            // 交通費用
+            if (plan.transports) {
+                plan.transports.forEach(transport => {
+                    if (transport.cost > 0) {
+                        const currency = transport.currency || 'TWD';
+                        if (!costByCurrency[currency]) {
+                            costByCurrency[currency] = {
+                                totalCost: 0,
+                                totalPersonalCost: 0,
+                                maxParticipants: 1
+                            };
+                        }
+                        
+                        costByCurrency[currency].totalCost += transport.cost;
+                        const personalCost = transport.cost / (transport.participants || 1);
+                        costByCurrency[currency].totalPersonalCost += personalCost;
+                        costByCurrency[currency].maxParticipants = Math.max(
+                            costByCurrency[currency].maxParticipants,
+                            transport.participants || 1
+                        );
+                    }
+                });
+            }
+            
+            // 填充表格
+            let totalPersonalCostAll = 0;
+            
+            Object.keys(costByCurrency).forEach(currency => {
+                const costData = costByCurrency[currency];
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${currency}</td>
+                    <td>${costData.totalCost.toFixed(2)}</td>
+                    <td>${costData.maxParticipants}</td>
+                    <td class="total-cost">${costData.totalPersonalCost.toFixed(2)}</td>
+                `;
+                
+                costTableBody.appendChild(row);
+                totalPersonalCostAll += costData.totalPersonalCost;
+            });
+            
+            // 添加總計行
+            if (Object.keys(costByCurrency).length > 0) {
+                const totalRow = document.createElement('tr');
+                totalRow.style.fontWeight = 'bold';
+                totalRow.style.backgroundColor = '#f0f0f0';
+                
+                totalRow.innerHTML = `
+                    <td colspan="3">總計 (每人)</td>
+                    <td class="total-cost">${totalPersonalCostAll.toFixed(2)}</td>
+                `;
+                
+                costTableBody.appendChild(totalRow);
+            } else {
+                costTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
+            }
+        }
+
+        // 輔助函數：格式化日期
+        function formatDate(date) {
+            return date.toLocaleDateString('zh-TW', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // 輔助函數：解析時間字符串為分鐘數
+        function parseTime(timeStr) {
+            if (!timeStr) return 0;
+            
+            const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+            if (match) {
+                const hours = parseInt(match[1]);
+                const minutes = parseInt(match[2]);
+                return hours * 60 + minutes;
+            }
+            
+            return 0;
+        }
+    </script>
+</body>
+</html>
