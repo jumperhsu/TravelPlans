@@ -596,6 +596,11 @@
             color: #ef6c00;
         }
 
+        .activity-category.shopping {
+            background-color: #fff0f5;
+            color: #c2185b;
+        }
+
         .activity-category.other {
             background-color: #f5f5f5;
             color: #616161;
@@ -973,6 +978,182 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
+        /* 滾動到頂部/底部按鈕 */
+        .scroll-buttons {
+            position: fixed;
+            right: clamp(15px, 3vw, 30px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99;
+        }
+
+        .scroll-btn {
+            width: clamp(40px, 8vw, 50px);
+            height: clamp(40px, 8vw, 50px);
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            border: none;
+            font-size: 1.2rem;
+        }
+
+        .scroll-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        /* 多連結區域 */
+        .links-container {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            border: 1px dashed var(--border-color);
+        }
+
+        .link-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .link-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .link-item input {
+            flex: 1;
+        }
+
+        .link-item .link-name {
+            min-width: 120px;
+        }
+
+        .link-item .link-url {
+            flex: 2;
+        }
+
+        .add-link-btn, .remove-link-btn {
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            border: none;
+            background-color: var(--light-text);
+            color: white;
+            font-size: 0.8rem;
+            min-width: 30px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-link-btn {
+            background-color: var(--success-color);
+        }
+
+        .add-link-btn:hover {
+            background-color: #45a049;
+        }
+
+        .remove-link-btn {
+            background-color: var(--danger-color);
+        }
+
+        .remove-link-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .links-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* 交通方式區域 */
+        .transport-options-container {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            border: 1px dashed var(--border-color);
+        }
+
+        .transport-option {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .transport-option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .transport-option-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transport-option-title {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .transport-option-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .add-transport-option-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .add-transport-option-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        /* 前一晚住宿選擇 */
+        .previous-accommodation {
+            background-color: #fff3e0;
+            border-left: 4px solid #ef6c00;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .previous-accommodation select {
+            margin-top: 5px;
+        }
+
         /* 響應式設計 */
         @media (max-width: 1024px) {
             .app-container {
@@ -989,6 +1170,10 @@
             .floating-buttons {
                 right: 20px;
                 bottom: 20px;
+            }
+            
+            .scroll-buttons {
+                display: none; /* 在小螢幕隱藏滾動按鈕 */
             }
             
             .mobile-menu-btn {
@@ -1041,6 +1226,14 @@
             
             .header-bottom-row {
                 justify-content: flex-start;
+            }
+            
+            .link-item {
+                flex-direction: column;
+            }
+            
+            .link-item input {
+                width: 100%;
             }
         }
 
@@ -1316,6 +1509,16 @@
     <!-- 遮罩層 -->
     <div class="overlay" id="overlay"></div>
     
+    <!-- 滾動到頂部/底部按鈕 -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn" id="scrollToTopBtn">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <button class="scroll-btn" id="scrollToBottomBtn">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+    
     <div class="container scroll-prevention">
         <header>
             <div class="header-left">
@@ -1493,12 +1696,21 @@
                         <label for="activityCategory">分類</label>
                         <select id="activityCategory" required>
                             <option value="attraction">景點</option>
-                            <option value="transport">交通</option>
+                            <option value="shopping">購物</option>
                             <option value="activity">活動</option>
                             <option value="accommodation">住宿</option>
                             <option value="other">其他</option>
                         </select>
                     </div>
+                    
+                    <!-- 前一晚住宿選擇（僅當類別為住宿時顯示） -->
+                    <div id="previousAccommodationContainer" class="previous-accommodation" style="display: none;">
+                        <label for="previousAccommodation">選擇前一晚住宿地點</label>
+                        <select id="previousAccommodation">
+                            <option value="">無（新住宿地點）</option>
+                        </select>
+                    </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="activityLocation">地點</label>
@@ -1534,16 +1746,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="activityLinkName">連結名稱</label>
-                            <input type="text" id="activityLinkName">
+                    
+                    <!-- 多連結區域 -->
+                    <div class="links-container">
+                        <div class="links-title">
+                            <label>相關連結</label>
+                            <button type="button" class="add-link-btn" id="addActivityLinkBtn">
+                                <i class="fas fa-plus"></i> 新增連結
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label for="activityLink">連結</label>
-                            <input type="url" id="activityLink" placeholder="https://example.com">
+                        <div id="activityLinksContainer">
+                            <!-- 連結項目將動態生成 -->
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="activityNotes">行程備註</label>
                         <textarea id="activityNotes" rows="3"></textarea>
@@ -1590,64 +1806,20 @@
                             <input type="text" id="transportEndTime" placeholder="例如：0930" required>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="transportType">交通類別</label>
-                        <select id="transportType" required>
-                            <option value="taxi">計程車</option>
-                            <option value="subway">地鐵</option>
-                            <option value="bus">公交</option>
-                            <option value="train">高鐵</option>
-                            <option value="walking">步行</option>
-                            <option value="flight">飛機</option>
-                            <option value="ship">輪船</option>
-                            <option value="other">其他</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="transportCost">交通費用</label>
-                                <input type="number" id="transportCost" min="0" step="0.01" value="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="transportCurrency">幣別</label>
-                                <select id="transportCurrency">
-                                    <option value="TWD">新台幣 (TWD)</option>
-                                    <option value="USD">美元 (USD)</option>
-                                    <option value="JPY">日圓 (JPY)</option>
-                                    <option value="EUR">歐元 (EUR)</option>
-                                    <option value="CNY">人民幣 (CNY)</option>
-                                    <option value="KRW">韓元 (KRW)</option>
-                                    <option value="HKD">港幣 (HKD)</option>
-                                    <option value="GBP">英鎊 (GBP)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="transportParticipants">分攤人數</label>
-                                <input type="number" id="transportParticipants" min="1" value="1">
-                            </div>
+                    
+                    <!-- 多交通方式區域 -->
+                    <div class="transport-options-container">
+                        <div class="links-title">
+                            <label>交通方式選項</label>
+                            <button type="button" class="add-transport-option-btn" id="addTransportOptionBtn">
+                                <i class="fas fa-plus"></i> 新增交通方式
+                            </button>
+                        </div>
+                        <div id="transportOptionsContainer">
+                            <!-- 交通方式選項將動態生成 -->
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="transportLinkName">連結名稱</label>
-                            <input type="text" id="transportLinkName">
-                        </div>
-                        <div class="form-group">
-                            <label for="transportLink">連結</label>
-                            <input type="url" id="transportLink" placeholder="https://example.com">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="transportNotes">備註</label>
-                        <textarea id="transportNotes" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="transportIsMain">
-                            設為主要交通方式
-                        </label>
-                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="cancelTransportBtn">取消</button>
                         <button type="submit" class="btn btn-primary">儲存</button>
@@ -1948,6 +2120,15 @@
         function setupEventListeners() {
             console.log('設置事件監聽器...');
             
+            // 滾動到頂部/底部按鈕
+            document.getElementById('scrollToTopBtn').addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            document.getElementById('scrollToBottomBtn').addEventListener('click', function() {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            });
+            
             // 主題選擇
             document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -2003,6 +2184,41 @@
             
             // 匯率設定儲存按鈕
             document.getElementById('saveExchangeRateBtn').addEventListener('click', saveExchangeRates);
+            
+            // 行程類別變更時顯示/隱藏前一晚住宿選擇
+            document.getElementById('activityCategory').addEventListener('change', function() {
+                const previousAccommodationContainer = document.getElementById('previousAccommodationContainer');
+                if (this.value === 'accommodation' && state.currentPlanId && state.currentDay > 1) {
+                    loadPreviousAccommodations();
+                    previousAccommodationContainer.style.display = 'block';
+                } else {
+                    previousAccommodationContainer.style.display = 'none';
+                }
+            });
+            
+            // 前一晚住宿選擇變更時更新地點和地址
+            document.getElementById('previousAccommodation').addEventListener('change', function() {
+                if (this.value) {
+                    const plan = state.plans.find(p => p.id === state.currentPlanId);
+                    if (plan && plan.activities) {
+                        const accommodation = plan.activities.find(a => a.id === parseInt(this.value));
+                        if (accommodation) {
+                            document.getElementById('activityLocation').value = accommodation.location;
+                            document.getElementById('activityAddress').value = accommodation.address || '';
+                        }
+                    }
+                }
+            });
+            
+            // 新增活動連結按鈕
+            document.getElementById('addActivityLinkBtn').addEventListener('click', function() {
+                addActivityLinkField();
+            });
+            
+            // 新增交通方式按鈕
+            document.getElementById('addTransportOptionBtn').addEventListener('click', function() {
+                addTransportOptionField();
+            });
             
             // 表單提交
             document.getElementById('planForm').addEventListener('submit', function(e) {
@@ -2486,6 +2702,29 @@
             }
         }
 
+        // 載入前一晚的住宿選項
+        function loadPreviousAccommodations() {
+            const select = document.getElementById('previousAccommodation');
+            select.innerHTML = '<option value="">無（新住宿地點）</option>';
+            
+            if (state.currentPlanId && state.currentDay > 1) {
+                const plan = state.plans.find(p => p.id === state.currentPlanId);
+                if (plan && plan.activities) {
+                    const previousDay = state.currentDay - 1;
+                    const accommodations = plan.activities.filter(a => 
+                        a.day === previousDay && a.category === 'accommodation'
+                    );
+                    
+                    accommodations.forEach(accommodation => {
+                        const option = document.createElement('option');
+                        option.value = accommodation.id;
+                        option.textContent = `${accommodation.name} - ${accommodation.location}`;
+                        select.appendChild(option);
+                    });
+                }
+            }
+        }
+
         // 顯示指定天數的內容
         function showDayContent(day) {
             document.querySelectorAll('.day-content').forEach(content => {
@@ -2572,6 +2811,7 @@
                 transport: '交通',
                 activity: '活動',
                 accommodation: '住宿',
+                shopping: '購物',
                 other: '其他'
             };
             
@@ -2580,6 +2820,7 @@
                 transport: 'transport',
                 activity: 'activity',
                 accommodation: 'accommodation',
+                shopping: 'shopping',
                 other: 'other'
             };
             
@@ -2616,9 +2857,12 @@
                             ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
                         </div>
                     ` : ''}
-                    ${activity.link && activity.linkName ? `
+                    ${activity.links && activity.links.length > 0 ? `
                         <div class="activity-links">
-                            <a href="${activity.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${activity.linkName}</a>
+                            <i class="fas fa-link"></i>
+                            ${activity.links.map(link => 
+                                `<a href="${link.url}" target="_blank" style="word-break: break-all;">${link.name}</a>`
+                            ).join(' ')}
                         </div>
                     ` : ''}
                     ${activity.notes ? `
@@ -2684,20 +2928,74 @@
                 ? `${transport.fromLocation} → ${transport.toLocation}`
                 : `${transport.fromActivityName} → ${transport.toActivityName}`;
             
-            // 計算換算後的台幣費用
-            const originalCost = transport.cost || 0;
-            const currency = transport.currency || 'TWD';
-            const exchangeRate = state.exchangeRates[currency] || 1;
-            const twdCost = originalCost * exchangeRate;
-            const participants = transport.participants || 1;
-            const personalTwdCost = twdCost / participants;
+            // 計算換算後的台幣費用（只有主要交通方式才計算費用）
+            let totalCostTWD = 0;
+            let totalPersonalTWD = 0;
+            
+            if (transport.isMain && transport.options && transport.options.length > 0) {
+                transport.options.forEach(option => {
+                    if (option.isMain && option.cost > 0) {
+                        const currency = option.currency || 'TWD';
+                        const exchangeRate = state.exchangeRates[currency] || 1;
+                        const originalCost = option.cost;
+                        const twdCost = originalCost * exchangeRate;
+                        const participants = option.participants || 1;
+                        const personalTwdCost = twdCost / participants;
+                        
+                        totalCostTWD += twdCost;
+                        totalPersonalTWD += personalTwdCost;
+                    }
+                });
+            }
+            
+            // 顯示所有交通方式選項
+            let optionsHtml = '';
+            if (transport.options && transport.options.length > 0) {
+                transport.options.forEach((option, index) => {
+                    const transportTypeLabel = transportLabels[option.type] || option.type;
+                    const isMainOption = option.isMain ? '✓ 主要' : '○ 次要';
+                    
+                    // 計算換算後的台幣費用
+                    const originalCost = option.cost || 0;
+                    const currency = option.currency || 'TWD';
+                    const exchangeRate = state.exchangeRates[currency] || 1;
+                    const twdCost = originalCost * exchangeRate;
+                    const participants = option.participants || 1;
+                    const personalTwdCost = twdCost / participants;
+                    
+                    optionsHtml += `
+                        <div style="margin: 8px 0; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid ${option.isMain ? '#4caf50' : '#ff9800'};">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span><strong>${transportTypeLabel}</strong> <span style="color: ${option.isMain ? '#4caf50' : '#ff9800'};">(${isMainOption})</span></span>
+                            </div>
+                            ${originalCost > 0 ? `
+                                <div style="font-size: 0.9rem;">
+                                    <i class="fas fa-money-bill-wave"></i> 
+                                    ${currency} ${originalCost.toFixed(2)} 
+                                    <small>(${twdCost.toFixed(2)} TWD)</small>
+                                    ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
+                                </div>
+                            ` : ''}
+                            ${option.link && option.linkName ? `
+                                <div style="font-size: 0.9rem; margin-top: 5px;">
+                                    <a href="${option.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${option.linkName}</a>
+                                </div>
+                            ` : ''}
+                            ${option.notes ? `
+                                <div style="font-size: 0.9rem; margin-top: 5px;">
+                                    <i class="fas fa-sticky-note"></i> ${option.notes}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
             
             transportElement.innerHTML = `
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    <span class="transport-type">${transportLabels[transport.type]}</span>
-                    <span style="font-size: 0.9rem;">
+                    <div>
                         ${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}
-                    </span>
+                    </div>
                 </div>
                 <div style="margin: 8px 0; word-break: break-word;">
                     <i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}
@@ -2705,24 +3003,19 @@
                 <div style="margin: 8px 0; word-break: break-word;">
                     <i class="fas fa-route"></i> ${routeDescription}
                 </div>
-                ${originalCost > 0 ? `
-                    <div style="margin: 8px 0; word-break: break-word;">
+                
+                <div style="margin: 15px 0;">
+                    ${optionsHtml}
+                </div>
+                
+                ${totalCostTWD > 0 ? `
+                    <div style="margin: 8px 0; padding: 10px; background: #e8f5e9; border-radius: 4px; word-break: break-word;">
                         <i class="fas fa-money-bill-wave"></i> 
-                        ${currency} ${originalCost.toFixed(2)} 
-                        <small>(${twdCost.toFixed(2)} TWD)</small>
-                        ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
+                        <strong>總費用: ${totalCostTWD.toFixed(2)} TWD</strong>
+                        <small> (每人 ${totalPersonalTWD.toFixed(2)} TWD)</small>
                     </div>
                 ` : ''}
-                ${transport.link && transport.linkName ? `
-                    <div style="margin: 8px 0; word-break: break-word;">
-                        <a href="${transport.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${transport.linkName}</a>
-                    </div>
-                ` : ''}
-                ${transport.notes ? `
-                    <div style="margin: 8px 0; word-break: break-word;">
-                        <i class="fas fa-sticky-note"></i> ${transport.notes}
-                    </div>
-                ` : ''}
+                
                 <div style="margin-top: 10px; text-align: right;">
                     <button class="btn btn-small btn-secondary edit-transport" data-id="${transport.id}">
                         <i class="fas fa-edit"></i> 編輯
@@ -2823,6 +3116,131 @@
             });
             
             savePlansToStorage();
+        }
+
+        // 新增活動連結欄位
+        function addActivityLinkField(linkData = { name: '', url: '' }) {
+            const container = document.getElementById('activityLinksContainer');
+            const linkIndex = container.children.length;
+            
+            const linkItem = document.createElement('div');
+            linkItem.className = 'link-item';
+            linkItem.innerHTML = `
+                <input type="text" class="link-name" placeholder="連結名稱" value="${linkData.name || ''}">
+                <input type="url" class="link-url" placeholder="https://example.com" value="${linkData.url || ''}">
+                <button type="button" class="remove-link-btn" data-index="${linkIndex}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(linkItem);
+            
+            // 為刪除按鈕添加事件監聽器
+            linkItem.querySelector('.remove-link-btn').addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        }
+
+        // 新增交通方式選項欄位
+        function addTransportOptionField(optionData = null) {
+            const container = document.getElementById('transportOptionsContainer');
+            const optionIndex = container.children.length;
+            
+            const optionItem = document.createElement('div');
+            optionItem.className = 'transport-option';
+            
+            const optionId = optionData ? optionData.id || Date.now() + Math.random() : Date.now() + Math.random();
+            
+            optionItem.innerHTML = `
+                <div class="transport-option-header">
+                    <div class="transport-option-title">交通方式選項 #${optionIndex + 1}</div>
+                    <div class="transport-option-actions">
+                        <button type="button" class="btn btn-small btn-secondary set-main-option" data-id="${optionId}">
+                            <i class="fas fa-star"></i> 設為主要
+                        </button>
+                        <button type="button" class="remove-link-btn remove-transport-option" data-id="${optionId}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="transportOptionType_${optionId}">交通類別</label>
+                    <select id="transportOptionType_${optionId}" class="transport-option-type">
+                        <option value="taxi" ${(optionData && optionData.type === 'taxi') ? 'selected' : ''}>計程車</option>
+                        <option value="subway" ${(optionData && optionData.type === 'subway') ? 'selected' : ''}>地鐵</option>
+                        <option value="bus" ${(optionData && optionData.type === 'bus') ? 'selected' : ''}>公交</option>
+                        <option value="train" ${(optionData && optionData.type === 'train') ? 'selected' : ''}>高鐵</option>
+                        <option value="walking" ${(optionData && optionData.type === 'walking') ? 'selected' : ''}>步行</option>
+                        <option value="flight" ${(optionData && optionData.type === 'flight') ? 'selected' : ''}>飛機</option>
+                        <option value="ship" ${(optionData && optionData.type === 'ship') ? 'selected' : ''}>輪船</option>
+                        <option value="other" ${(optionData && optionData.type === 'other') ? 'selected' : ''}>其他</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transportOptionCost_${optionId}">交通費用</label>
+                        <input type="number" id="transportOptionCost_${optionId}" class="transport-option-cost" min="0" step="0.01" value="${optionData ? optionData.cost || 0 : 0}">
+                    </div>
+                    <div class="form-group">
+                        <label for="transportOptionCurrency_${optionId}">幣別</label>
+                        <select id="transportOptionCurrency_${optionId}" class="transport-option-currency">
+                            <option value="TWD" ${(optionData && optionData.currency === 'TWD') ? 'selected' : ''}>新台幣 (TWD)</option>
+                            <option value="USD" ${(optionData && optionData.currency === 'USD') ? 'selected' : ''}>美元 (USD)</option>
+                            <option value="JPY" ${(optionData && optionData.currency === 'JPY') ? 'selected' : ''}>日圓 (JPY)</option>
+                            <option value="EUR" ${(optionData && optionData.currency === 'EUR') ? 'selected' : ''}>歐元 (EUR)</option>
+                            <option value="CNY" ${(optionData && optionData.currency === 'CNY') ? 'selected' : ''}>人民幣 (CNY)</option>
+                            <option value="KRW" ${(optionData && optionData.currency === 'KRW') ? 'selected' : ''}>韓元 (KRW)</option>
+                            <option value="HKD" ${(optionData && optionData.currency === 'HKD') ? 'selected' : ''}>港幣 (HKD)</option>
+                            <option value="GBP" ${(optionData && optionData.currency === 'GBP') ? 'selected' : ''}>英鎊 (GBP)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transportOptionParticipants_${optionId}">分攤人數</label>
+                        <input type="number" id="transportOptionParticipants_${optionId}" class="transport-option-participants" min="1" value="${optionData ? optionData.participants || 1 : 1}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transportOptionLinkName_${optionId}">連結名稱</label>
+                        <input type="text" id="transportOptionLinkName_${optionId}" class="transport-option-link-name" value="${optionData ? optionData.linkName || '' : ''}">
+                    </div>
+                    <div class="form-group">
+                        <label for="transportOptionLink_${optionId}">連結</label>
+                        <input type="url" id="transportOptionLink_${optionId}" class="transport-option-link" placeholder="https://example.com" value="${optionData ? optionData.link || '' : ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="transportOptionNotes_${optionId}">備註</label>
+                    <textarea id="transportOptionNotes_${optionId}" class="transport-option-notes" rows="2">${optionData ? optionData.notes || '' : ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="transport-option-is-main" ${optionData && optionData.isMain ? 'checked' : ''}>
+                        設為主要交通方式（只有主要方式才計算費用）
+                    </label>
+                </div>
+            `;
+            
+            container.appendChild(optionItem);
+            
+            // 為設為主要按鈕添加事件監聽器
+            optionItem.querySelector('.set-main-option').addEventListener('click', function() {
+                // 取消所有其他選項的主要狀態
+                document.querySelectorAll('.transport-option-is-main').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // 設置當前選項為主要
+                const currentOption = this.closest('.transport-option');
+                currentOption.querySelector('.transport-option-is-main').checked = true;
+            });
+            
+            // 為刪除按鈕添加事件監聽器
+            optionItem.querySelector('.remove-transport-option').addEventListener('click', function() {
+                this.closest('.transport-option').remove();
+            });
+            
+            return optionId;
         }
 
         // 顯示新增計劃模態框
@@ -2934,6 +3352,14 @@
             document.getElementById('activityForm').reset();
             document.getElementById('activityCurrency').value = 'TWD';
             document.getElementById('activityParticipants').value = 1;
+            
+            // 重置連結區域
+            document.getElementById('activityLinksContainer').innerHTML = '';
+            addActivityLinkField(); // 添加一個初始連結欄位
+            
+            // 重置前一晚住宿選擇
+            document.getElementById('previousAccommodationContainer').style.display = 'none';
+            
             document.getElementById('activityModal').classList.add('active');
             
             delete document.getElementById('activityForm').dataset.editingId;
@@ -2961,9 +3387,26 @@
             document.getElementById('activityCost').value = activity.cost || 0;
             document.getElementById('activityCurrency').value = activity.currency || 'TWD';
             document.getElementById('activityParticipants').value = activity.participants || 1;
-            document.getElementById('activityLinkName').value = activity.linkName || '';
-            document.getElementById('activityLink').value = activity.link || '';
             document.getElementById('activityNotes').value = activity.notes || '';
+            
+            // 載入連結
+            document.getElementById('activityLinksContainer').innerHTML = '';
+            if (activity.links && activity.links.length > 0) {
+                activity.links.forEach(link => {
+                    addActivityLinkField(link);
+                });
+            } else {
+                addActivityLinkField(); // 添加一個初始連結欄位
+            }
+            
+            // 如果是住宿類別且不是第一天，顯示前一晚住宿選擇
+            if (activity.category === 'accommodation' && state.currentDay > 1) {
+                loadPreviousAccommodations();
+                document.getElementById('previousAccommodationContainer').style.display = 'block';
+            } else {
+                document.getElementById('previousAccommodationContainer').style.display = 'none';
+            }
+            
             document.getElementById('activityModal').classList.add('active');
             
             document.getElementById('activityForm').dataset.editingId = activityId;
@@ -2974,6 +3417,9 @@
             document.getElementById('activityModal').classList.remove('active');
             document.getElementById('activityForm').reset();
             delete document.getElementById('activityForm').dataset.editingId;
+            
+            // 重置連結區域
+            document.getElementById('activityLinksContainer').innerHTML = '';
         }
 
         // 儲存活動
@@ -3003,14 +3449,27 @@
             const cost = parseFloat(document.getElementById('activityCost').value) || 0;
             const currency = document.getElementById('activityCurrency').value;
             const participants = parseInt(document.getElementById('activityParticipants').value) || 1;
-            const linkName = document.getElementById('activityLinkName').value || null;
-            const link = document.getElementById('activityLink').value || null;
             const notes = document.getElementById('activityNotes').value || null;
             
             if (!startTime || !name || !location) {
                 alert('請填寫必要欄位：開始時間、行程名稱、地點');
                 return;
             }
+            
+            // 收集所有連結
+            const links = [];
+            const linkItems = document.querySelectorAll('#activityLinksContainer .link-item');
+            linkItems.forEach(item => {
+                const linkName = item.querySelector('.link-name').value.trim();
+                const linkUrl = item.querySelector('.link-url').value.trim();
+                
+                if (linkName && linkUrl) {
+                    links.push({
+                        name: linkName,
+                        url: linkUrl
+                    });
+                }
+            });
             
             const activityData = {
                 startTime: startTime,
@@ -3022,8 +3481,7 @@
                 cost: cost,
                 currency: currency,
                 participants: participants,
-                linkName: linkName,
-                link: link,
+                links: links.length > 0 ? links : null,
                 notes: notes,
                 day: state.currentDay
             };
@@ -3102,9 +3560,11 @@
             
             document.getElementById('transportModalTitle').textContent = '新增交通方式';
             document.getElementById('transportForm').reset();
-            document.getElementById('transportCurrency').value = 'TWD';
-            document.getElementById('transportParticipants').value = 1;
-            document.getElementById('transportIsMain').checked = true;
+            
+            // 重置交通方式選項區域
+            document.getElementById('transportOptionsContainer').innerHTML = '';
+            addTransportOptionField(); // 添加一個初始選項
+            
             document.getElementById('transportModal').classList.add('active');
             
             delete document.getElementById('transportForm').dataset.editingId;
@@ -3170,14 +3630,17 @@
             document.getElementById('transportModalTitle').textContent = '編輯交通方式';
             document.getElementById('transportStartTime').value = transport.startTime;
             document.getElementById('transportEndTime').value = transport.endTime;
-            document.getElementById('transportType').value = transport.type;
-            document.getElementById('transportCost').value = transport.cost || 0;
-            document.getElementById('transportCurrency').value = transport.currency || 'TWD';
-            document.getElementById('transportParticipants').value = transport.participants || 1;
-            document.getElementById('transportLinkName').value = transport.linkName || '';
-            document.getElementById('transportLink').value = transport.link || '';
-            document.getElementById('transportNotes').value = transport.notes || '';
-            document.getElementById('transportIsMain').checked = transport.isMain || false;
+            
+            // 載入交通方式選項
+            document.getElementById('transportOptionsContainer').innerHTML = '';
+            if (transport.options && transport.options.length > 0) {
+                transport.options.forEach(option => {
+                    addTransportOptionField(option);
+                });
+            } else {
+                addTransportOptionField(); // 添加一個初始選項
+            }
+            
             document.getElementById('transportModal').classList.add('active');
             
             document.getElementById('transportForm').dataset.editingId = transportId;
@@ -3191,6 +3654,9 @@
             document.getElementById('transportModal').classList.remove('active');
             document.getElementById('transportForm').reset();
             delete document.getElementById('transportForm').dataset.editingId;
+            
+            // 重置交通方式選項區域
+            document.getElementById('transportOptionsContainer').innerHTML = '';
             
             const fromSelect = document.getElementById('transportFromActivity');
             const toSelect = document.getElementById('transportToActivity');
@@ -3221,14 +3687,6 @@
             const endTime = document.getElementById('transportEndTime').value;
             const fromActivityId = parseInt(document.getElementById('transportFromActivity').value);
             const toActivityId = parseInt(document.getElementById('transportToActivity').value);
-            const type = document.getElementById('transportType').value;
-            const cost = parseFloat(document.getElementById('transportCost').value) || 0;
-            const currency = document.getElementById('transportCurrency').value;
-            const participants = parseInt(document.getElementById('transportParticipants').value) || 1;
-            const linkName = document.getElementById('transportLinkName').value || null;
-            const link = document.getElementById('transportLink').value || null;
-            const notes = document.getElementById('transportNotes').value || null;
-            const isMain = document.getElementById('transportIsMain').checked;
             
             if (!startTime || !endTime || !fromActivityId || !toActivityId) {
                 alert('請填寫所有必要欄位');
@@ -3248,6 +3706,49 @@
                 return;
             }
             
+            // 收集所有交通方式選項
+            const options = [];
+            const optionElements = document.querySelectorAll('.transport-option');
+            let hasMainOption = false;
+            
+            optionElements.forEach(optionElement => {
+                const type = optionElement.querySelector('.transport-option-type').value;
+                const cost = parseFloat(optionElement.querySelector('.transport-option-cost').value) || 0;
+                const currency = optionElement.querySelector('.transport-option-currency').value;
+                const participants = parseInt(optionElement.querySelector('.transport-option-participants').value) || 1;
+                const linkName = optionElement.querySelector('.transport-option-link-name').value.trim() || null;
+                const link = optionElement.querySelector('.transport-option-link').value.trim() || null;
+                const notes = optionElement.querySelector('.transport-option-notes').value.trim() || null;
+                const isMain = optionElement.querySelector('.transport-option-is-main').checked;
+                
+                // 檢查是否已經有主要選項
+                if (isMain && hasMainOption) {
+                    alert('只能有一個主要交通方式！');
+                    return;
+                }
+                
+                if (isMain) {
+                    hasMainOption = true;
+                }
+                
+                options.push({
+                    id: Date.now() + Math.random(),
+                    type: type,
+                    cost: cost,
+                    currency: currency,
+                    participants: participants,
+                    linkName: linkName,
+                    link: link,
+                    notes: notes,
+                    isMain: isMain
+                });
+            });
+            
+            if (options.length === 0) {
+                alert('請至少添加一個交通方式選項');
+                return;
+            }
+            
             const transportData = {
                 startTime: startTime,
                 endTime: endTime,
@@ -3257,14 +3758,8 @@
                 toActivityName: toActivity.name,
                 fromLocation: fromActivity.location,
                 toLocation: toActivity.location,
-                type: type,
-                cost: cost,
-                currency: currency,
-                participants: participants,
-                linkName: linkName,
-                link: link,
-                notes: notes,
-                isMain: isMain,
+                options: options,
+                isMain: hasMainOption, // 只要有任何主要選項，整個交通方式就是主要的
                 day: state.currentDay
             };
             
@@ -3723,11 +4218,6 @@
                         color: #1565c0;
                     }
                     
-                    .activity-category.transport {
-                        background-color: #f3e5f5;
-                        color: #7b1fa2;
-                    }
-                    
                     .activity-category.activity {
                         background-color: #e8f5e9;
                         color: #2e7d32;
@@ -3736,6 +4226,11 @@
                     .activity-category.accommodation {
                         background-color: #fff3e0;
                         color: #ef6c00;
+                    }
+                    
+                    .activity-category.shopping {
+                        background-color: #fff0f5;
+                        color: #c2185b;
                     }
                     
                     .activity-category.other {
@@ -4151,7 +4646,7 @@
                 }
             });
             
-            // 交通費用
+            // 交通費用（只有主要交通方式才計算費用）
             Object.keys(costData.transportTypes).forEach(transportType => {
                 const transportData = costData.transportTypes[transportType];
                 const currencyKeys = Object.keys(transportData.currencies);
@@ -4262,6 +4757,7 @@
                             transport: '交通',
                             activity: '活動',
                             accommodation: '住宿',
+                            shopping: '購物',
                             other: '其他'
                         };
                         
@@ -4270,6 +4766,7 @@
                             transport: 'transport',
                             activity: 'activity',
                             accommodation: 'accommodation',
+                            shopping: 'shopping',
                             other: 'other'
                         };
                         
@@ -4280,6 +4777,14 @@
                         const twdCost = originalCost * exchangeRate;
                         const participants = activity.participants || 1;
                         const personalTwdCost = twdCost / participants;
+                        
+                        // 建立連結HTML
+                        let linksHtml = '';
+                        if (activity.links && activity.links.length > 0) {
+                            linksHtml = activity.links.map(link => 
+                                `<div><i class="fas fa-link"></i> <a href="${link.url}" target="_blank" style="word-break: break-all;">${link.name}</a></div>`
+                            ).join('');
+                        }
                         
                         dayContentHtml += `
                             <div class="activity-item">
@@ -4304,9 +4809,7 @@
                                             ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
                                         </div>
                                     ` : ''}
-                                    ${activity.link && activity.linkName ? `
-                                        <div><i class="fas fa-link"></i> <a href="${activity.link}" target="_blank" style="word-break: break-all;">${activity.linkName}</a></div>
-                                    ` : ''}
+                                    ${linksHtml}
                                     ${activity.notes ? `<div><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
                                 </div>
                             </div>
@@ -4330,39 +4833,94 @@
                                     other: '其他'
                                 };
                                 
-                                // 計算換算後的台幣費用
-                                const transportOriginalCost = transport.cost || 0;
-                                const transportCurrency = transport.currency || 'TWD';
-                                const transportExchangeRate = state.exchangeRates[transportCurrency] || 1;
-                                const transportTwdCost = transportOriginalCost * transportExchangeRate;
-                                const transportParticipants = transport.participants || 1;
-                                const transportPersonalTwdCost = transportTwdCost / transportParticipants;
+                                // 計算主要交通方式的總費用（只有主要方式才計算費用）
+                                let totalCostTWD = 0;
+                                let totalPersonalTWD = 0;
+                                
+                                if (transport.isMain && transport.options && transport.options.length > 0) {
+                                    transport.options.forEach(option => {
+                                        if (option.isMain && option.cost > 0) {
+                                            const currency = option.currency || 'TWD';
+                                            const exchangeRate = state.exchangeRates[currency] || 1;
+                                            const originalCost = option.cost;
+                                            const twdCost = originalCost * exchangeRate;
+                                            const participants = option.participants || 1;
+                                            const personalTwdCost = twdCost / participants;
+                                            
+                                            totalCostTWD += twdCost;
+                                            totalPersonalTWD += personalTwdCost;
+                                        }
+                                    });
+                                }
                                 
                                 const routeDescription = transport.fromLocation && transport.toLocation 
                                     ? `${transport.fromLocation} → ${transport.toLocation}`
                                     : `${transport.fromActivityName} → ${transport.toActivityName}`;
                                 
+                                // 顯示所有交通方式選項
+                                let optionsHtml = '';
+                                if (transport.options && transport.options.length > 0) {
+                                    transport.options.forEach((option) => {
+                                        const transportTypeLabel = transportLabels[option.type] || option.type;
+                                        const isMainOption = option.isMain ? '✓ 主要' : '○ 次要';
+                                        
+                                        // 計算換算後的台幣費用
+                                        const originalCost = option.cost || 0;
+                                        const currency = option.currency || 'TWD';
+                                        const exchangeRate = state.exchangeRates[currency] || 1;
+                                        const twdCost = originalCost * exchangeRate;
+                                        const participants = option.participants || 1;
+                                        const personalTwdCost = twdCost / participants;
+                                        
+                                        optionsHtml += `
+                                            <div style="margin: 8px 0; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid ${option.isMain ? '#4caf50' : '#ff9800'};">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                                    <span><strong>${transportTypeLabel}</strong> <span style="color: ${option.isMain ? '#4caf50' : '#ff9800'};">(${isMainOption})</span></span>
+                                                </div>
+                                                ${originalCost > 0 ? `
+                                                    <div style="font-size: 0.9rem;">
+                                                        <i class="fas fa-money-bill-wave"></i> 
+                                                        ${currency} ${originalCost.toFixed(2)} 
+                                                        <small>(${twdCost.toFixed(2)} TWD)</small>
+                                                        ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
+                                                    </div>
+                                                ` : ''}
+                                                ${option.link && option.linkName ? `
+                                                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                                                        <a href="${option.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${option.linkName}</a>
+                                                    </div>
+                                                ` : ''}
+                                                ${option.notes ? `
+                                                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                                                        <i class="fas fa-sticky-note"></i> ${option.notes}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        `;
+                                    });
+                                }
+                                
                                 dayContentHtml += `
                                     <div class="transport-item ${transport.isMain ? 'transport-main' : 'transport-alternate'}">
                                         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                            <span class="transport-type">${transportLabels[transport.type]}</span>
-                                            <span style="font-size: 0.9rem;">
+                                            <div>
                                                 ${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}
-                                            </span>
+                                            </div>
                                         </div>
                                         <div><i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}</div>
                                         <div><i class="fas fa-route"></i> ${routeDescription}</div>
-                                        ${transportOriginalCost > 0 ? `
-                                            <div><i class="fas fa-money-bill-wave"></i> 
-                                                ${transportCurrency} ${transportOriginalCost.toFixed(2)} 
-                                                <small>(${transportTwdCost.toFixed(2)} TWD)</small>
-                                                ${transportParticipants > 1 ? ` (每人 ${transportPersonalTwdCost.toFixed(2)} TWD)` : ''}
+                                        
+                                        <div style="margin: 15px 0;">
+                                            ${optionsHtml}
+                                        </div>
+                                        
+                                        ${totalCostTWD > 0 ? `
+                                            <div style="margin: 8px 0; padding: 10px; background: #e8f5e9; border-radius: 4px;">
+                                                <i class="fas fa-money-bill-wave"></i> 
+                                                <strong>總費用: ${totalCostTWD.toFixed(2)} TWD</strong>
+                                                <small> (每人 ${totalPersonalTWD.toFixed(2)} TWD)</small>
                                             </div>
                                         ` : ''}
-                                        ${transport.link && transport.linkName ? `
-                                            <div><i class="fas fa-link"></i> <a href="${transport.link}" target="_blank" style="word-break: break-all;">${transport.linkName}</a></div>
-                                        ` : ''}
-                                        ${transport.notes ? `<div><i class="fas fa-sticky-note"></i> ${transport.notes}</div>` : ''}
                                     </div>
                                 `;
                             });
@@ -4395,6 +4953,7 @@
         function calculateDetailedCostSummary(plan) {
             const categories = {
                 attraction: { label: '景點', currencies: {} },
+                shopping: { label: '購物', currencies: {} },
                 activity: { label: '活動', currencies: {} },
                 accommodation: { label: '住宿', currencies: {} },
                 other: { label: '其他', currencies: {} }
@@ -4452,38 +5011,42 @@
                 });
             }
             
-            // 交通費用
+            // 交通費用（只有主要交通方式才計算費用）
             if (plan.transports) {
                 plan.transports.forEach(transport => {
-                    if (transport.cost > 0) {
-                        const currency = transport.currency || 'TWD';
-                        const exchangeRate = state.exchangeRates[currency] || 1;
-                        const originalCost = transport.cost;
-                        const twdCost = originalCost * exchangeRate;
-                        const participants = transport.participants || 1;
-                        const personalTwdCost = twdCost / participants;
-                        
-                        const transportType = transportTypes[transport.type] || transportTypes.other;
-                        
-                        if (!transportType.currencies[currency]) {
-                            transportType.currencies[currency] = {
-                                originalCost: 0,
-                                twdCost: 0,
-                                maxParticipants: 1,
-                                personalTwdCost: 0
-                            };
-                        }
-                        
-                        transportType.currencies[currency].originalCost += originalCost;
-                        transportType.currencies[currency].twdCost += twdCost;
-                        transportType.currencies[currency].personalTwdCost += personalTwdCost;
-                        transportType.currencies[currency].maxParticipants = Math.max(
-                            transportType.currencies[currency].maxParticipants,
-                            participants
-                        );
-                        
-                        totalTWD += twdCost;
-                        totalPersonalTWD += personalTwdCost;
+                    if (transport.isMain && transport.options && transport.options.length > 0) {
+                        transport.options.forEach(option => {
+                            if (option.isMain && option.cost > 0) {
+                                const currency = option.currency || 'TWD';
+                                const exchangeRate = state.exchangeRates[currency] || 1;
+                                const originalCost = option.cost;
+                                const twdCost = originalCost * exchangeRate;
+                                const participants = option.participants || 1;
+                                const personalTwdCost = twdCost / participants;
+                                
+                                const transportType = transportTypes[option.type] || transportTypes.other;
+                                
+                                if (!transportType.currencies[currency]) {
+                                    transportType.currencies[currency] = {
+                                        originalCost: 0,
+                                        twdCost: 0,
+                                        maxParticipants: 1,
+                                        personalTwdCost: 0
+                                    };
+                                }
+                                
+                                transportType.currencies[currency].originalCost += originalCost;
+                                transportType.currencies[currency].twdCost += twdCost;
+                                transportType.currencies[currency].personalTwdCost += personalTwdCost;
+                                transportType.currencies[currency].maxParticipants = Math.max(
+                                    transportType.currencies[currency].maxParticipants,
+                                    participants
+                                );
+                                
+                                totalTWD += twdCost;
+                                totalPersonalTWD += personalTwdCost;
+                            }
+                        });
                     }
                 });
             }
@@ -4548,7 +5111,7 @@
                 }
             });
             
-            // 交通費用
+            // 交通費用（只有主要交通方式才計算費用）
             Object.keys(costData.transportTypes).forEach(transportType => {
                 const transportData = costData.transportTypes[transportType];
                 const currencyKeys = Object.keys(transportData.currencies);
