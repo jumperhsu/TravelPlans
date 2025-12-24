@@ -754,18 +754,53 @@
             border-collapse: collapse;
             margin-top: 15px;
             font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            min-width: 300px;
+            min-width: 600px; /* 增加最小寬度 */
         }
 
         .cost-table th, .cost-table td {
-            padding: 8px 10px;
+            padding: 10px 12px; /* 增加內邊距 */
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             word-break: break-word;
             white-space: nowrap;
-            max-width: 150px;
+            max-width: none; /* 移除最大寬度限制 */
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* 增加特定欄位的寬度 */
+        .cost-table th:nth-child(1), 
+        .cost-table td:nth-child(1) {
+            width: 150px; /* 類別欄位寬度 */
+        }
+        
+        .cost-table th:nth-child(2), 
+        .cost-table td:nth-child(2) {
+            width: 80px; /* 幣別欄位寬度 */
+        }
+        
+        .cost-table th:nth-child(3), 
+        .cost-table td:nth-child(3) {
+            width: 120px; /* 原幣費用欄位寬度 */
+            text-align: right;
+        }
+        
+        .cost-table th:nth-child(4), 
+        .cost-table td:nth-child(4) {
+            width: 100px; /* 換算台幣欄位寬度 */
+            text-align: right;
+        }
+        
+        .cost-table th:nth-child(5), 
+        .cost-table td:nth-child(5) {
+            width: 80px; /* 分攤人數欄位寬度 */
+            text-align: center;
+        }
+        
+        .cost-table th:nth-child(6), 
+        .cost-table td:nth-child(6) {
+            width: 120px; /* 每人費用欄位寬度 */
+            text-align: right;
         }
 
         .cost-table th {
@@ -799,6 +834,20 @@
         .cost-total-row {
             font-weight: bold;
             background-color: rgba(255, 126, 95, 0.1);
+        }
+
+        .currency-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .currency-input-group input {
+            flex: 1;
+        }
+
+        .currency-input-group select {
+            width: 120px;
         }
 
         /* 手機選單按鈕 */
@@ -869,10 +918,13 @@
                 width: max-content;
             }
             
+            .cost-table {
+                min-width: 500px;
+            }
+            
             .cost-table th, .cost-table td {
-                padding: 6px 8px;
+                padding: 8px 10px;
                 font-size: 0.75rem;
-                max-width: 120px;
             }
         }
 
@@ -946,12 +998,12 @@
             }
             
             .cost-table {
+                min-width: 400px;
                 font-size: 0.7rem;
             }
             
             .cost-table th, .cost-table td {
-                padding: 5px 6px;
-                max-width: 100px;
+                padding: 6px 8px;
             }
         }
 
@@ -1002,12 +1054,12 @@
             }
             
             .cost-table {
+                min-width: 350px;
                 font-size: 0.65rem;
             }
             
             .cost-table th, .cost-table td {
-                padding: 4px 5px;
-                max-width: 80px;
+                padding: 5px 6px;
             }
         }
 
@@ -1031,6 +1083,46 @@
         .scroll-prevention {
             max-width: 100%;
             overflow-x: hidden;
+        }
+        
+        /* 匯率設置按鈕 */
+        .exchange-rate-btn {
+            margin-top: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .exchange-rate-btn:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* 匯率設置模態框 */
+        #exchangeRateModal .modal-content {
+            max-width: 500px;
+        }
+        
+        .exchange-rate-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .exchange-rate-item label {
+            min-width: 80px;
+            margin-bottom: 0;
+        }
+        
+        .exchange-rate-item input {
+            flex: 1;
         }
     </style>
 </head>
@@ -1066,6 +1158,7 @@
                     <button class="btn btn-primary" id="addPlanBtn"><i class="fas fa-plus"></i> 新增計劃</button>
                     <button class="btn btn-secondary" id="backupBtn"><i class="fas fa-download"></i> 備份</button>
                     <button class="btn btn-secondary" id="restoreBtn"><i class="fas fa-upload"></i> 還原</button>
+                    <button class="btn btn-secondary" id="exchangeRateBtn"><i class="fas fa-money-bill-wave"></i> 匯率設定</button>
                 </div>
                 
                 <div class="plans-list" id="plansList">
@@ -1079,9 +1172,10 @@
                             <tr>
                                 <th>類別</th>
                                 <th>幣別</th>
-                                <th>總費用</th>
+                                <th>原幣費用</th>
+                                <th>換算台幣</th>
                                 <th>分攤人數</th>
-                                <th>每人費用</th>
+                                <th>每人費用(台幣)</th>
                             </tr>
                         </thead>
                         <tbody id="costTableBody">
@@ -1214,24 +1308,29 @@
                             <input type="text" id="activityAddress">
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="activityCost">費用</label>
-                            <input type="number" id="activityCost" min="0" step="0.01" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="activityCurrency">幣別</label>
-                            <select id="activityCurrency">
-                                <option value="TWD">新台幣 (TWD)</option>
-                                <option value="USD">美元 (USD)</option>
-                                <option value="JPY">日圓 (JPY)</option>
-                                <option value="EUR">歐元 (EUR)</option>
-                                <option value="CNY">人民幣 (CNY)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="activityParticipants">分攤人數</label>
-                            <input type="number" id="activityParticipants" min="1" value="1">
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="activityCost">費用</label>
+                                <input type="number" id="activityCost" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="activityCurrency">幣別</label>
+                                <select id="activityCurrency">
+                                    <option value="TWD">新台幣 (TWD)</option>
+                                    <option value="USD">美元 (USD)</option>
+                                    <option value="JPY">日圓 (JPY)</option>
+                                    <option value="EUR">歐元 (EUR)</option>
+                                    <option value="CNY">人民幣 (CNY)</option>
+                                    <option value="KRW">韓元 (KRW)</option>
+                                    <option value="HKD">港幣 (HKD)</option>
+                                    <option value="GBP">英鎊 (GBP)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="activityParticipants">分攤人數</label>
+                                <input type="number" id="activityParticipants" min="1" value="1">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1303,24 +1402,29 @@
                             <option value="other">其他</option>
                         </select>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="transportCost">交通費用</label>
-                            <input type="number" id="transportCost" min="0" step="0.01" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="transportCurrency">幣別</label>
-                            <select id="transportCurrency">
-                                <option value="TWD">新台幣 (TWD)</option>
-                                <option value="USD">美元 (USD)</option>
-                                <option value="JPY">日圓 (JPY)</option>
-                                <option value="EUR">歐元 (EUR)</option>
-                                <option value="CNY">人民幣 (CNY)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="transportParticipants">分攤人數</label>
-                            <input type="number" id="transportParticipants" min="1" value="1">
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transportCost">交通費用</label>
+                                <input type="number" id="transportCost" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="transportCurrency">幣別</label>
+                                <select id="transportCurrency">
+                                    <option value="TWD">新台幣 (TWD)</option>
+                                    <option value="USD">美元 (USD)</option>
+                                    <option value="JPY">日圓 (JPY)</option>
+                                    <option value="EUR">歐元 (EUR)</option>
+                                    <option value="CNY">人民幣 (CNY)</option>
+                                    <option value="KRW">韓元 (KRW)</option>
+                                    <option value="HKD">港幣 (HKD)</option>
+                                    <option value="GBP">英鎊 (GBP)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="transportParticipants">分攤人數</label>
+                                <input type="number" id="transportParticipants" min="1" value="1">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1352,21 +1456,79 @@
         </div>
     </div>
 
+    <!-- 匯率設定模態框 -->
+    <div class="modal" id="exchangeRateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exchange-alt"></i> 匯率設定</h3>
+                <button class="btn btn-secondary" id="closeExchangeRateModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">設定外幣對新台幣(TWD)的匯率，用於費用統計計算。</p>
+                <div class="form-group">
+                    <div class="exchange-rate-item">
+                        <label>美元 (USD):</label>
+                        <input type="number" id="usdRate" min="0" step="0.01" value="30.5" placeholder="1 USD = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>日圓 (JPY):</label>
+                        <input type="number" id="jpyRate" min="0" step="0.0001" value="0.22" placeholder="1 JPY = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>歐元 (EUR):</label>
+                        <input type="number" id="eurRate" min="0" step="0.01" value="33.5" placeholder="1 EUR = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>人民幣 (CNY):</label>
+                        <input type="number" id="cnyRate" min="0" step="0.01" value="4.3" placeholder="1 CNY = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>韓元 (KRW):</label>
+                        <input type="number" id="krwRate" min="0" step="0.0001" value="0.023" placeholder="1 KRW = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>港幣 (HKD):</label>
+                        <input type="number" id="hkdRate" min="0" step="0.01" value="3.9" placeholder="1 HKD = ? TWD">
+                    </div>
+                    <div class="exchange-rate-item">
+                        <label>英鎊 (GBP):</label>
+                        <input type="number" id="gbpRate" min="0" step="0.01" value="38.5" placeholder="1 GBP = ? TWD">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelExchangeRateBtn">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveExchangeRateBtn">儲存匯率</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 應用狀態
         const state = {
             currentPlanId: null,
             currentDay: 1,
             plans: [],
-            nextId: 1
+            nextId: 1,
+            exchangeRates: {
+                USD: 30.5,
+                JPY: 0.22,
+                EUR: 33.5,
+                CNY: 4.3,
+                KRW: 0.023,
+                HKD: 3.9,
+                GBP: 38.5,
+                TWD: 1 // 台幣對台幣匯率為1
+            }
         };
 
         // 初始化應用
         document.addEventListener('DOMContentLoaded', function() {
             console.log('應用程式初始化...');
             
-            // 載入儲存的計劃
+            // 載入儲存的計劃和匯率
             loadPlansFromStorage();
+            loadExchangeRatesFromStorage();
             
             // 設置事件監聽器
             setupEventListeners();
@@ -1387,7 +1549,6 @@
             if (savedPlans) {
                 try {
                     state.plans = JSON.parse(savedPlans);
-                    // 找出最大的ID
                     state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
                     console.log('已載入計劃:', state.plans.length, '個');
                 } catch (error) {
@@ -1398,10 +1559,23 @@
                 console.log('沒有找到儲存的計劃');
             }
             
-            // 如果有計劃，選擇第一個
             if (state.plans.length > 0) {
                 state.currentPlanId = state.plans[0].id;
                 showPlanContent();
+            }
+        }
+
+        // 從本地儲存載入匯率
+        function loadExchangeRatesFromStorage() {
+            const savedRates = localStorage.getItem('exchangeRates');
+            if (savedRates) {
+                try {
+                    const rates = JSON.parse(savedRates);
+                    state.exchangeRates = { ...state.exchangeRates, ...rates };
+                    console.log('已載入匯率設定');
+                } catch (error) {
+                    console.error('載入匯率時發生錯誤:', error);
+                }
             }
         }
 
@@ -1413,6 +1587,16 @@
                 updateCostSummary();
             } catch (error) {
                 console.error('儲存計劃時發生錯誤:', error);
+            }
+        }
+
+        // 儲存匯率到本地儲存
+        function saveExchangeRatesToStorage() {
+            try {
+                localStorage.setItem('exchangeRates', JSON.stringify(state.exchangeRates));
+                console.log('匯率已儲存到本地儲存');
+            } catch (error) {
+                console.error('儲存匯率時發生錯誤:', error);
             }
         }
 
@@ -1433,6 +1617,7 @@
             document.getElementById('addPlanBtn').addEventListener('click', showAddPlanModal);
             document.getElementById('backupBtn').addEventListener('click', backupPlan);
             document.getElementById('restoreBtn').addEventListener('click', restorePlan);
+            document.getElementById('exchangeRateBtn').addEventListener('click', showExchangeRateModal);
             document.getElementById('sharePlanBtn').addEventListener('click', sharePlan);
             document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
             
@@ -1452,10 +1637,15 @@
             document.getElementById('closePlanModal').addEventListener('click', closePlanModal);
             document.getElementById('closeActivityModal').addEventListener('click', closeActivityModal);
             document.getElementById('closeTransportModal').addEventListener('click', closeTransportModal);
+            document.getElementById('closeExchangeRateModal').addEventListener('click', closeExchangeRateModal);
             
             document.getElementById('cancelPlanBtn').addEventListener('click', closePlanModal);
             document.getElementById('cancelActivityBtn').addEventListener('click', closeActivityModal);
             document.getElementById('cancelTransportBtn').addEventListener('click', closeTransportModal);
+            document.getElementById('cancelExchangeRateBtn').addEventListener('click', closeExchangeRateModal);
+            
+            // 匯率設定儲存按鈕
+            document.getElementById('saveExchangeRateBtn').addEventListener('click', saveExchangeRates);
             
             // 表單提交
             document.getElementById('planForm').addEventListener('submit', function(e) {
@@ -1499,7 +1689,6 @@
 
         // 設置時間格式化
         function setupTimeFormatting() {
-            // 為時間輸入欄位添加失去焦點事件
             document.addEventListener('blur', function(e) {
                 if (e.target.matches('#activityStartTime, #activityEndTime, #transportStartTime, #transportEndTime')) {
                     formatTimeInput(e.target);
@@ -1565,7 +1754,6 @@
                         updatePlansList();
                         showPlanContent();
                         
-                        // 在手機上點擊後關閉選單
                         if (window.innerWidth <= 1024) {
                             document.getElementById('plansPanel').classList.remove('active');
                             document.getElementById('overlay').classList.remove('active');
@@ -1603,13 +1791,8 @@
             document.getElementById('currentPlanDates').textContent = 
                 `${formatDate(startDate)} - ${formatDate(endDate)} (${plan.days} 天)`;
             
-            // 更新天數標籤
             updateDaysTabs(plan);
-            
-            // 顯示第一天內容
             showDayContent(1);
-            
-            // 更新費用統計
             updateCostSummary();
         }
 
@@ -1657,8 +1840,6 @@
             }
             
             updateActivitiesContainer();
-            
-            // 檢查前一天的住宿，作為今日的起點
             checkPreviousDayAccommodation(plan);
         }
 
@@ -1668,19 +1849,16 @@
                 const previousDay = state.currentDay - 1;
                 const previousDayActivities = plan.activities ? plan.activities.filter(a => a.day === previousDay) : [];
                 
-                // 尋找前一天的住宿
                 const previousAccommodation = previousDayActivities.find(a => a.category === 'accommodation');
                 
                 if (previousAccommodation) {
                     const currentDayActivities = plan.activities ? plan.activities.filter(a => a.day === state.currentDay) : [];
                     
-                    // 檢查今日是否已經有從住宿開始的活動
                     const hasStartFromAccommodation = currentDayActivities.some(a => 
                         a.location === previousAccommodation.location
                     );
                     
                     if (!hasStartFromAccommodation && currentDayActivities.length > 0) {
-                        // 提示使用者今日的起點是前一天的住宿
                         const activitiesContainer = document.querySelector(`.activities-container[data-day="${state.currentDay}"]`);
                         if (activitiesContainer && !activitiesContainer.querySelector('.accommodation-start-point')) {
                             const accommodationPoint = document.createElement('div');
@@ -1720,7 +1898,6 @@
             state.currentDay = day;
             updateActivitiesContainer();
             
-            // 檢查前一天的住宿
             const plan = state.plans.find(p => p.id === state.currentPlanId);
             if (plan) {
                 checkPreviousDayAccommodation(plan);
@@ -1799,6 +1976,14 @@
                 other: 'other'
             };
             
+            // 計算換算後的台幣費用
+            const originalCost = activity.cost || 0;
+            const currency = activity.currency || 'TWD';
+            const exchangeRate = state.exchangeRates[currency] || 1;
+            const twdCost = originalCost * exchangeRate;
+            const participants = activity.participants || 1;
+            const personalTwdCost = twdCost / participants;
+            
             activityElement.innerHTML = `
                 <div class="activity-header">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
@@ -1816,11 +2001,12 @@
                     ${activity.address ? `<div class="activity-address" style="word-break: break-word;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
                 </div>
                 <div class="activity-details">
-                    ${activity.cost > 0 ? `
+                    ${originalCost > 0 ? `
                         <div class="activity-cost">
                             <i class="fas fa-money-bill-wave"></i> 
-                            ${activity.currency} ${activity.cost.toFixed(2)}
-                            ${activity.participants > 1 ? ` (每人 ${(activity.cost / activity.participants).toFixed(2)})` : ''}
+                            ${currency} ${originalCost.toFixed(2)} 
+                            <small>(${twdCost.toFixed(2)} TWD)</small>
+                            ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
                         </div>
                     ` : ''}
                     ${activity.link && activity.linkName ? `
@@ -1891,6 +2077,14 @@
                 ? `${transport.fromLocation} → ${transport.toLocation}`
                 : `${transport.fromActivityName} → ${transport.toActivityName}`;
             
+            // 計算換算後的台幣費用
+            const originalCost = transport.cost || 0;
+            const currency = transport.currency || 'TWD';
+            const exchangeRate = state.exchangeRates[currency] || 1;
+            const twdCost = originalCost * exchangeRate;
+            const participants = transport.participants || 1;
+            const personalTwdCost = twdCost / participants;
+            
             transportElement.innerHTML = `
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <span class="transport-type">${transportLabels[transport.type]}</span>
@@ -1904,11 +2098,12 @@
                 <div style="margin: 8px 0; word-break: break-word;">
                     <i class="fas fa-route"></i> ${routeDescription}
                 </div>
-                ${transport.cost > 0 ? `
+                ${originalCost > 0 ? `
                     <div style="margin: 8px 0; word-break: break-word;">
                         <i class="fas fa-money-bill-wave"></i> 
-                        ${transport.currency} ${transport.cost.toFixed(2)}
-                        ${transport.participants > 1 ? ` (每人 ${(transport.cost / transport.participants).toFixed(2)})` : ''}
+                        ${currency} ${originalCost.toFixed(2)} 
+                        <small>(${twdCost.toFixed(2)} TWD)</small>
+                        ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
                     </div>
                 ` : ''}
                 ${transport.link && transport.linkName ? `
@@ -2248,6 +2443,7 @@
             
             savePlansToStorage();
             updateActivitiesContainer();
+            updateCostSummary();
             closeActivityModal();
         }
 
@@ -2485,6 +2681,7 @@
             
             savePlansToStorage();
             updateActivitiesContainer();
+            updateCostSummary();
             closeTransportModal();
         }
 
@@ -2557,6 +2754,49 @@
                 document.getElementById('noPlanSelected').style.display = 'block';
                 document.getElementById('planContent').style.display = 'none';
             }
+        }
+
+        // 顯示匯率設定模態框
+        function showExchangeRateModal() {
+            document.getElementById('exchangeRateModal').classList.add('active');
+            
+            // 填入當前匯率
+            document.getElementById('usdRate').value = state.exchangeRates.USD;
+            document.getElementById('jpyRate').value = state.exchangeRates.JPY;
+            document.getElementById('eurRate').value = state.exchangeRates.EUR;
+            document.getElementById('cnyRate').value = state.exchangeRates.CNY;
+            document.getElementById('krwRate').value = state.exchangeRates.KRW;
+            document.getElementById('hkdRate').value = state.exchangeRates.HKD;
+            document.getElementById('gbpRate').value = state.exchangeRates.GBP;
+        }
+
+        // 關閉匯率設定模態框
+        function closeExchangeRateModal() {
+            document.getElementById('exchangeRateModal').classList.remove('active');
+        }
+
+        // 儲存匯率設定
+        function saveExchangeRates() {
+            state.exchangeRates.USD = parseFloat(document.getElementById('usdRate').value) || 30.5;
+            state.exchangeRates.JPY = parseFloat(document.getElementById('jpyRate').value) || 0.22;
+            state.exchangeRates.EUR = parseFloat(document.getElementById('eurRate').value) || 33.5;
+            state.exchangeRates.CNY = parseFloat(document.getElementById('cnyRate').value) || 4.3;
+            state.exchangeRates.KRW = parseFloat(document.getElementById('krwRate').value) || 0.023;
+            state.exchangeRates.HKD = parseFloat(document.getElementById('hkdRate').value) || 3.9;
+            state.exchangeRates.GBP = parseFloat(document.getElementById('gbpRate').value) || 38.5;
+            
+            saveExchangeRatesToStorage();
+            updateCostSummary();
+            updateActivitiesContainer(); // 更新活動顯示以反映新的匯率
+            
+            alert('匯率設定已更新！');
+            closeExchangeRateModal();
+        }
+
+        // 將外幣換算為台幣
+        function convertToTWD(amount, currency) {
+            const exchangeRate = state.exchangeRates[currency] || 1;
+            return amount * exchangeRate;
         }
 
         // 備份計劃
@@ -2998,16 +3238,16 @@
                         border-collapse: collapse;
                         margin-top: 15px;
                         font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-                        min-width: 300px;
+                        min-width: 600px;
                     }
                     
                     .cost-table th, .cost-table td {
-                        padding: 8px 10px;
+                        padding: 10px 12px;
                         text-align: left;
                         border-bottom: 1px solid #e0e0e0;
                         word-break: break-word;
                         white-space: nowrap;
-                        max-width: 150px;
+                        max-width: none;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }
@@ -3093,10 +3333,13 @@
                             width: max-content;
                         }
                         
+                        .cost-table {
+                            min-width: 500px;
+                        }
+                        
                         .cost-table th, .cost-table td {
-                            padding: 6px 8px;
+                            padding: 8px 10px;
                             font-size: 0.75rem;
-                            max-width: 120px;
                         }
                     }
                     
@@ -3128,12 +3371,12 @@
                         }
                         
                         .cost-table {
+                            min-width: 400px;
                             font-size: 0.7rem;
                         }
                         
                         .cost-table th, .cost-table td {
-                            padding: 5px 6px;
-                            max-width: 100px;
+                            padding: 6px 8px;
                         }
                     }
                     
@@ -3210,9 +3453,10 @@
                                 <tr>
                                     <th>類別</th>
                                     <th>幣別</th>
-                                    <th>總費用</th>
+                                    <th>原幣費用</th>
+                                    <th>換算台幣</th>
                                     <th>分攤人數</th>
-                                    <th>每人費用</th>
+                                    <th>每人費用(台幣)</th>
                                 </tr>
                             </thead>
                             <tbody id="shareCostTableBody">
@@ -3266,51 +3510,77 @@
             </html>
             `;
             
-            // 計算費用統計
+            // 計算費用統計（使用預設匯率）
             const costData = calculateDetailedCostSummary(plan);
             let costHtml = '';
             
             // 活動費用
             Object.keys(costData.categories).forEach(category => {
                 const categoryData = costData.categories[category];
-                Object.keys(categoryData.currencies).forEach(currency => {
-                    const currencyData = categoryData.currencies[currency];
+                const currencyKeys = Object.keys(categoryData.currencies);
+                
+                if (currencyKeys.length > 0) {
+                    // 分類標題
                     costHtml += `
-                        <tr class="cost-subcategory">
-                            <td>${categoryData.label}</td>
-                            <td>${currency}</td>
-                            <td>${currencyData.totalCost.toFixed(2)}</td>
-                            <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.totalPersonalCost.toFixed(2)}</td>
+                        <tr class="cost-category">
+                            <td colspan="6"><strong>${categoryData.label}</strong></td>
                         </tr>
                     `;
-                });
+                    
+                    // 幣別詳細
+                    currencyKeys.forEach(currency => {
+                        const currencyData = categoryData.currencies[currency];
+                        costHtml += `
+                            <tr class="cost-subcategory">
+                                <td></td>
+                                <td>${currency}</td>
+                                <td>${currencyData.originalCost.toFixed(2)}</td>
+                                <td>${currencyData.twdCost.toFixed(2)}</td>
+                                <td>${currencyData.maxParticipants}</td>
+                                <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
             });
             
             // 交通費用
             Object.keys(costData.transportTypes).forEach(transportType => {
                 const transportData = costData.transportTypes[transportType];
-                Object.keys(transportData.currencies).forEach(currency => {
-                    const currencyData = transportData.currencies[currency];
+                const currencyKeys = Object.keys(transportData.currencies);
+                
+                if (currencyKeys.length > 0) {
+                    // 分類標題
                     costHtml += `
-                        <tr class="cost-subcategory">
-                            <td>${transportData.label}</td>
-                            <td>${currency}</td>
-                            <td>${currencyData.totalCost.toFixed(2)}</td>
-                            <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.totalPersonalCost.toFixed(2)}</td>
+                        <tr class="cost-category">
+                            <td colspan="6"><strong>${transportData.label}</strong></td>
                         </tr>
                     `;
-                });
+                    
+                    // 幣別詳細
+                    currencyKeys.forEach(currency => {
+                        const currencyData = transportData.currencies[currency];
+                        costHtml += `
+                            <tr class="cost-subcategory">
+                                <td></td>
+                                <td>${currency}</td>
+                                <td>${currencyData.originalCost.toFixed(2)}</td>
+                                <td>${currencyData.twdCost.toFixed(2)}</td>
+                                <td>${currencyData.maxParticipants}</td>
+                                <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
             });
             
             // 總計
             costHtml += `
                 <tr class="cost-total-row">
-                    <td colspan="2"><strong>總計</strong></td>
-                    <td><strong>${costData.grandTotal.toFixed(2)}</strong></td>
+                    <td colspan="3"><strong>總計 (新台幣)</strong></td>
+                    <td><strong>${costData.totalTWD.toFixed(2)}</strong></td>
                     <td></td>
-                    <td class="total-cost"><strong>${costData.grandTotalPersonal.toFixed(2)}</strong></td>
+                    <td class="total-cost"><strong>${costData.totalPersonalTWD.toFixed(2)}</strong></td>
                 </tr>
             `;
             
@@ -3396,6 +3666,14 @@
                             other: 'other'
                         };
                         
+                        // 計算換算後的台幣費用
+                        const originalCost = activity.cost || 0;
+                        const currency = activity.currency || 'TWD';
+                        const exchangeRate = state.exchangeRates[currency] || 1;
+                        const twdCost = originalCost * exchangeRate;
+                        const participants = activity.participants || 1;
+                        const personalTwdCost = twdCost / participants;
+                        
                         dayContentHtml += `
                             <div class="activity-item">
                                 <div class="activity-header">
@@ -3412,10 +3690,11 @@
                                 <div class="activity-details">
                                     <div><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
                                     ${activity.address ? `<div><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
-                                    ${activity.cost > 0 ? `
+                                    ${originalCost > 0 ? `
                                         <div><i class="fas fa-money-bill-wave"></i> 
-                                            ${activity.currency} ${activity.cost.toFixed(2)}
-                                            ${activity.participants > 1 ? ` (每人 ${(activity.cost / activity.participants).toFixed(2)})` : ''}
+                                            ${currency} ${originalCost.toFixed(2)} 
+                                            <small>(${twdCost.toFixed(2)} TWD)</small>
+                                            ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
                                         </div>
                                     ` : ''}
                                     ${activity.link && activity.linkName ? `
@@ -3444,6 +3723,14 @@
                                     other: '其他'
                                 };
                                 
+                                // 計算換算後的台幣費用
+                                const transportOriginalCost = transport.cost || 0;
+                                const transportCurrency = transport.currency || 'TWD';
+                                const transportExchangeRate = state.exchangeRates[transportCurrency] || 1;
+                                const transportTwdCost = transportOriginalCost * transportExchangeRate;
+                                const transportParticipants = transport.participants || 1;
+                                const transportPersonalTwdCost = transportTwdCost / transportParticipants;
+                                
                                 const routeDescription = transport.fromLocation && transport.toLocation 
                                     ? `${transport.fromLocation} → ${transport.toLocation}`
                                     : `${transport.fromActivityName} → ${transport.toActivityName}`;
@@ -3458,10 +3745,11 @@
                                         </div>
                                         <div><i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}</div>
                                         <div><i class="fas fa-route"></i> ${routeDescription}</div>
-                                        ${transport.cost > 0 ? `
+                                        ${transportOriginalCost > 0 ? `
                                             <div><i class="fas fa-money-bill-wave"></i> 
-                                                ${transport.currency} ${transport.cost.toFixed(2)}
-                                                ${transport.participants > 1 ? ` (每人 ${(transport.cost / transport.participants).toFixed(2)})` : ''}
+                                                ${transportCurrency} ${transportOriginalCost.toFixed(2)} 
+                                                <small>(${transportTwdCost.toFixed(2)} TWD)</small>
+                                                ${transportParticipants > 1 ? ` (每人 ${transportPersonalTwdCost.toFixed(2)} TWD)` : ''}
                                             </div>
                                         ` : ''}
                                         ${transport.link && transport.linkName ? `
@@ -3496,7 +3784,7 @@
             document.body.removeChild(link);
         }
 
-        // 計算詳細費用統計
+        // 計算詳細費用統計（考慮匯率）
         function calculateDetailedCostSummary(plan) {
             const categories = {
                 attraction: { label: '景點', currencies: {} },
@@ -3516,35 +3804,42 @@
                 other: { label: '交通-其他', currencies: {} }
             };
             
-            let grandTotal = 0;
-            let grandTotalPersonal = 0;
+            let totalTWD = 0;
+            let totalPersonalTWD = 0;
             
             // 活動費用
             if (plan.activities) {
                 plan.activities.forEach(activity => {
                     if (activity.cost > 0) {
                         const currency = activity.currency || 'TWD';
+                        const exchangeRate = state.exchangeRates[currency] || 1;
+                        const originalCost = activity.cost;
+                        const twdCost = originalCost * exchangeRate;
+                        const participants = activity.participants || 1;
+                        const personalTwdCost = twdCost / participants;
+                        
                         const category = categories[activity.category];
                         
                         if (category) {
                             if (!category.currencies[currency]) {
                                 category.currencies[currency] = {
-                                    totalCost: 0,
-                                    totalPersonalCost: 0,
-                                    maxParticipants: 1
+                                    originalCost: 0,
+                                    twdCost: 0,
+                                    maxParticipants: 1,
+                                    personalTwdCost: 0
                                 };
                             }
                             
-                            category.currencies[currency].totalCost += activity.cost;
-                            const personalCost = activity.cost / (activity.participants || 1);
-                            category.currencies[currency].totalPersonalCost += personalCost;
+                            category.currencies[currency].originalCost += originalCost;
+                            category.currencies[currency].twdCost += twdCost;
+                            category.currencies[currency].personalTwdCost += personalTwdCost;
                             category.currencies[currency].maxParticipants = Math.max(
                                 category.currencies[currency].maxParticipants,
-                                activity.participants || 1
+                                participants
                             );
                             
-                            grandTotal += activity.cost;
-                            grandTotalPersonal += personalCost;
+                            totalTWD += twdCost;
+                            totalPersonalTWD += personalTwdCost;
                         }
                     }
                 });
@@ -3555,26 +3850,33 @@
                 plan.transports.forEach(transport => {
                     if (transport.cost > 0) {
                         const currency = transport.currency || 'TWD';
+                        const exchangeRate = state.exchangeRates[currency] || 1;
+                        const originalCost = transport.cost;
+                        const twdCost = originalCost * exchangeRate;
+                        const participants = transport.participants || 1;
+                        const personalTwdCost = twdCost / participants;
+                        
                         const transportType = transportTypes[transport.type] || transportTypes.other;
                         
                         if (!transportType.currencies[currency]) {
                             transportType.currencies[currency] = {
-                                totalCost: 0,
-                                totalPersonalCost: 0,
-                                maxParticipants: 1
+                                originalCost: 0,
+                                twdCost: 0,
+                                maxParticipants: 1,
+                                personalTwdCost: 0
                             };
                         }
                         
-                        transportType.currencies[currency].totalCost += transport.cost;
-                        const personalCost = transport.cost / (transport.participants || 1);
-                        transportType.currencies[currency].totalPersonalCost += personalCost;
+                        transportType.currencies[currency].originalCost += originalCost;
+                        transportType.currencies[currency].twdCost += twdCost;
+                        transportType.currencies[currency].personalTwdCost += personalTwdCost;
                         transportType.currencies[currency].maxParticipants = Math.max(
                             transportType.currencies[currency].maxParticipants,
-                            transport.participants || 1
+                            participants
                         );
                         
-                        grandTotal += transport.cost;
-                        grandTotalPersonal += personalCost;
+                        totalTWD += twdCost;
+                        totalPersonalTWD += personalTwdCost;
                     }
                 });
             }
@@ -3582,8 +3884,8 @@
             return {
                 categories: categories,
                 transportTypes: transportTypes,
-                grandTotal: grandTotal,
-                grandTotalPersonal: grandTotalPersonal
+                totalTWD: totalTWD,
+                totalPersonalTWD: totalPersonalTWD
             };
         }
 
@@ -3593,13 +3895,13 @@
             costTableBody.innerHTML = '';
             
             if (!state.currentPlanId) {
-                costTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">請選擇一個旅遊計劃</td></tr>';
+                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">請選擇一個旅遊計劃</td></tr>';
                 return;
             }
             
             const plan = state.plans.find(p => p.id === state.currentPlanId);
             if (!plan) {
-                costTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">找不到計劃資料</td></tr>';
+                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">找不到計劃資料</td></tr>';
                 return;
             }
             
@@ -3617,7 +3919,7 @@
                     const categoryRow = document.createElement('tr');
                     categoryRow.className = 'cost-category';
                     categoryRow.innerHTML = `
-                        <td colspan="5"><strong>${categoryData.label}</strong></td>
+                        <td colspan="6"><strong>${categoryData.label}</strong></td>
                     `;
                     costTableBody.appendChild(categoryRow);
                     
@@ -3629,9 +3931,10 @@
                         row.innerHTML = `
                             <td></td>
                             <td>${currency}</td>
-                            <td>${currencyData.totalCost.toFixed(2)}</td>
+                            <td>${currencyData.originalCost.toFixed(2)}</td>
+                            <td>${currencyData.twdCost.toFixed(2)}</td>
                             <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.totalPersonalCost.toFixed(2)}</td>
+                            <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
                         `;
                         costTableBody.appendChild(row);
                     });
@@ -3649,7 +3952,7 @@
                     const categoryRow = document.createElement('tr');
                     categoryRow.className = 'cost-category';
                     categoryRow.innerHTML = `
-                        <td colspan="5"><strong>${transportData.label}</strong></td>
+                        <td colspan="6"><strong>${transportData.label}</strong></td>
                     `;
                     costTableBody.appendChild(categoryRow);
                     
@@ -3661,9 +3964,10 @@
                         row.innerHTML = `
                             <td></td>
                             <td>${currency}</td>
-                            <td>${currencyData.totalCost.toFixed(2)}</td>
+                            <td>${currencyData.originalCost.toFixed(2)}</td>
+                            <td>${currencyData.twdCost.toFixed(2)}</td>
                             <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.totalPersonalCost.toFixed(2)}</td>
+                            <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
                         `;
                         costTableBody.appendChild(row);
                     });
@@ -3675,14 +3979,14 @@
                 const totalRow = document.createElement('tr');
                 totalRow.className = 'cost-total-row';
                 totalRow.innerHTML = `
-                    <td colspan="2"><strong>總計</strong></td>
-                    <td><strong>${costData.grandTotal.toFixed(2)}</strong></td>
+                    <td colspan="3"><strong>總計 (新台幣)</strong></td>
+                    <td><strong>${costData.totalTWD.toFixed(2)}</strong></td>
                     <td></td>
-                    <td class="total-cost"><strong>${costData.grandTotalPersonal.toFixed(2)}</strong></td>
+                    <td class="total-cost"><strong>${costData.totalPersonalTWD.toFixed(2)}</strong></td>
                 `;
                 costTableBody.appendChild(totalRow);
             } else {
-                costTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
+                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
             }
         }
 
