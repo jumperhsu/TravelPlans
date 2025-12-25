@@ -1154,6 +1154,54 @@
             margin-top: 5px;
         }
 
+        /* 檢視模式樣式 */
+        body.view-mode .edit-controls,
+        body.view-mode .floating-buttons,
+        body.view-mode .btn-danger,
+        body.view-mode .btn-accent,
+        body.view-mode .btn-secondary.edit-plan,
+        body.view-mode .btn-secondary.edit-activity,
+        body.view-mode .btn-secondary.edit-transport,
+        body.view-mode .delete-activity,
+        body.view-mode .delete-transport,
+        body.view-mode .day-title-input,
+        body.view-mode .activity-item {
+            display: none !important;
+        }
+
+        body.view-mode .activity-item {
+            cursor: default !important;
+        }
+
+        body.view-mode .plan-item {
+            cursor: default !important;
+        }
+
+        body.view-mode .day-tab {
+            cursor: default !important;
+        }
+
+        body.view-mode .view-mode-controls {
+            display: flex !important;
+        }
+
+        /* 檢視模式控制按鈕 */
+        .view-mode-controls {
+            display: none;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-view-mode {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-view-mode:hover {
+            background-color: #e68900;
+        }
+
         /* 響應式設計 */
         @media (max-width: 1024px) {
             .app-container {
@@ -1563,6 +1611,7 @@
                     <button class="btn btn-secondary" id="backupBtn"><i class="fas fa-download"></i> 本地備份</button>
                     <button class="btn btn-secondary" id="restoreBtn"><i class="fas fa-upload"></i> 本地還原</button>
                     <button class="btn btn-secondary" id="exchangeRateBtn"><i class="fas fa-money-bill-wave"></i> 匯率設定</button>
+                    <button class="btn btn-view-mode" id="viewModeBtn"><i class="fas fa-eye"></i> 檢視模式</button>
                 </div>
                 
                 <div class="plans-list" id="plansList">
@@ -1607,6 +1656,9 @@
                             <div class="plan-actions">
                                 <button class="btn btn-accent" id="sharePlanBtn"><i class="fas fa-share-alt"></i> 分享</button>
                                 <button class="btn btn-danger" id="deletePlanBtn"><i class="fas fa-trash-alt"></i> 刪除</button>
+                                <div class="view-mode-controls">
+                                    <button class="btn btn-primary" id="exitViewModeBtn"><i class="fas fa-edit"></i> 退出檢視模式</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1945,7 +1997,8 @@
                 gistId: null,
                 description: "旅遊計劃備份",
                 isConnected: false
-            }
+            },
+            isViewMode: false
         };
 
         // 初始化應用
@@ -2146,6 +2199,10 @@
             document.getElementById('sharePlanBtn').addEventListener('click', sharePlan);
             document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
             
+            // 檢視模式按鈕
+            document.getElementById('viewModeBtn').addEventListener('click', enableViewMode);
+            document.getElementById('exitViewModeBtn').addEventListener('click', exitViewMode);
+            
             // 雲端相關按鈕
             document.getElementById('cloudSettingsBtn').addEventListener('click', showGithubCloudModal);
             document.getElementById('cloudBackupBtn').addEventListener('click', backupToGithub);
@@ -2258,6 +2315,34 @@
             });
             
             console.log('事件監聽器設置完成');
+        }
+
+        // 啟用檢視模式
+        function enableViewMode() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            state.isViewMode = true;
+            document.body.classList.add('view-mode');
+            updateUIForViewMode();
+        }
+
+        // 退出檢視模式
+        function exitViewMode() {
+            state.isViewMode = false;
+            document.body.classList.remove('view-mode');
+            updateUIForViewMode();
+        }
+
+        // 更新UI以適應檢視模式
+        function updateUIForViewMode() {
+            // 更新活動顯示
+            updateActivitiesContainer();
+            
+            // 更新計劃列表
+            updatePlansList();
         }
 
         // 設置時間格式化
@@ -2626,7 +2711,7 @@
                     <div class="plan-item-header">
                         <div class="plan-item-name">${plan.name}</div>
                         <div>
-                            <button class="btn btn-small btn-secondary edit-plan" data-id="${plan.id}">
+                            <button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -2636,7 +2721,7 @@
                 `;
                 
                 planElement.addEventListener('click', function(e) {
-                    if (!e.target.closest('.edit-plan')) {
+                    if (!e.target.closest('.edit-plan') && !state.isViewMode) {
                         state.currentPlanId = plan.id;
                         updatePlansList();
                         showPlanContent();
@@ -2649,10 +2734,12 @@
                 });
                 
                 const editBtn = planElement.querySelector('.edit-plan');
-                editBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showEditPlanModal(plan.id);
-                });
+                if (editBtn) {
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showEditPlanModal(plan.id);
+                    });
+                }
                 
                 plansList.appendChild(planElement);
             });
@@ -2868,7 +2955,7 @@
             activityElement.className = 'activity-item';
             activityElement.dataset.id = activity.id;
             activityElement.dataset.type = 'activity';
-            activityElement.draggable = true;
+            activityElement.draggable = !state.isViewMode;
             
             const categoryLabels = {
                 attraction: '景點',
@@ -2895,6 +2982,18 @@
             const twdCost = originalCost * exchangeRate;
             const participants = activity.participants || 1;
             const personalTwdCost = twdCost / participants;
+            
+            // 建立編輯/刪除按鈕HTML（檢視模式下隱藏）
+            const editControlsHtml = !state.isViewMode ? `
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-small btn-secondary edit-activity edit-controls" data-id="${activity.id}">
+                        <i class="fas fa-edit"></i> 編輯
+                    </button>
+                    <button class="btn btn-small btn-danger delete-activity edit-controls" data-id="${activity.id}">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </button>
+                </div>
+            ` : '';
             
             activityElement.innerHTML = `
                 <div class="activity-header">
@@ -2935,37 +3034,32 @@
                         </div>
                     ` : ''}
                 </div>
-                <div style="margin-top: 10px; text-align: right;">
-                    <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}">
-                        <i class="fas fa-edit"></i> 編輯
-                    </button>
-                    <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}">
-                        <i class="fas fa-trash-alt"></i> 刪除
-                    </button>
-                </div>
+                ${editControlsHtml}
             `;
             
-            const editBtn = activityElement.querySelector('.edit-activity');
-            const deleteBtn = activityElement.querySelector('.delete-activity');
-            
-            if (editBtn) {
-                editBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showEditActivityModal(activity.id);
-                });
+            if (!state.isViewMode) {
+                const editBtn = activityElement.querySelector('.edit-activity');
+                const deleteBtn = activityElement.querySelector('.delete-activity');
+                
+                if (editBtn) {
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showEditActivityModal(activity.id);
+                    });
+                }
+                
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteActivity(activity.id);
+                    });
+                }
+                
+                activityElement.addEventListener('dragstart', handleDragStart);
+                activityElement.addEventListener('dragover', handleDragOver);
+                activityElement.addEventListener('drop', handleDrop);
+                activityElement.addEventListener('dragend', handleDragEnd);
             }
-            
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    deleteActivity(activity.id);
-                });
-            }
-            
-            activityElement.addEventListener('dragstart', handleDragStart);
-            activityElement.addEventListener('dragover', handleDragOver);
-            activityElement.addEventListener('drop', handleDrop);
-            activityElement.addEventListener('dragend', handleDragEnd);
             
             return activityElement;
         }
@@ -3055,6 +3149,18 @@
                 });
             }
             
+            // 建立編輯/刪除按鈕HTML（檢視模式下隱藏）
+            const editControlsHtml = !state.isViewMode ? `
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-small btn-secondary edit-transport edit-controls" data-id="${transport.id}">
+                        <i class="fas fa-edit"></i> 編輯
+                    </button>
+                    <button class="btn btn-small btn-danger delete-transport edit-controls" data-id="${transport.id}">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </button>
+                </div>
+            ` : '';
+            
             transportElement.innerHTML = `
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <div>
@@ -3080,31 +3186,26 @@
                     </div>
                 ` : ''}
                 
-                <div style="margin-top: 10px; text-align: right;">
-                    <button class="btn btn-small btn-secondary edit-transport" data-id="${transport.id}">
-                        <i class="fas fa-edit"></i> 編輯
-                    </button>
-                    <button class="btn btn-small btn-danger delete-transport" data-id="${transport.id}">
-                        <i class="fas fa-trash-alt"></i> 刪除
-                    </button>
-                </div>
+                ${editControlsHtml}
             `;
             
-            const editBtn = transportElement.querySelector('.edit-transport');
-            const deleteBtn = transportElement.querySelector('.delete-transport');
-            
-            if (editBtn) {
-                editBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showEditTransportModal(transport.id);
-                });
-            }
-            
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    deleteTransport(transport.id);
-                });
+            if (!state.isViewMode) {
+                const editBtn = transportElement.querySelector('.edit-transport');
+                const deleteBtn = transportElement.querySelector('.delete-transport');
+                
+                if (editBtn) {
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showEditTransportModal(transport.id);
+                    });
+                }
+                
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteTransport(transport.id);
+                    });
+                }
             }
             
             return transportElement;
@@ -4043,7 +4144,7 @@
             input.click();
         }
 
-        // 分享計劃
+        // 分享計劃 - 已移除列印功能，增加滾動按鈕
         function sharePlan() {
             if (!state.currentPlanId) {
                 alert('請先選擇一個旅遊計劃');
@@ -4189,6 +4290,7 @@
                         width: 100%;
                         max-width: 100%;
                         overflow-x: hidden;
+                        position: relative;
                     }
                     
                     .day-content.active {
@@ -4451,6 +4553,39 @@
                         background-color: rgba(255, 126, 95, 0.1);
                     }
                     
+                    /* 滾動到頂部/底部按鈕 */
+                    .scroll-day-buttons {
+                        position: fixed;
+                        right: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        z-index: 99;
+                    }
+                    
+                    .scroll-day-btn {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        background-color: #4a6fa5;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+                        transition: all 0.3s;
+                        border: none;
+                        font-size: 1.2rem;
+                    }
+                    
+                    .scroll-day-btn:hover {
+                        background-color: #6b8cbc;
+                        transform: scale(1.1);
+                    }
+                    
                     /* 響應式設計 */
                     @media (max-width: 768px) {
                         .container {
@@ -4507,6 +4642,10 @@
                             padding: 8px 10px;
                             font-size: 0.75rem;
                         }
+                        
+                        .scroll-day-buttons {
+                            display: none;
+                        }
                     }
                     
                     @media (max-width: 480px) {
@@ -4554,31 +4693,6 @@
                         border-top: 1px solid #e0e0e0;
                         color: #666;
                         font-size: 0.9rem;
-                    }
-                    
-                    .print-btn {
-                        position: fixed;
-                        bottom: 20px;
-                        right: 20px;
-                        background: #4a6fa5;
-                        color: white;
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 1.2rem;
-                        cursor: pointer;
-                        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-                        transition: all 0.3s;
-                        z-index: 100;
-                        border: none;
-                    }
-                    
-                    .print-btn:hover {
-                        background: #6b8cbc;
-                        transform: scale(1.1);
                     }
                 </style>
             </head>
@@ -4636,12 +4750,21 @@
                     </footer>
                 </div>
                 
-                <button class="print-btn" onclick="window.print()">
-                    <i class="fas fa-print"></i>
-                </button>
+                <!-- 滾動到當日頂部/底部按鈕 -->
+                <div class="scroll-day-buttons" id="scrollDayButtons">
+                    <button class="scroll-day-btn" id="scrollDayTopBtn" title="滾動到當日頂部">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="scroll-day-btn" id="scrollDayBottomBtn" title="滾動到當日底部">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
                 
                 <script>
+                    let currentDay = 1;
+                    
                     document.addEventListener('DOMContentLoaded', function() {
+                        // 天數導航按鈕事件
                         document.querySelectorAll('.day-nav-btn').forEach(btn => {
                             btn.addEventListener('click', function() {
                                 const day = this.dataset.day;
@@ -4649,10 +4772,21 @@
                             });
                         });
                         
+                        // 滾動按鈕事件
+                        document.getElementById('scrollDayTopBtn').addEventListener('click', function() {
+                            scrollToDayTop();
+                        });
+                        
+                        document.getElementById('scrollDayBottomBtn').addEventListener('click', function() {
+                            scrollToDayBottom();
+                        });
+                        
                         showDayContent(1);
                     });
                     
                     function showDayContent(day) {
+                        currentDay = parseInt(day);
+                        
                         document.querySelectorAll('.day-content').forEach(content => {
                             content.classList.remove('active');
                         });
@@ -4670,6 +4804,37 @@
                         });
                         
                         dayContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    
+                    function scrollToDayTop() {
+                        const dayContent = document.getElementById('dayContent' + currentDay);
+                        if (dayContent) {
+                            dayContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                    
+                    function scrollToDayBottom() {
+                        const dayContent = document.getElementById('dayContent' + currentDay);
+                        if (dayContent) {
+                            const activitiesContainer = dayContent.querySelector('.activities-container');
+                            if (activitiesContainer && activitiesContainer.lastElementChild) {
+                                activitiesContainer.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                            }
+                        }
+                    }
+                    
+                    // 輔助函數：解析時間字符串為分鐘數
+                    function parseTime(timeStr) {
+                        if (!timeStr) return 0;
+                        
+                        const match = timeStr.match(/^(\\d{1,2}):(\\d{2})$/);
+                        if (match) {
+                            const hours = parseInt(match[1]);
+                            const minutes = parseInt(match[2]);
+                            return hours * 60 + minutes;
+                        }
+                        
+                        return 0;
                     }
                 <\/script>
             </body>
