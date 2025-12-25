@@ -2457,7 +2457,7 @@
             }
         }
 
-        // 從GitHub還原
+        // 從GitHub還原 - 修正版 (使用 raw_url 防止內容被截斷)
         async function restoreFromGithub() {
             console.log('開始從GitHub還原...');
             
@@ -2472,6 +2472,7 @@
             }
             
             try {
+                // 1. 取得 Gist 的 Metadata
                 const response = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
                     headers: {
                         'Authorization': `token ${state.githubConfig.token}`,
@@ -2479,59 +2480,122 @@
                     }
                 });
                 
-                if (response.ok) {
-                    const gistData = await response.json();
-                    const files = Object.values(gistData.files);
-                    
-                    if (files.length === 0) {
-                        alert('Gist中沒有找到備份檔案');
-                        return;
-                    }
-                    
-                    // 找出最新的備份檔案
-                    const latestFile = files.reduce((latest, file) => {
-                        if (!latest || (file.filename.includes('旅遊計劃') && file.filename > latest.filename)) {
-                            return file;
-                        }
-                        return latest;
-                    }, null);
-                    
-                    if (!latestFile) {
-                        alert('沒有找到有效的備份檔案');
-                        return;
-                    }
-                    
-                    const backupData = JSON.parse(latestFile.content);
-                    
-                    if (!backupData.plan || !backupData.allPlans) {
-                        alert('備份檔案格式不正確');
-                        return;
-                    }
-                    
-                    if (confirm(`確定要還原「${backupData.plan.name}」計劃嗎？這將覆蓋目前的資料。`)) {
-                        // 還原資料
-                        state.plans = backupData.allPlans;
-                        state.currentPlanId = backupData.plan.id;
-                        state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
-                        
-                        if (backupData.exchangeRates) {
-                            state.exchangeRates = { ...state.exchangeRates, ...backupData.exchangeRates };
-                        }
-                        
-                        savePlansToStorage();
-                        saveExchangeRatesToStorage();
-                        
-                        updatePlansList();
-                        updateCostSummary();
-                        showPlanContent();
-                        
-                        alert('雲端還原成功！');
-                        console.log('雲端還原成功');
-                    }
-                } else {
+                if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('雲端還原失敗:', errorText);
-                    alert('雲端還原失敗，請檢查Gist ID是否正確');
+                    console.error('取得Gist失敗:', errorText);
+                    alert('取得Gist失敗，請檢查Gist ID是否正確');
+                    return;
+                }
+                
+                const gistData = await response.json();
+                
+                // 2. 找出最新的備份檔案
+                const files = gistData.files;
+                if (!files || Object.keys(files).length === 0) {
+                    alert('Gist中沒有找到備份檔案');
+                    return;
+                }
+                
+                let latestFile = null;
+                let latestFilename = '';
+                
+                Object.keys(files).forEach(filename => {
+                    const file = files[filename];
+                    // 確保是我們產生的 JSON 檔案
+                    if (file && filename.includes('旅遊計劃') && filename.endsWith('.json')) {
+                        if (!latestFile || filename > latestFilename) {
+                            latestFile = file;
+                            latestFilename = filename;
+                        }
+                    }
+                });
+                
+                if (!latestFile) {
+                    alert('沒有找到旅遊計劃備份檔案');
+                    return;
+                }
+                
+                console.log('找到最新檔案:', latestFilename, latestFile.raw_url);
+                
+                // 3. 修正重點：透過 raw_url 下載實際內容，而不是依賴 API 回傳的 content 欄位
+                if (!latestFile.raw_url) {
+                    alert('無法取得檔案下載連結 (raw_url)');
+                    return;
+                }
+
+                // 下載原始檔案內容
+                const rawResponse = await fetch(latestFile.raw_url);
+                if (!rawResponse.ok) {
+                    alert('下載備份檔案內容失敗');
+                    return;
+                }
+
+                // 4. 解析 JSON
+                let backupData;
+                try {
+                    backupData = await rawResponse.json(); // 直接解析回傳的 JSON
+                    console.log('成功解析JSON資料');
+                } catch (parseError) {
+                    console.error('JSON解析錯誤:', parseError);
+                    alert('備份檔案格式不正確，無法解析JSON');
+                    return;
+                }
+                
+                if (!backupData || !backupData.allPlans || !Array.isArray(backupData.allPlans)) {
+                    alert('備份檔案格式不正確，缺少必要的資料');
+                    return;
+                }
+                
+                // 5. 執行還原邏輯
+                const planNames = backupData.allPlans.map(p => p.name).join(', ');
+                if (confirm(`確定要還原以下旅遊計劃嗎？這將覆蓋目前的資料。\n\n計劃列表: ${planNames}`)) {
+                    state.plans = backupData.allPlans;
+                    state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
+                    
+                    if (state.plans.length > 0) {
+                        state.currentPlanId = state.plans[0].id;
+                    } else {
+                        state.currentPlanId = null;
+                    }
+                    
+                    if (backupData.exchangeRates) {
+                        state.exchangeRates = { ...state.exchangeRates, ...backupData.exchangeRates };
+                    }
+                    
+                    // 確保 ID 唯一性
+                    state.plans.forEach(plan => {
+                        if (plan.activities) {
+                            plan.activities.forEach(activity => {
+                                if (!activity.id) activity.id = Date.now() + Math.random();
+                            });
+                        }
+                        if (plan.transports) {
+                            plan.transports.forEach(transport => {
+                                if (!transport.id) transport.id = Date.now() + Math.random();
+                                if (transport.options) {
+                                    transport.options.forEach(option => {
+                                        if (!option.id) option.id = Date.now() + Math.random();
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    
+                    savePlansToStorage();
+                    saveExchangeRatesToStorage();
+                    
+                    updatePlansList();
+                    updateCostSummary();
+                    
+                    if (state.currentPlanId) {
+                        showPlanContent();
+                    } else {
+                        document.getElementById('noPlanSelected').style.display = 'block';
+                        document.getElementById('planContent').style.display = 'none';
+                    }
+                    
+                    alert('雲端還原成功！');
+                    console.log('雲端還原成功，還原了', state.plans.length, '個計劃');
                 }
             } catch (error) {
                 console.error('雲端還原錯誤:', error);
