@@ -1202,6 +1202,105 @@
             background-color: #e68900;
         }
 
+        /* 雲端備份/還原模態框專用樣式 */
+        .cloud-backup-list,
+        .cloud-restore-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 10px;
+        }
+
+        .cloud-backup-item,
+        .cloud-restore-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cloud-backup-item:last-child,
+        .cloud-restore-item:last-child {
+            border-bottom: none;
+        }
+
+        .cloud-backup-item:hover,
+        .cloud-restore-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .cloud-backup-item.selected,
+        .cloud-restore-item.selected {
+            background-color: rgba(74, 111, 165, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .cloud-backup-checkbox,
+        .cloud-restore-checkbox {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .cloud-backup-info,
+        .cloud-restore-info {
+            flex: 1;
+        }
+
+        .cloud-backup-name,
+        .cloud-restore-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .cloud-backup-details,
+        .cloud-restore-details {
+            font-size: 0.8rem;
+            color: var(--light-text);
+            word-break: break-word;
+        }
+
+        .cloud-backup-actions,
+        .cloud-restore-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cloud-backup-selected-count,
+        .cloud-restore-selected-count {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .cloud-backup-empty,
+        .cloud-restore-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--light-text);
+        }
+
+        .cloud-backup-empty i,
+        .cloud-restore-empty i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #e0e0e0;
+        }
+
+        .cloud-backup-datetime {
+            font-size: 0.75rem;
+            color: var(--light-text);
+            margin-top: 3px;
+        }
+
         /* 響應式設計 */
         @media (max-width: 1024px) {
             .app-container {
@@ -1975,6 +2074,64 @@
         </div>
     </div>
 
+    <!-- 雲端備份模態框 -->
+    <div class="modal" id="cloudBackupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cloud-upload-alt"></i> 雲端備份</h3>
+                <button class="btn btn-secondary" id="closeCloudBackupModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">選擇要備份到雲端的旅遊計劃（可多選）：</p>
+                
+                <div class="cloud-backup-list" id="cloudBackupList">
+                    <!-- 備份計劃列表將動態生成 -->
+                </div>
+                
+                <div class="cloud-backup-actions">
+                    <div class="cloud-backup-selected-count" id="cloudBackupSelectedCount">
+                        已選擇 0 個計劃
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancelCloudBackupBtn">取消</button>
+                        <button type="button" class="btn btn-primary" id="confirmCloudBackupBtn" disabled>
+                            <i class="fas fa-cloud-upload-alt"></i> 開始備份
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 雲端還原模態框 -->
+    <div class="modal" id="cloudRestoreModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cloud-download-alt"></i> 雲端還原</h3>
+                <button class="btn btn-secondary" id="closeCloudRestoreModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">選擇要從雲端還原的旅遊計劃（可多選）：</p>
+                
+                <div class="cloud-restore-list" id="cloudRestoreList">
+                    <!-- 還原計劃列表將動態生成 -->
+                </div>
+                
+                <div class="cloud-restore-actions">
+                    <div class="cloud-restore-selected-count" id="cloudRestoreSelectedCount">
+                        已選擇 0 個計劃
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancelCloudRestoreBtn">取消</button>
+                        <button type="button" class="btn btn-primary" id="confirmCloudRestoreBtn" disabled>
+                            <i class="fas fa-cloud-download-alt"></i> 開始還原
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 應用狀態
         const state = {
@@ -1998,7 +2155,8 @@
                 description: "旅遊計劃備份",
                 isConnected: false
             },
-            isViewMode: false
+            isViewMode: false,
+            cloudBackups: [] // 儲存雲端備份清單
         };
 
         // 初始化應用
@@ -2205,8 +2363,8 @@
             
             // 雲端相關按鈕
             document.getElementById('cloudSettingsBtn').addEventListener('click', showGithubCloudModal);
-            document.getElementById('cloudBackupBtn').addEventListener('click', backupToGithub);
-            document.getElementById('cloudRestoreBtn').addEventListener('click', restoreFromGithub);
+            document.getElementById('cloudBackupBtn').addEventListener('click', showCloudBackupModal);
+            document.getElementById('cloudRestoreBtn').addEventListener('click', showCloudRestoreModal);
             
             // GitHub雲端設定模態框按鈕
             document.getElementById('closeGithubCloudModal').addEventListener('click', closeGithubCloudModal);
@@ -2215,6 +2373,16 @@
                 e.preventDefault();
                 saveGithubConfig();
             });
+            
+            // 雲端備份模態框按鈕
+            document.getElementById('closeCloudBackupModal').addEventListener('click', closeCloudBackupModal);
+            document.getElementById('cancelCloudBackupBtn').addEventListener('click', closeCloudBackupModal);
+            document.getElementById('confirmCloudBackupBtn').addEventListener('click', startCloudBackup);
+            
+            // 雲端還原模態框按鈕
+            document.getElementById('closeCloudRestoreModal').addEventListener('click', closeCloudRestoreModal);
+            document.getElementById('cancelCloudRestoreBtn').addEventListener('click', closeCloudRestoreModal);
+            document.getElementById('confirmCloudRestoreBtn').addEventListener('click', startCloudRestore);
             
             // 手機選單按鈕
             document.getElementById('mobileMenuBtn').addEventListener('click', function() {
@@ -2453,36 +2621,118 @@
             }
         }
 
-        // 備份到GitHub
-        async function backupToGithub() {
-            console.log('開始備份到GitHub...');
-            
+        // 顯示雲端備份模態框
+        function showCloudBackupModal() {
             if (!state.githubConfig.isConnected || !state.githubConfig.token) {
                 alert('請先連接GitHub雲端');
                 return;
             }
             
-            if (!state.currentPlanId) {
-                alert('請先選擇一個旅遊計劃');
+            if (state.plans.length === 0) {
+                alert('目前沒有旅遊計劃可供備份');
                 return;
             }
             
-            const plan = state.plans.find(p => p.id === state.currentPlanId);
-            if (!plan) {
-                alert('找不到選擇的計劃');
+            // 更新備份計劃列表
+            updateCloudBackupList();
+            
+            document.getElementById('cloudBackupModal').classList.add('active');
+        }
+
+        // 更新雲端備份列表
+        function updateCloudBackupList() {
+            const cloudBackupList = document.getElementById('cloudBackupList');
+            cloudBackupList.innerHTML = '';
+            
+            if (state.plans.length === 0) {
+                cloudBackupList.innerHTML = `
+                    <div class="cloud-backup-empty">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>目前沒有旅遊計劃</p>
+                    </div>
+                `;
                 return;
             }
+            
+            state.plans.forEach(plan => {
+                const planElement = document.createElement('div');
+                planElement.className = 'cloud-backup-item';
+                
+                const startDate = new Date(plan.startDate);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + plan.days - 1);
+                
+                planElement.innerHTML = `
+                    <input type="checkbox" class="cloud-backup-checkbox" data-id="${plan.id}">
+                    <div class="cloud-backup-info">
+                        <div class="cloud-backup-name">${plan.name}</div>
+                        <div class="cloud-backup-details">${formatDate(startDate)} - ${formatDate(endDate)} (${plan.days} 天)</div>
+                    </div>
+                `;
+                
+                cloudBackupList.appendChild(planElement);
+            });
+            
+            // 添加事件監聽器
+            document.querySelectorAll('.cloud-backup-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCloudBackupSelectedCount);
+            });
+            
+            updateCloudBackupSelectedCount();
+        }
+
+        // 更新雲端備份選擇計數
+        function updateCloudBackupSelectedCount() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-backup-checkbox:checked');
+            const selectedCount = selectedCheckboxes.length;
+            
+            document.getElementById('cloudBackupSelectedCount').textContent = `已選擇 ${selectedCount} 個計劃`;
+            document.getElementById('confirmCloudBackupBtn').disabled = selectedCount === 0;
+            
+            // 更新選中項目的樣式
+            document.querySelectorAll('.cloud-backup-item').forEach(item => {
+                const checkbox = item.querySelector('.cloud-backup-checkbox');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // 關閉雲端備份模態框
+        function closeCloudBackupModal() {
+            document.getElementById('cloudBackupModal').classList.remove('active');
+            // 取消所有選擇
+            document.querySelectorAll('.cloud-backup-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateCloudBackupSelectedCount();
+        }
+
+        // 開始雲端備份
+        async function startCloudBackup() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-backup-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('請至少選擇一個旅遊計劃進行備份');
+                return;
+            }
+            
+            const selectedPlanIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
+            const selectedPlans = state.plans.filter(plan => selectedPlanIds.includes(plan.id));
             
             try {
                 const backupData = {
-                    plan: plan,
-                    allPlans: state.plans,
+                    plans: selectedPlans,
                     exchangeRates: state.exchangeRates,
                     backupDate: new Date().toISOString(),
                     appVersion: '1.0'
                 };
                 
-                const filename = `旅遊計劃_${plan.name}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                const planNames = selectedPlans.map(plan => plan.name).join(', ');
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `旅遊計劃備份_${timestamp}.json`;
+                
                 const content = JSON.stringify(backupData, null, 2);
                 
                 const gistData = {
@@ -2495,9 +2745,33 @@
                     }
                 };
                 
+                // 顯示備份進度
+                const confirmBtn = document.getElementById('confirmCloudBackupBtn');
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 備份中...';
+                confirmBtn.disabled = true;
+                
                 // 如果已有Gist ID，則更新現有Gist
                 let response;
                 if (state.githubConfig.gistId) {
+                    // 先獲取現有Gist
+                    try {
+                        const getResponse = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
+                            headers: {
+                                'Authorization': `token ${state.githubConfig.token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        if (getResponse.ok) {
+                            const existingGist = await getResponse.json();
+                            // 合併檔案（保留現有檔案）
+                            gistData.files = { ...existingGist.files, ...gistData.files };
+                        }
+                    } catch (error) {
+                        console.error('獲取現有Gist失敗:', error);
+                    }
+                    
                     response = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
                         method: 'PATCH',
                         headers: {
@@ -2529,23 +2803,37 @@
                         saveGithubConfigToStorage();
                     }
                     
-                    alert('雲端備份成功！');
+                    // 重置按鈕狀態
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                    
+                    alert(`雲端備份成功！\n已備份 ${selectedPlans.length} 個計劃: ${planNames}`);
                     console.log('雲端備份成功，Gist ID:', state.githubConfig.gistId);
+                    closeCloudBackupModal();
                 } else {
                     const errorText = await response.text();
                     console.error('雲端備份失敗:', errorText);
+                    
+                    // 重置按鈕狀態
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                    
                     alert('雲端備份失敗，請檢查網路連接或Token權限');
                 }
             } catch (error) {
                 console.error('雲端備份錯誤:', error);
+                
+                // 重置按鈕狀態
+                const confirmBtn = document.getElementById('confirmCloudBackupBtn');
+                confirmBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> 開始備份';
+                confirmBtn.disabled = false;
+                
                 alert('雲端備份失敗：' + error.message);
             }
         }
 
-        // 從GitHub還原 - 修正版 (使用 raw_url 防止內容被截斷)
-        async function restoreFromGithub() {
-            console.log('開始從GitHub還原...');
-            
+        // 顯示雲端還原模態框
+        async function showCloudRestoreModal() {
             if (!state.githubConfig.isConnected || !state.githubConfig.token) {
                 alert('請先連接GitHub雲端');
                 return;
@@ -2557,7 +2845,33 @@
             }
             
             try {
-                // 1. 取得 Gist 的 Metadata
+                // 顯示載入狀態
+                const cloudRestoreList = document.getElementById('cloudRestoreList');
+                cloudRestoreList.innerHTML = `
+                    <div class="cloud-restore-empty">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>載入雲端備份中...</p>
+                    </div>
+                `;
+                
+                document.getElementById('cloudRestoreModal').classList.add('active');
+                
+                // 獲取雲端備份清單
+                await loadCloudBackups();
+                
+                // 更新還原列表
+                updateCloudRestoreList();
+                
+            } catch (error) {
+                console.error('載入雲端備份失敗:', error);
+                alert('載入雲端備份失敗：' + error.message);
+                closeCloudRestoreModal();
+            }
+        }
+
+        // 載入雲端備份清單
+        async function loadCloudBackups() {
+            try {
                 const response = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
                     headers: {
                         'Authorization': `token ${state.githubConfig.token}`,
@@ -2568,87 +2882,183 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('取得Gist失敗:', errorText);
-                    alert('取得Gist失敗，請檢查Gist ID是否正確');
-                    return;
+                    throw new Error('取得Gist失敗，請檢查Gist ID是否正確');
                 }
                 
                 const gistData = await response.json();
-                
-                // 2. 找出最新的備份檔案
                 const files = gistData.files;
+                
                 if (!files || Object.keys(files).length === 0) {
-                    alert('Gist中沒有找到備份檔案');
-                    return;
+                    throw new Error('Gist中沒有找到備份檔案');
                 }
                 
-                let latestFile = null;
-                let latestFilename = '';
+                state.cloudBackups = [];
                 
-                Object.keys(files).forEach(filename => {
-                    const file = files[filename];
-                    // 確保是我們產生的 JSON 檔案
+                // 處理所有JSON檔案
+                for (const [filename, file] of Object.entries(files)) {
                     if (file && filename.includes('旅遊計劃') && filename.endsWith('.json')) {
-                        if (!latestFile || filename > latestFilename) {
-                            latestFile = file;
-                            latestFilename = filename;
+                        try {
+                            // 透過 raw_url 下載實際內容
+                            if (!file.raw_url) {
+                                console.warn(`檔案 ${filename} 沒有 raw_url，跳過`);
+                                continue;
+                            }
+                            
+                            const rawResponse = await fetch(file.raw_url);
+                            if (!rawResponse.ok) {
+                                console.warn(`下載檔案 ${filename} 失敗`);
+                                continue;
+                            }
+                            
+                            const backupData = await rawResponse.json();
+                            
+                            if (backupData && backupData.plans && Array.isArray(backupData.plans)) {
+                                // 提取備份資訊
+                                const backupInfo = {
+                                    filename: filename,
+                                    backupDate: backupData.backupDate || new Date().toISOString(),
+                                    plans: backupData.plans,
+                                    planCount: backupData.plans.length
+                                };
+                                
+                                state.cloudBackups.push(backupInfo);
+                            }
+                        } catch (parseError) {
+                            console.error(`解析備份檔案 ${filename} 失敗:`, parseError);
                         }
                     }
+                }
+                
+                // 按備份日期排序（最新的在前）
+                state.cloudBackups.sort((a, b) => {
+                    return new Date(b.backupDate) - new Date(a.backupDate);
                 });
                 
-                if (!latestFile) {
-                    alert('沒有找到旅遊計劃備份檔案');
-                    return;
-                }
+                console.log('載入雲端備份成功:', state.cloudBackups.length, '個備份');
                 
-                console.log('找到最新檔案:', latestFilename, latestFile.raw_url);
-                
-                // 3. 修正重點：透過 raw_url 下載實際內容，而不是依賴 API 回傳的 content 欄位
-                if (!latestFile.raw_url) {
-                    alert('無法取得檔案下載連結 (raw_url)');
-                    return;
-                }
+            } catch (error) {
+                console.error('載入雲端備份清單錯誤:', error);
+                throw error;
+            }
+        }
 
-                // 下載原始檔案內容
-                const rawResponse = await fetch(latestFile.raw_url);
-                if (!rawResponse.ok) {
-                    alert('下載備份檔案內容失敗');
-                    return;
-                }
+        // 更新雲端還原列表
+        function updateCloudRestoreList() {
+            const cloudRestoreList = document.getElementById('cloudRestoreList');
+            cloudRestoreList.innerHTML = '';
+            
+            if (state.cloudBackups.length === 0) {
+                cloudRestoreList.innerHTML = `
+                    <div class="cloud-restore-empty">
+                        <i class="fas fa-cloud"></i>
+                        <p>沒有找到可還原的備份</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            state.cloudBackups.forEach((backup, index) => {
+                const backupElement = document.createElement('div');
+                backupElement.className = 'cloud-restore-item';
+                
+                const backupDate = new Date(backup.backupDate);
+                const planNames = backup.plans.map(plan => plan.name).join(', ');
+                
+                backupElement.innerHTML = `
+                    <input type="checkbox" class="cloud-restore-checkbox" data-index="${index}">
+                    <div class="cloud-restore-info">
+                        <div class="cloud-restore-name">備份 ${index + 1}</div>
+                        <div class="cloud-restore-details">
+                            <div>包含計劃: ${planNames}</div>
+                            <div class="cloud-backup-datetime">備份時間: ${backupDate.toLocaleString('zh-TW')}</div>
+                        </div>
+                    </div>
+                `;
+                
+                cloudRestoreList.appendChild(backupElement);
+            });
+            
+            // 添加事件監聽器
+            document.querySelectorAll('.cloud-restore-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCloudRestoreSelectedCount);
+            });
+            
+            updateCloudRestoreSelectedCount();
+        }
 
-                // 4. 解析 JSON
-                let backupData;
-                try {
-                    backupData = await rawResponse.json(); // 直接解析回傳的 JSON
-                    console.log('成功解析JSON資料');
-                } catch (parseError) {
-                    console.error('JSON解析錯誤:', parseError);
-                    alert('備份檔案格式不正確，無法解析JSON');
-                    return;
+        // 更新雲端還原選擇計數
+        function updateCloudRestoreSelectedCount() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-restore-checkbox:checked');
+            const selectedCount = selectedCheckboxes.length;
+            
+            document.getElementById('cloudRestoreSelectedCount').textContent = `已選擇 ${selectedCount} 個備份`;
+            document.getElementById('confirmCloudRestoreBtn').disabled = selectedCount === 0;
+            
+            // 更新選中項目的樣式
+            document.querySelectorAll('.cloud-restore-item').forEach(item => {
+                const checkbox = item.querySelector('.cloud-restore-checkbox');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
                 }
+            });
+        }
+
+        // 關閉雲端還原模態框
+        function closeCloudRestoreModal() {
+            document.getElementById('cloudRestoreModal').classList.remove('active');
+            // 取消所有選擇
+            document.querySelectorAll('.cloud-restore-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateCloudRestoreSelectedCount();
+            state.cloudBackups = [];
+        }
+
+        // 開始雲端還原
+        async function startCloudRestore() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-restore-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('請至少選擇一個備份進行還原');
+                return;
+            }
+            
+            const selectedBackupIndices = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.index));
+            const selectedBackups = selectedBackupIndices.map(index => state.cloudBackups[index]);
+            
+            // 確認還原
+            const backupInfo = selectedBackups.map(backup => 
+                `• ${backup.plans.length} 個計劃 (${backup.plans.map(p => p.name).join(', ')})`
+            ).join('\n');
+            
+            if (!confirm(`確定要還原以下備份嗎？這將把選中的計劃添加到您的計劃列表中。\n\n${backupInfo}`)) {
+                return;
+            }
+            
+            try {
+                // 顯示還原進度
+                const confirmBtn = document.getElementById('confirmCloudRestoreBtn');
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 還原中...';
+                confirmBtn.disabled = true;
                 
-                if (!backupData || !backupData.allPlans || !Array.isArray(backupData.allPlans)) {
-                    alert('備份檔案格式不正確，缺少必要的資料');
-                    return;
-                }
+                let restoredPlanCount = 0;
+                let restoredPlans = [];
                 
-                // 5. 執行還原邏輯
-                const planNames = backupData.allPlans.map(p => p.name).join(', ');
-                if (confirm(`確定要還原以下旅遊計劃嗎？這將覆蓋目前的資料。\n\n計劃列表: ${planNames}`)) {
-                    state.plans = backupData.allPlans;
-                    state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
-                    
-                    if (state.plans.length > 0) {
-                        state.currentPlanId = state.plans[0].id;
-                    } else {
-                        state.currentPlanId = null;
-                    }
-                    
-                    if (backupData.exchangeRates) {
-                        state.exchangeRates = { ...state.exchangeRates, ...backupData.exchangeRates };
-                    }
-                    
-                    // 確保 ID 唯一性
-                    state.plans.forEach(plan => {
+                // 遍歷所有選中的備份
+                for (const backup of selectedBackups) {
+                    for (const plan of backup.plans) {
+                        // 檢查是否已存在相同ID的計劃
+                        const existingPlanIndex = state.plans.findIndex(p => p.id === plan.id);
+                        
+                        if (existingPlanIndex !== -1) {
+                            // 如果已存在，創建新ID
+                            plan.id = state.nextId++;
+                            plan.name = `${plan.name} (還原)`;
+                        }
+                        
+                        // 確保活動和交通方式有唯一ID
                         if (plan.activities) {
                             plan.activities.forEach(activity => {
                                 if (!activity.id) activity.id = Date.now() + Math.random();
@@ -2657,33 +3067,48 @@
                         if (plan.transports) {
                             plan.transports.forEach(transport => {
                                 if (!transport.id) transport.id = Date.now() + Math.random();
-                                if (transport.options) {
-                                    transport.options.forEach(option => {
-                                        if (!option.id) option.id = Date.now() + Math.random();
-                                    });
-                                }
                             });
                         }
-                    });
-                    
-                    savePlansToStorage();
-                    saveExchangeRatesToStorage();
-                    
-                    updatePlansList();
-                    updateCostSummary();
-                    
-                    if (state.currentPlanId) {
-                        showPlanContent();
-                    } else {
-                        document.getElementById('noPlanSelected').style.display = 'block';
-                        document.getElementById('planContent').style.display = 'none';
+                        
+                        // 添加到計劃列表
+                        state.plans.push(plan);
+                        restoredPlanCount++;
+                        restoredPlans.push(plan.name);
                     }
-                    
-                    alert('雲端還原成功！');
-                    console.log('雲端還原成功，還原了', state.plans.length, '個計劃');
                 }
+                
+                // 更新下一個ID
+                state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
+                
+                // 保存到本地儲存
+                savePlansToStorage();
+                
+                // 更新UI
+                updatePlansList();
+                updateCostSummary();
+                
+                // 重置按鈕狀態
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+                
+                alert(`雲端還原成功！\n已還原 ${restoredPlanCount} 個計劃: ${restoredPlans.join(', ')}`);
+                console.log('雲端還原成功，還原了', restoredPlanCount, '個計劃');
+                closeCloudRestoreModal();
+                
+                // 如果有還原的計劃，顯示第一個
+                if (restoredPlanCount > 0 && !state.currentPlanId) {
+                    state.currentPlanId = state.plans[0].id;
+                    showPlanContent();
+                }
+                
             } catch (error) {
                 console.error('雲端還原錯誤:', error);
+                
+                // 重置按鈕狀態
+                const confirmBtn = document.getElementById('confirmCloudRestoreBtn');
+                confirmBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 開始還原';
+                confirmBtn.disabled = false;
+                
                 alert('雲端還原失敗：' + error.message);
             }
         }
