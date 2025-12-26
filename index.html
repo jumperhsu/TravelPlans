@@ -255,6 +255,16 @@
             background-color: #e68900;
         }
 
+        .cloud-btn.cloud-delete {
+            background-color: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        .cloud-btn.cloud-delete:hover:not(:disabled) {
+            background-color: #d32f2f;
+        }
+
         .app-container {
             display: grid;
             grid-template-columns: minmax(300px, 350px) 1fr;
@@ -500,6 +510,17 @@
             border-color: var(--primary-color);
         }
 
+        .cost-tab {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+        }
+
+        .cost-tab.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
         .day-content {
             display: none;
             width: 100%;
@@ -508,6 +529,17 @@
         }
 
         .day-content.active {
+            display: block;
+        }
+
+        .cost-content {
+            display: none;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .cost-content.active {
             display: block;
         }
 
@@ -735,6 +767,10 @@
             background-color: var(--accent-color);
         }
 
+        .floating-btn.add-cost {
+            background-color: var(--success-color);
+        }
+
         .floating-btn-text {
             display: none;
             position: absolute;
@@ -880,35 +916,45 @@
         /* 增加特定欄位的寬度 */
         .cost-table th:nth-child(1), 
         .cost-table td:nth-child(1) {
-            width: 150px; /* 類別欄位寬度 */
+            width: 80px; /* 日期欄位寬度 */
         }
         
         .cost-table th:nth-child(2), 
         .cost-table td:nth-child(2) {
-            width: 80px; /* 幣別欄位寬度 */
+            width: 80px; /* 類別欄位寬度 */
         }
         
         .cost-table th:nth-child(3), 
         .cost-table td:nth-child(3) {
-            width: 120px; /* 原幣費用欄位寬度 */
-            text-align: right;
+            width: 120px; /* 說明欄位寬度 */
         }
         
         .cost-table th:nth-child(4), 
         .cost-table td:nth-child(4) {
-            width: 100px; /* 換算台幣欄位寬度 */
-            text-align: right;
+            width: 80px; /* 幣別欄位寬度 */
         }
         
         .cost-table th:nth-child(5), 
         .cost-table td:nth-child(5) {
-            width: 80px; /* 分攤人數欄位寬度 */
-            text-align: center;
+            width: 100px; /* 原幣費用欄位寬度 */
+            text-align: right;
         }
         
         .cost-table th:nth-child(6), 
         .cost-table td:nth-child(6) {
-            width: 120px; /* 每人費用欄位寬度 */
+            width: 100px; /* 換算台幣欄位寬度 */
+            text-align: right;
+        }
+        
+        .cost-table th:nth-child(7), 
+        .cost-table td:nth-child(7) {
+            width: 80px; /* 分攤人數欄位寬度 */
+            text-align: center;
+        }
+        
+        .cost-table th:nth-child(8), 
+        .cost-table td:nth-child(8) {
+            width: 100px; /* 每人費用欄位寬度 */
             text-align: right;
         }
 
@@ -1204,7 +1250,8 @@
 
         /* 雲端備份/還原模態框專用樣式 */
         .cloud-backup-list,
-        .cloud-restore-list {
+        .cloud-restore-list,
+        .cloud-delete-list {
             max-height: 300px;
             overflow-y: auto;
             margin: 15px 0;
@@ -1214,7 +1261,8 @@
         }
 
         .cloud-backup-item,
-        .cloud-restore-item {
+        .cloud-restore-item,
+        .cloud-delete-item {
             display: flex;
             align-items: center;
             padding: 10px;
@@ -1224,35 +1272,41 @@
         }
 
         .cloud-backup-item:last-child,
-        .cloud-restore-item:last-child {
+        .cloud-restore-item:last-child,
+        .cloud-delete-item:last-child {
             border-bottom: none;
         }
 
         .cloud-backup-item:hover,
-        .cloud-restore-item:hover {
+        .cloud-restore-item:hover,
+        .cloud-delete-item:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
 
         .cloud-backup-item.selected,
-        .cloud-restore-item.selected {
+        .cloud-restore-item.selected,
+        .cloud-delete-item.selected {
             background-color: rgba(74, 111, 165, 0.1);
             border-left: 3px solid var(--primary-color);
         }
 
         .cloud-backup-checkbox,
-        .cloud-restore-checkbox {
+        .cloud-restore-checkbox,
+        .cloud-delete-checkbox {
             margin-right: 10px;
             width: 20px;
             height: 20px;
         }
 
         .cloud-backup-info,
-        .cloud-restore-info {
+        .cloud-restore-info,
+        .cloud-delete-info {
             flex: 1;
         }
 
         .cloud-backup-name,
-        .cloud-restore-name {
+        .cloud-restore-name,
+        .cloud-delete-name {
             font-weight: bold;
             color: var(--primary-color);
             margin-bottom: 5px;
@@ -1260,14 +1314,16 @@
         }
 
         .cloud-backup-details,
-        .cloud-restore-details {
+        .cloud-restore-details,
+        .cloud-delete-details {
             font-size: 0.8rem;
             color: var(--light-text);
             word-break: break-word;
         }
 
         .cloud-backup-actions,
-        .cloud-restore-actions {
+        .cloud-restore-actions,
+        .cloud-delete-actions {
             margin-top: 15px;
             display: flex;
             justify-content: space-between;
@@ -1275,21 +1331,24 @@
         }
 
         .cloud-backup-selected-count,
-        .cloud-restore-selected-count {
+        .cloud-restore-selected-count,
+        .cloud-delete-selected-count {
             font-size: 0.9rem;
             color: var(--primary-color);
             font-weight: 600;
         }
 
         .cloud-backup-empty,
-        .cloud-restore-empty {
+        .cloud-restore-empty,
+        .cloud-delete-empty {
             text-align: center;
             padding: 40px 20px;
             color: var(--light-text);
         }
 
         .cloud-backup-empty i,
-        .cloud-restore-empty i {
+        .cloud-restore-empty i,
+        .cloud-delete-empty i {
             font-size: 3rem;
             margin-bottom: 15px;
             color: #e0e0e0;
@@ -1299,6 +1358,91 @@
             font-size: 0.75rem;
             color: var(--light-text);
             margin-top: 3px;
+        }
+
+        /* 費用管理區域 */
+        .cost-management {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .cost-categories {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cost-category-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cost-category-badge i {
+            font-size: 0.9rem;
+        }
+
+        .cost-list-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* 已過期計劃區域 */
+        .expired-plans-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .expired-plans-title {
+            color: var(--light-text);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .expired-plans-count {
+            background-color: var(--light-text);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .expired-plans-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .expired-plans-content.expanded {
+            max-height: 1000px;
+        }
+
+        .expired-plan-item {
+            opacity: 0.7;
+            background-color: #f9f9f9;
+        }
+
+        .expired-plan-item:hover {
+            opacity: 0.9;
         }
 
         /* 響應式設計 */
@@ -1355,7 +1499,7 @@
             }
             
             .cost-table {
-                min-width: 500px;
+                min-width: 800px;
             }
             
             .cost-table th, .cost-table td {
@@ -1459,7 +1603,7 @@
             }
             
             .cost-table {
-                min-width: 400px;
+                min-width: 700px;
                 font-size: 0.7rem;
             }
             
@@ -1524,7 +1668,7 @@
             }
             
             .cost-table {
-                min-width: 350px;
+                min-width: 600px;
                 font-size: 0.65rem;
             }
             
@@ -1697,6 +1841,10 @@
                         <i class="fas fa-cloud-download-alt"></i>
                         <span>雲端還原</span>
                     </button>
+                    <button class="cloud-btn cloud-delete" id="cloudDeleteBtn" disabled>
+                        <i class="fas fa-trash-alt"></i>
+                        <span>刪除備份</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -1717,23 +1865,18 @@
                     <!-- 計劃項目將動態生成 -->
                 </div>
                 
-                <div class="cost-summary">
-                    <h3><i class="fas fa-calculator"></i> 費用統計</h3>
-                    <table class="cost-table" id="costTable">
-                        <thead>
-                            <tr>
-                                <th>類別</th>
-                                <th>幣別</th>
-                                <th>原幣費用</th>
-                                <th>換算台幣</th>
-                                <th>分攤人數</th>
-                                <th>每人費用(台幣)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="costTableBody">
-                            <!-- 費用統計將動態生成 -->
-                        </tbody>
-                    </table>
+                <!-- 已過期計劃區域 -->
+                <div id="expiredPlansContainer" style="display: none;">
+                    <div class="expired-plans-header" id="expiredPlansHeader">
+                        <div class="expired-plans-title">
+                            <i class="fas fa-chevron-down" id="expiredPlansIcon"></i>
+                            <span>已過期旅遊計劃</span>
+                            <span class="expired-plans-count" id="expiredPlansCount">0</span>
+                        </div>
+                    </div>
+                    <div class="expired-plans-content" id="expiredPlansContent">
+                        <!-- 已過期計劃項目將動態生成 -->
+                    </div>
                 </div>
             </div>
 
@@ -1785,6 +1928,10 @@
         <div class="floating-btn add-transport" id="addTransportBtn">
             <i class="fas fa-plus"></i>
             <span class="floating-btn-text">+交通</span>
+        </div>
+        <div class="floating-btn add-cost" id="addCostBtn">
+            <i class="fas fa-plus"></i>
+            <span class="floating-btn-text">+費用</span>
         </div>
     </div>
 
@@ -1847,9 +1994,10 @@
                         <label for="activityCategory">分類</label>
                         <select id="activityCategory" required>
                             <option value="attraction">景點</option>
-                            <option value="shopping">購物</option>
+                            <option value="transport">交通</option>
                             <option value="activity">活動</option>
                             <option value="accommodation">住宿</option>
+                            <option value="shopping">購物</option>
                             <option value="other">其他</option>
                         </select>
                     </div>
@@ -1973,6 +2121,72 @@
                     
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="cancelTransportBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯費用模態框 -->
+    <div class="modal" id="costModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="costModalTitle">新增費用</h3>
+                <button class="btn btn-secondary" id="closeCostModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="costForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="costDate">日期</label>
+                            <input type="date" id="costDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="costCategory">類別</label>
+                            <select id="costCategory" required>
+                                <option value="transport">交通</option>
+                                <option value="shopping">購物</option>
+                                <option value="food">飲食</option>
+                                <option value="insurance">保險</option>
+                                <option value="internet">網路</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="costDescription">費用說明</label>
+                        <input type="text" id="costDescription" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="costAmount">金額</label>
+                            <input type="number" id="costAmount" min="0" step="0.01" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="costCurrency">幣別</label>
+                            <select id="costCurrency" required>
+                                <option value="TWD">新台幣 (TWD)</option>
+                                <option value="USD">美元 (USD)</option>
+                                <option value="JPY">日圓 (JPY)</option>
+                                <option value="EUR">歐元 (EUR)</option>
+                                <option value="CNY">人民幣 (CNY)</option>
+                                <option value="KRW">韓元 (KRW)</option>
+                                <option value="HKD">港幣 (HKD)</option>
+                                <option value="GBP">英鎊 (GBP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="costParticipants">分攤人數</label>
+                            <input type="number" id="costParticipants" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="costNotes">備註</label>
+                        <textarea id="costNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCostBtn">取消</button>
                         <button type="submit" class="btn btn-primary">儲存</button>
                     </div>
                 </form>
@@ -2132,6 +2346,35 @@
         </div>
     </div>
 
+    <!-- 刪除雲端備份模態框 -->
+    <div class="modal" id="cloudDeleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-trash-alt"></i> 刪除雲端備份</h3>
+                <button class="btn btn-secondary" id="closeCloudDeleteModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">選擇要刪除的雲端備份檔案（可多選）：</p>
+                
+                <div class="cloud-delete-list" id="cloudDeleteList">
+                    <!-- 刪除備份列表將動態生成 -->
+                </div>
+                
+                <div class="cloud-delete-actions">
+                    <div class="cloud-delete-selected-count" id="cloudDeleteSelectedCount">
+                        已選擇 0 個備份檔案
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancelCloudDeleteBtn">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmCloudDeleteBtn" disabled>
+                            <i class="fas fa-trash-alt"></i> 刪除備份
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 應用狀態
         const state = {
@@ -2156,7 +2399,8 @@
                 isConnected: false
             },
             isViewMode: false,
-            cloudBackups: [] // 儲存雲端備份清單
+            cloudBackups: [], // 儲存雲端備份清單
+            showExpiredPlans: false // 是否顯示已過期計劃
         };
 
         // 初始化應用
@@ -2278,17 +2522,20 @@
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudBackupBtn = document.getElementById('cloudBackupBtn');
             const cloudRestoreBtn = document.getElementById('cloudRestoreBtn');
+            const cloudDeleteBtn = document.getElementById('cloudDeleteBtn');
             
             if (state.githubConfig.isConnected && state.githubConfig.token) {
                 cloudStatus.className = 'cloud-status connected';
                 cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端已連接</span>';
                 cloudBackupBtn.disabled = false;
                 cloudRestoreBtn.disabled = false;
+                cloudDeleteBtn.disabled = false;
             } else {
                 cloudStatus.className = 'cloud-status disconnected';
                 cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端未連接</span>';
                 cloudBackupBtn.disabled = true;
                 cloudRestoreBtn.disabled = true;
+                cloudDeleteBtn.disabled = true;
             }
         }
 
@@ -2365,6 +2612,7 @@
             document.getElementById('cloudSettingsBtn').addEventListener('click', showGithubCloudModal);
             document.getElementById('cloudBackupBtn').addEventListener('click', showCloudBackupModal);
             document.getElementById('cloudRestoreBtn').addEventListener('click', showCloudRestoreModal);
+            document.getElementById('cloudDeleteBtn').addEventListener('click', showCloudDeleteModal);
             
             // GitHub雲端設定模態框按鈕
             document.getElementById('closeGithubCloudModal').addEventListener('click', closeGithubCloudModal);
@@ -2384,6 +2632,25 @@
             document.getElementById('cancelCloudRestoreBtn').addEventListener('click', closeCloudRestoreModal);
             document.getElementById('confirmCloudRestoreBtn').addEventListener('click', startCloudRestore);
             
+            // 刪除雲端備份模態框按鈕
+            document.getElementById('closeCloudDeleteModal').addEventListener('click', closeCloudDeleteModal);
+            document.getElementById('cancelCloudDeleteBtn').addEventListener('click', closeCloudDeleteModal);
+            document.getElementById('confirmCloudDeleteBtn').addEventListener('click', startCloudDelete);
+            
+            // 已過期計劃展開/收合
+            document.getElementById('expiredPlansHeader').addEventListener('click', function() {
+                const content = document.getElementById('expiredPlansContent');
+                const icon = document.getElementById('expiredPlansIcon');
+                
+                if (content.classList.contains('expanded')) {
+                    content.classList.remove('expanded');
+                    icon.className = 'fas fa-chevron-down';
+                } else {
+                    content.classList.add('expanded');
+                    icon.className = 'fas fa-chevron-up';
+                }
+            });
+            
             // 手機選單按鈕
             document.getElementById('mobileMenuBtn').addEventListener('click', function() {
                 document.getElementById('plansPanel').classList.toggle('active');
@@ -2400,11 +2667,13 @@
             document.getElementById('closePlanModal').addEventListener('click', closePlanModal);
             document.getElementById('closeActivityModal').addEventListener('click', closeActivityModal);
             document.getElementById('closeTransportModal').addEventListener('click', closeTransportModal);
+            document.getElementById('closeCostModal').addEventListener('click', closeCostModal);
             document.getElementById('closeExchangeRateModal').addEventListener('click', closeExchangeRateModal);
             
             document.getElementById('cancelPlanBtn').addEventListener('click', closePlanModal);
             document.getElementById('cancelActivityBtn').addEventListener('click', closeActivityModal);
             document.getElementById('cancelTransportBtn').addEventListener('click', closeTransportModal);
+            document.getElementById('cancelCostBtn').addEventListener('click', closeCostModal);
             document.getElementById('cancelExchangeRateBtn').addEventListener('click', closeExchangeRateModal);
             
             // 匯率設定儲存按鈕
@@ -2464,9 +2733,16 @@
                 saveTransport();
             });
             
+            document.getElementById('costForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('費用表單提交');
+                saveCost();
+            });
+            
             // 浮動按鈕
             document.getElementById('addActivityBtn').addEventListener('click', showAddActivityModal);
             document.getElementById('addTransportBtn').addEventListener('click', showAddTransportModal);
+            document.getElementById('addCostBtn').addEventListener('click', showAddCostModal);
             
             // 點擊模態框外部關閉
             document.querySelectorAll('.modal').forEach(modal => {
@@ -2916,9 +3192,11 @@
                                 // 提取備份資訊
                                 const backupInfo = {
                                     filename: filename,
+                                    rawUrl: file.raw_url,
                                     backupDate: backupData.backupDate || new Date().toISOString(),
                                     plans: backupData.plans,
-                                    planCount: backupData.plans.length
+                                    planCount: backupData.plans.length,
+                                    gistId: state.githubConfig.gistId
                                 };
                                 
                                 state.cloudBackups.push(backupInfo);
@@ -3113,61 +3391,333 @@
             }
         }
 
-        // 更新計劃列表
-        function updatePlansList() {
-            const plansList = document.getElementById('plansList');
-            plansList.innerHTML = '';
-            
-            if (state.plans.length === 0) {
-                plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無旅遊計劃</div>';
+        // 顯示刪除雲端備份模態框
+        async function showCloudDeleteModal() {
+            if (!state.githubConfig.isConnected || !state.githubConfig.token) {
+                alert('請先連接GitHub雲端');
                 return;
             }
             
-            state.plans.forEach(plan => {
-                const planElement = document.createElement('div');
-                planElement.className = `plan-item ${state.currentPlanId === plan.id ? 'active' : ''}`;
-                planElement.dataset.id = plan.id;
-                
-                const startDate = new Date(plan.startDate);
-                const endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + plan.days - 1);
-                
-                planElement.innerHTML = `
-                    <div class="plan-item-header">
-                        <div class="plan-item-name">${plan.name}</div>
-                        <div>
-                            <button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
+            if (!state.githubConfig.gistId) {
+                alert('沒有找到可刪除的Gist');
+                return;
+            }
+            
+            try {
+                // 顯示載入狀態
+                const cloudDeleteList = document.getElementById('cloudDeleteList');
+                cloudDeleteList.innerHTML = `
+                    <div class="cloud-delete-empty">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>載入雲端備份中...</p>
                     </div>
-                    <div class="plan-item-dates">${formatDate(startDate)} - ${formatDate(endDate)}</div>
-                    <div class="plan-item-days">${plan.days} 天</div>
                 `;
                 
-                planElement.addEventListener('click', function(e) {
-                    if (!e.target.closest('.edit-plan') && !state.isViewMode) {
-                        state.currentPlanId = plan.id;
-                        updatePlansList();
-                        showPlanContent();
-                        
-                        if (window.innerWidth <= 1024) {
-                            document.getElementById('plansPanel').classList.remove('active');
-                            document.getElementById('overlay').classList.remove('active');
-                        }
+                document.getElementById('cloudDeleteModal').classList.add('active');
+                
+                // 獲取雲端備份清單
+                await loadCloudBackups();
+                
+                // 更新刪除列表
+                updateCloudDeleteList();
+                
+            } catch (error) {
+                console.error('載入雲端備份失敗:', error);
+                alert('載入雲端備份失敗：' + error.message);
+                closeCloudDeleteModal();
+            }
+        }
+
+        // 更新刪除雲端備份列表
+        function updateCloudDeleteList() {
+            const cloudDeleteList = document.getElementById('cloudDeleteList');
+            cloudDeleteList.innerHTML = '';
+            
+            if (state.cloudBackups.length === 0) {
+                cloudDeleteList.innerHTML = `
+                    <div class="cloud-delete-empty">
+                        <i class="fas fa-cloud"></i>
+                        <p>沒有找到可刪除的備份</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            state.cloudBackups.forEach((backup, index) => {
+                const deleteElement = document.createElement('div');
+                deleteElement.className = 'cloud-delete-item';
+                
+                const backupDate = new Date(backup.backupDate);
+                const planNames = backup.plans.map(plan => plan.name).join(', ');
+                
+                deleteElement.innerHTML = `
+                    <input type="checkbox" class="cloud-delete-checkbox" data-index="${index}">
+                    <div class="cloud-delete-info">
+                        <div class="cloud-delete-name">${backup.filename}</div>
+                        <div class="cloud-delete-details">
+                            <div>包含計劃: ${planNames}</div>
+                            <div class="cloud-backup-datetime">備份時間: ${backupDate.toLocaleString('zh-TW')}</div>
+                        </div>
+                    </div>
+                `;
+                
+                cloudDeleteList.appendChild(deleteElement);
+            });
+            
+            // 添加事件監聽器
+            document.querySelectorAll('.cloud-delete-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCloudDeleteSelectedCount);
+            });
+            
+            updateCloudDeleteSelectedCount();
+        }
+
+        // 更新刪除雲端備份選擇計數
+        function updateCloudDeleteSelectedCount() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-delete-checkbox:checked');
+            const selectedCount = selectedCheckboxes.length;
+            
+            document.getElementById('cloudDeleteSelectedCount').textContent = `已選擇 ${selectedCount} 個備份檔案`;
+            document.getElementById('confirmCloudDeleteBtn').disabled = selectedCount === 0;
+            
+            // 更新選中項目的樣式
+            document.querySelectorAll('.cloud-delete-item').forEach(item => {
+                const checkbox = item.querySelector('.cloud-delete-checkbox');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // 關閉刪除雲端備份模態框
+        function closeCloudDeleteModal() {
+            document.getElementById('cloudDeleteModal').classList.remove('active');
+            // 取消所有選擇
+            document.querySelectorAll('.cloud-delete-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateCloudDeleteSelectedCount();
+            state.cloudBackups = [];
+        }
+
+        // 開始刪除雲端備份
+        async function startCloudDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-delete-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('請至少選擇一個備份檔案進行刪除');
+                return;
+            }
+            
+            const selectedBackupIndices = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.index));
+            const selectedBackups = selectedBackupIndices.map(index => state.cloudBackups[index]);
+            
+            // 確認刪除
+            const backupInfo = selectedBackups.map(backup => 
+                `• ${backup.filename} (${backup.plans.length} 個計劃)`
+            ).join('\n');
+            
+            if (!confirm(`確定要刪除以下備份檔案嗎？此操作無法復原！\n\n${backupInfo}`)) {
+                return;
+            }
+            
+            try {
+                // 顯示刪除進度
+                const confirmBtn = document.getElementById('confirmCloudDeleteBtn');
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+                confirmBtn.disabled = true;
+                
+                // 先獲取現有Gist
+                const getResponse = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
+                    headers: {
+                        'Authorization': `token ${state.githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
                     }
                 });
                 
-                const editBtn = planElement.querySelector('.edit-plan');
-                if (editBtn) {
-                    editBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showEditPlanModal(plan.id);
-                    });
+                if (!getResponse.ok) {
+                    throw new Error('取得Gist失敗');
                 }
                 
-                plansList.appendChild(planElement);
+                const existingGist = await getResponse.json();
+                const files = { ...existingGist.files };
+                
+                // 刪除選中的檔案
+                selectedBackups.forEach(backup => {
+                    delete files[backup.filename];
+                });
+                
+                // 如果還有其他檔案，更新Gist；否則刪除整個Gist
+                if (Object.keys(files).length > 0) {
+                    const gistData = {
+                        description: state.githubConfig.description || '旅遊計劃備份',
+                        public: false,
+                        files: files
+                    };
+                    
+                    const response = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `token ${state.githubConfig.token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/vnd.github.v3+json'
+                        },
+                        body: JSON.stringify(gistData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('更新Gist失敗');
+                    }
+                } else {
+                    // 刪除整個Gist
+                    const response = await fetch(`https://api.github.com/gists/${state.githubConfig.gistId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `token ${state.githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('刪除Gist失敗');
+                    }
+                    
+                    // 清除Gist ID
+                    state.githubConfig.gistId = null;
+                    saveGithubConfigToStorage();
+                }
+                
+                // 重置按鈕狀態
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+                
+                alert(`已成功刪除 ${selectedBackups.length} 個備份檔案`);
+                console.log('刪除雲端備份成功');
+                closeCloudDeleteModal();
+                
+            } catch (error) {
+                console.error('刪除雲端備份錯誤:', error);
+                
+                // 重置按鈕狀態
+                const confirmBtn = document.getElementById('confirmCloudDeleteBtn');
+                confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> 刪除備份';
+                confirmBtn.disabled = false;
+                
+                alert('刪除雲端備份失敗：' + error.message);
+            }
+        }
+
+        // 更新計劃列表（按照要求排序）
+        function updatePlansList() {
+            const plansList = document.getElementById('plansList');
+            const expiredPlansContent = document.getElementById('expiredPlansContent');
+            const expiredPlansContainer = document.getElementById('expiredPlansContainer');
+            
+            plansList.innerHTML = '';
+            expiredPlansContent.innerHTML = '';
+            
+            if (state.plans.length === 0) {
+                plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無旅遊計劃</div>';
+                expiredPlansContainer.style.display = 'none';
+                return;
+            }
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // 分離未過期和已過期的計劃
+            const activePlans = [];
+            const expiredPlans = [];
+            
+            state.plans.forEach(plan => {
+                const endDate = new Date(plan.startDate);
+                endDate.setDate(endDate.getDate() + plan.days - 1);
+                
+                if (endDate >= today) {
+                    activePlans.push(plan);
+                } else {
+                    expiredPlans.push(plan);
+                }
             });
+            
+            // 未過期計劃：由近到遠排序
+            activePlans.sort((a, b) => {
+                const dateA = new Date(a.startDate);
+                const dateB = new Date(b.startDate);
+                return dateA - dateB; // 由近到遠
+            });
+            
+            // 顯示未過期計劃
+            if (activePlans.length === 0) {
+                plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無未過期旅遊計劃</div>';
+            } else {
+                activePlans.forEach(plan => {
+                    const planElement = createPlanElement(plan);
+                    plansList.appendChild(planElement);
+                });
+            }
+            
+            // 顯示已過期計劃
+            if (expiredPlans.length > 0) {
+                expiredPlansContainer.style.display = 'block';
+                document.getElementById('expiredPlansCount').textContent = expiredPlans.length;
+                
+                expiredPlans.forEach(plan => {
+                    const planElement = createPlanElement(plan, true);
+                    expiredPlansContent.appendChild(planElement);
+                });
+            } else {
+                expiredPlansContainer.style.display = 'none';
+            }
+        }
+
+        // 創建計劃元素
+        function createPlanElement(plan, isExpired = false) {
+            const planElement = document.createElement('div');
+            planElement.className = `plan-item ${state.currentPlanId === plan.id ? 'active' : ''} ${isExpired ? 'expired-plan-item' : ''}`;
+            planElement.dataset.id = plan.id;
+            
+            const startDate = new Date(plan.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + plan.days - 1);
+            
+            planElement.innerHTML = `
+                <div class="plan-item-header">
+                    <div class="plan-item-name">${plan.name}</div>
+                    <div>
+                        <button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="plan-item-dates">${formatDate(startDate)} - ${formatDate(endDate)}</div>
+                <div class="plan-item-days">${plan.days} 天</div>
+            `;
+            
+            planElement.addEventListener('click', function(e) {
+                if (!e.target.closest('.edit-plan') && !state.isViewMode) {
+                    state.currentPlanId = plan.id;
+                    updatePlansList();
+                    showPlanContent();
+                    
+                    if (window.innerWidth <= 1024) {
+                        document.getElementById('plansPanel').classList.remove('active');
+                        document.getElementById('overlay').classList.remove('active');
+                    }
+                }
+            });
+            
+            const editBtn = planElement.querySelector('.edit-plan');
+            if (editBtn) {
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showEditPlanModal(plan.id);
+                });
+            }
+            
+            return planElement;
         }
 
         // 顯示計劃內容
@@ -3192,10 +3742,9 @@
             
             updateDaysTabs(plan);
             showDayContent(1);
-            updateCostSummary();
         }
 
-        // 更新天數標籤
+        // 更新天數標籤（包含費用頁簽）
         function updateDaysTabs(plan) {
             const daysTabsContainer = document.getElementById('daysTabsContainer');
             const daysTabs = document.getElementById('daysTabs');
@@ -3213,6 +3762,7 @@
                 dayTab.addEventListener('click', function() {
                     state.currentDay = parseInt(this.dataset.day);
                     document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.cost-tab').forEach(tab => tab.classList.remove('active'));
                     this.classList.add('active');
                     showDayContent(state.currentDay);
                 });
@@ -3238,8 +3788,89 @@
                 daysContent.appendChild(dayContent);
             }
             
+            // 添加費用頁簽
+            const costTab = document.createElement('div');
+            costTab.className = 'day-tab cost-tab';
+            costTab.textContent = '費用';
+            costTab.dataset.tab = 'cost';
+            
+            costTab.addEventListener('click', function() {
+                document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.cost-tab').forEach(tab => tab.classList.remove('active'));
+                this.classList.add('active');
+                showCostContent();
+            });
+            
+            daysTabs.appendChild(costTab);
+            
+            // 添加費用內容區域
+            const costContent = document.createElement('div');
+            costContent.className = 'cost-content';
+            costContent.id = 'costContent';
+            
+            costContent.innerHTML = `
+                <div class="cost-management">
+                    <div class="cost-categories">
+                        <div class="cost-category-badge">
+                            <i class="fas fa-shopping-cart"></i> 購物
+                        </div>
+                        <div class="cost-category-badge">
+                            <i class="fas fa-utensils"></i> 飲食
+                        </div>
+                        <div class="cost-category-badge">
+                            <i class="fas fa-shield-alt"></i> 保險
+                        </div>
+                        <div class="cost-category-badge">
+                            <i class="fas fa-wifi"></i> 網路
+                        </div>
+                        <div class="cost-category-badge">
+                            <i class="fas fa-bus"></i> 交通
+                        </div>
+                        <div class="cost-category-badge">
+                            <i class="fas fa-ellipsis-h"></i> 其他
+                        </div>
+                    </div>
+                    <div class="cost-list-actions">
+                        <button class="btn btn-primary" id="addCostBtn2">
+                            <i class="fas fa-plus"></i> 新增費用
+                        </button>
+                    </div>
+                </div>
+                <div class="cost-summary">
+                    <h3><i class="fas fa-calculator"></i> 費用列表</h3>
+                    <table class="cost-table" id="costTable">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>類別</th>
+                                <th>說明</th>
+                                <th>幣別</th>
+                                <th>原幣費用</th>
+                                <th>換算台幣</th>
+                                <th>分攤人數</th>
+                                <th>每人費用(台幣)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="costTableBody">
+                            <!-- 費用列表將動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            daysContent.appendChild(costContent);
+            
+            // 為新增費用按鈕添加事件監聽器
+            setTimeout(() => {
+                const addCostBtn2 = document.getElementById('addCostBtn2');
+                if (addCostBtn2) {
+                    addCostBtn2.addEventListener('click', showAddCostModal);
+                }
+            }, 100);
+            
             updateActivitiesContainer();
             checkPreviousDayAccommodation(plan);
+            updateCostSummary();
         }
 
         // 檢查前一天的住宿，作為今日的起點
@@ -3310,11 +3941,19 @@
                 }
             });
             
+            document.querySelectorAll('.cost-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
             document.querySelectorAll('.day-tab').forEach(tab => {
                 tab.classList.remove('active');
                 if (parseInt(tab.dataset.day) === day) {
                     tab.classList.add('active');
                 }
+            });
+            
+            document.querySelectorAll('.cost-tab').forEach(tab => {
+                tab.classList.remove('active');
             });
             
             state.currentDay = day;
@@ -3324,6 +3963,27 @@
             if (plan) {
                 checkPreviousDayAccommodation(plan);
             }
+        }
+
+        // 顯示費用內容
+        function showCostContent() {
+            document.querySelectorAll('.day-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.cost-content').forEach(content => {
+                content.classList.add('active');
+            });
+            
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.cost-tab').forEach(tab => {
+                tab.classList.add('active');
+            });
+            
+            updateCostSummary();
         }
 
         // 更新活動容器
@@ -3504,6 +4164,8 @@
                 walking: '步行',
                 flight: '飛機',
                 ship: '輪船',
+                coach: '巴士',
+                selfdrive: '自駕',
                 other: '其他'
             };
             
@@ -3731,7 +4393,7 @@
             });
         }
 
-        // 新增交通方式選項欄位
+        // 新增交通方式選項欄位（更新交通類型選項）
         function addTransportOptionField(optionData = null) {
             const container = document.getElementById('transportOptionsContainer');
             const optionIndex = container.children.length;
@@ -3763,6 +4425,8 @@
                         <option value="walking" ${(optionData && optionData.type === 'walking') ? 'selected' : ''}>步行</option>
                         <option value="flight" ${(optionData && optionData.type === 'flight') ? 'selected' : ''}>飛機</option>
                         <option value="ship" ${(optionData && optionData.type === 'ship') ? 'selected' : ''}>輪船</option>
+                        <option value="coach" ${(optionData && optionData.type === 'coach') ? 'selected' : ''}>巴士</option>
+                        <option value="selfdrive" ${(optionData && optionData.type === 'selfdrive') ? 'selected' : ''}>自駕</option>
                         <option value="other" ${(optionData && optionData.type === 'other') ? 'selected' : ''}>其他</option>
                     </select>
                 </div>
@@ -3917,6 +4581,7 @@
                     days: days,
                     activities: [],
                     transports: [],
+                    additionalCosts: [], // 新增：儲存額外費用
                     dayTitles: {}
                 };
                 
@@ -4377,6 +5042,126 @@
             closeTransportModal();
         }
 
+        // 顯示新增費用模態框
+        function showAddCostModal() {
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            document.getElementById('costModalTitle').textContent = '新增費用';
+            document.getElementById('costForm').reset();
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (plan) {
+                const startDate = new Date(plan.startDate);
+                const dateStr = startDate.toISOString().split('T')[0];
+                document.getElementById('costDate').value = dateStr;
+            }
+            
+            document.getElementById('costAmount').value = 0;
+            document.getElementById('costCurrency').value = 'TWD';
+            document.getElementById('costParticipants').value = 1;
+            
+            document.getElementById('costModal').classList.add('active');
+            
+            delete document.getElementById('costForm').dataset.editingId;
+            
+            setTimeout(() => {
+                document.getElementById('costDescription').focus();
+            }, 100);
+        }
+
+        // 顯示編輯費用模態框
+        function showEditCostModal(costId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.additionalCosts) return;
+            
+            const cost = plan.additionalCosts.find(c => c.id === costId);
+            if (!cost) return;
+            
+            document.getElementById('costModalTitle').textContent = '編輯費用';
+            document.getElementById('costDate').value = cost.date;
+            document.getElementById('costCategory').value = cost.category;
+            document.getElementById('costDescription').value = cost.description;
+            document.getElementById('costAmount').value = cost.amount || 0;
+            document.getElementById('costCurrency').value = cost.currency || 'TWD';
+            document.getElementById('costParticipants').value = cost.participants || 1;
+            document.getElementById('costNotes').value = cost.notes || '';
+            
+            document.getElementById('costModal').classList.add('active');
+            
+            document.getElementById('costForm').dataset.editingId = costId;
+        }
+
+        // 關閉費用模態框
+        function closeCostModal() {
+            document.getElementById('costModal').classList.remove('active');
+            document.getElementById('costForm').reset();
+            delete document.getElementById('costForm').dataset.editingId;
+        }
+
+        // 儲存費用
+        function saveCost() {
+            console.log('開始儲存費用...');
+            
+            if (!state.currentPlanId) {
+                alert('請先選擇一個旅遊計劃');
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                alert('找不到選擇的計劃');
+                return;
+            }
+            
+            const date = document.getElementById('costDate').value;
+            const category = document.getElementById('costCategory').value;
+            const description = document.getElementById('costDescription').value;
+            const amount = parseFloat(document.getElementById('costAmount').value) || 0;
+            const currency = document.getElementById('costCurrency').value;
+            const participants = parseInt(document.getElementById('costParticipants').value) || 1;
+            const notes = document.getElementById('costNotes').value || null;
+            
+            if (!date || !category || !description) {
+                alert('請填寫必要欄位：日期、類別、費用說明');
+                return;
+            }
+            
+            const costData = {
+                date: date,
+                category: category,
+                description: description,
+                amount: amount,
+                currency: currency,
+                participants: participants,
+                notes: notes
+            };
+            
+            console.log('費用數據:', costData);
+            
+            const editingId = document.getElementById('costForm').dataset.editingId;
+            
+            if (editingId) {
+                const costIndex = plan.additionalCosts.findIndex(c => c.id === editingId);
+                if (costIndex !== -1) {
+                    costData.id = editingId;
+                    plan.additionalCosts[costIndex] = costData;
+                    console.log('編輯費用成功');
+                }
+            } else {
+                costData.id = Date.now().toString();
+                if (!plan.additionalCosts) plan.additionalCosts = [];
+                plan.additionalCosts.push(costData);
+                console.log('新增費用成功，ID:', costData.id);
+            }
+            
+            savePlansToStorage();
+            updateCostSummary();
+            closeCostModal();
+        }
+
         // 刪除活動
         function deleteActivity(activityId) {
             if (!confirm('確定要刪除這個行程嗎？')) return;
@@ -4408,6 +5193,19 @@
             
             savePlansToStorage();
             updateActivitiesContainer();
+            updateCostSummary();
+        }
+
+        // 刪除費用
+        function deleteCost(costId) {
+            if (!confirm('確定要刪除這個費用嗎？')) return;
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.additionalCosts) return;
+            
+            plan.additionalCosts = plan.additionalCosts.filter(c => c.id !== costId);
+            
+            savePlansToStorage();
             updateCostSummary();
         }
 
@@ -4569,7 +5367,277 @@
             input.click();
         }
 
-        // 分享計劃 - 已移除列印功能，增加滾動按鈕
+        // 更新費用統計（包含所有費用）
+        function updateCostSummary() {
+            const costTableBody = document.getElementById('costTableBody');
+            if (!costTableBody) return;
+            
+            costTableBody.innerHTML = '';
+            
+            if (!state.currentPlanId) {
+                costTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">請選擇一個旅遊計劃</td></tr>';
+                return;
+            }
+            
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) {
+                costTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">找不到計劃資料</td></tr>';
+                return;
+            }
+            
+            const allCosts = getAllCosts(plan);
+            
+            if (allCosts.length === 0) {
+                costTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
+                return;
+            }
+            
+            // 按日期排序
+            allCosts.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateA - dateB;
+            });
+            
+            // 顯示所有費用
+            allCosts.forEach(cost => {
+                const row = document.createElement('tr');
+                
+                // 計算換算後的台幣費用
+                const originalCost = cost.amount || 0;
+                const currency = cost.currency || 'TWD';
+                const exchangeRate = state.exchangeRates[currency] || 1;
+                const twdCost = originalCost * exchangeRate;
+                const participants = cost.participants || 1;
+                const personalTwdCost = twdCost / participants;
+                
+                // 根據費用類型顯示不同的類別和說明
+                let categoryText = '';
+                let descriptionText = '';
+                
+                if (cost.type === 'activity') {
+                    const categoryLabels = {
+                        attraction: '景點',
+                        transport: '交通',
+                        activity: '活動',
+                        accommodation: '住宿',
+                        shopping: '購物',
+                        other: '其他'
+                    };
+                    categoryText = categoryLabels[cost.category] || cost.category;
+                    descriptionText = cost.name;
+                } else if (cost.type === 'transport') {
+                    categoryText = '交通';
+                    descriptionText = `${cost.fromActivityName} → ${cost.toActivityName}`;
+                } else if (cost.type === 'additional') {
+                    const categoryLabels = {
+                        transport: '交通',
+                        shopping: '購物',
+                        food: '飲食',
+                        insurance: '保險',
+                        internet: '網路',
+                        other: '其他'
+                    };
+                    categoryText = categoryLabels[cost.category] || cost.category;
+                    descriptionText = cost.description;
+                }
+                
+                row.innerHTML = `
+                    <td>${formatDate(new Date(cost.date))}</td>
+                    <td>${categoryText}</td>
+                    <td>${descriptionText}</td>
+                    <td>${currency}</td>
+                    <td>${originalCost.toFixed(2)}</td>
+                    <td>${twdCost.toFixed(2)}</td>
+                    <td>${participants}</td>
+                    <td class="total-cost">${personalTwdCost.toFixed(2)}</td>
+                `;
+                
+                // 如果是額外費用，添加編輯/刪除按鈕（檢視模式下隱藏）
+                if (cost.type === 'additional' && !state.isViewMode) {
+                    const actionCell = document.createElement('td');
+                    actionCell.innerHTML = `
+                        <button class="btn btn-small btn-secondary edit-cost" data-id="${cost.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger delete-cost" data-id="${cost.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    `;
+                    
+                    // 為按鈕添加事件監聽器
+                    setTimeout(() => {
+                        const editBtn = row.querySelector('.edit-cost');
+                        const deleteBtn = row.querySelector('.delete-cost');
+                        
+                        if (editBtn) {
+                            editBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showEditCostModal(cost.id);
+                            });
+                        }
+                        
+                        if (deleteBtn) {
+                            deleteBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                deleteCost(cost.id);
+                            });
+                        }
+                    }, 0);
+                    
+                    row.appendChild(actionCell);
+                }
+                
+                costTableBody.appendChild(row);
+            });
+            
+            // 添加總計行
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'cost-total-row';
+            
+            const totals = calculateTotalCosts(plan);
+            
+            totalRow.innerHTML = `
+                <td colspan="5"><strong>總計 (新台幣)</strong></td>
+                <td><strong>${totals.totalTWD.toFixed(2)}</strong></td>
+                <td></td>
+                <td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td>
+                <td></td>
+            `;
+            
+            costTableBody.appendChild(totalRow);
+        }
+
+        // 取得所有費用（行程、交通、額外費用）
+        function getAllCosts(plan) {
+            const allCosts = [];
+            
+            // 行程費用
+            if (plan.activities) {
+                plan.activities.forEach(activity => {
+                    if (activity.cost > 0) {
+                        const activityDate = new Date(plan.startDate);
+                        activityDate.setDate(activityDate.getDate() + activity.day - 1);
+                        
+                        allCosts.push({
+                            type: 'activity',
+                            date: activityDate.toISOString().split('T')[0],
+                            category: activity.category,
+                            name: activity.name,
+                            amount: activity.cost,
+                            currency: activity.currency || 'TWD',
+                            participants: activity.participants || 1
+                        });
+                    }
+                });
+            }
+            
+            // 交通費用（只有主要交通方式才計算費用）
+            if (plan.transports) {
+                plan.transports.forEach(transport => {
+                    if (transport.isMain && transport.options && transport.options.length > 0) {
+                        transport.options.forEach(option => {
+                            if (option.isMain && option.cost > 0) {
+                                const transportDate = new Date(plan.startDate);
+                                transportDate.setDate(transportDate.getDate() + transport.day - 1);
+                                
+                                allCosts.push({
+                                    type: 'transport',
+                                    date: transportDate.toISOString().split('T')[0],
+                                    category: option.type,
+                                    fromActivityName: transport.fromActivityName,
+                                    toActivityName: transport.toActivityName,
+                                    amount: option.cost,
+                                    currency: option.currency || 'TWD',
+                                    participants: option.participants || 1
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 額外費用
+            if (plan.additionalCosts) {
+                plan.additionalCosts.forEach(cost => {
+                    allCosts.push({
+                        type: 'additional',
+                        id: cost.id,
+                        date: cost.date,
+                        category: cost.category,
+                        description: cost.description,
+                        amount: cost.amount,
+                        currency: cost.currency || 'TWD',
+                        participants: cost.participants || 1
+                    });
+                });
+            }
+            
+            return allCosts;
+        }
+
+        // 計算總費用
+        function calculateTotalCosts(plan) {
+            let totalTWD = 0;
+            let totalPersonalTWD = 0;
+            
+            // 行程費用
+            if (plan.activities) {
+                plan.activities.forEach(activity => {
+                    if (activity.cost > 0) {
+                        const currency = activity.currency || 'TWD';
+                        const exchangeRate = state.exchangeRates[currency] || 1;
+                        const twdCost = activity.cost * exchangeRate;
+                        const participants = activity.participants || 1;
+                        const personalTwdCost = twdCost / participants;
+                        
+                        totalTWD += twdCost;
+                        totalPersonalTWD += personalTwdCost;
+                    }
+                });
+            }
+            
+            // 交通費用（只有主要交通方式才計算費用）
+            if (plan.transports) {
+                plan.transports.forEach(transport => {
+                    if (transport.isMain && transport.options && transport.options.length > 0) {
+                        transport.options.forEach(option => {
+                            if (option.isMain && option.cost > 0) {
+                                const currency = option.currency || 'TWD';
+                                const exchangeRate = state.exchangeRates[currency] || 1;
+                                const twdCost = option.cost * exchangeRate;
+                                const participants = option.participants || 1;
+                                const personalTwdCost = twdCost / participants;
+                                
+                                totalTWD += twdCost;
+                                totalPersonalTWD += personalTwdCost;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 額外費用
+            if (plan.additionalCosts) {
+                plan.additionalCosts.forEach(cost => {
+                    const currency = cost.currency || 'TWD';
+                    const exchangeRate = state.exchangeRates[currency] || 1;
+                    const twdCost = cost.amount * exchangeRate;
+                    const participants = cost.participants || 1;
+                    const personalTwdCost = twdCost / participants;
+                    
+                    totalTWD += twdCost;
+                    totalPersonalTWD += personalTwdCost;
+                });
+            }
+            
+            return {
+                totalTWD: totalTWD,
+                totalPersonalTWD: totalPersonalTWD
+            };
+        }
+
+        // 分享計劃
         function sharePlan() {
             if (!state.currentPlanId) {
                 alert('請先選擇一個旅遊計劃');
@@ -4809,6 +5877,11 @@
                         color: #1565c0;
                     }
                     
+                    .activity-category.transport {
+                        background-color: #f3e5f5;
+                        color: #7b1fa2;
+                    }
+                    
                     .activity-category.activity {
                         background-color: #e8f5e9;
                         color: #2e7d32;
@@ -4931,7 +6004,7 @@
                         border-collapse: collapse;
                         margin-top: 15px;
                         font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-                        min-width: 600px;
+                        min-width: 800px;
                     }
                     
                     .cost-table th, .cost-table td {
@@ -5060,7 +6133,7 @@
                         }
                         
                         .cost-table {
-                            min-width: 500px;
+                            min-width: 700px;
                         }
                         
                         .cost-table th, .cost-table td {
@@ -5101,7 +6174,7 @@
                         }
                         
                         .cost-table {
-                            min-width: 400px;
+                            min-width: 600px;
                             font-size: 0.7rem;
                         }
                         
@@ -5156,7 +6229,9 @@
                         <table class="cost-table">
                             <thead>
                                 <tr>
+                                    <th>日期</th>
                                     <th>類別</th>
+                                    <th>說明</th>
                                     <th>幣別</th>
                                     <th>原幣費用</th>
                                     <th>換算台幣</th>
@@ -5266,79 +6341,86 @@
             </html>
             `;
             
-            // 計算費用統計（使用預設匯率）
-            const costData = calculateDetailedCostSummary(plan);
+            // 計算費用統計
+            const allCosts = getAllCosts(plan);
             let costHtml = '';
             
-            // 活動費用
-            Object.keys(costData.categories).forEach(category => {
-                const categoryData = costData.categories[category];
-                const currencyKeys = Object.keys(categoryData.currencies);
+            if (allCosts.length === 0) {
+                costHtml = '<tr><td colspan="8" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
+            } else {
+                // 按日期排序
+                allCosts.sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    return dateA - dateB;
+                });
                 
-                if (currencyKeys.length > 0) {
-                    // 分類標題
+                // 顯示所有費用
+                allCosts.forEach(cost => {
+                    // 計算換算後的台幣費用
+                    const originalCost = cost.amount || 0;
+                    const currency = cost.currency || 'TWD';
+                    const exchangeRate = state.exchangeRates[currency] || 1;
+                    const twdCost = originalCost * exchangeRate;
+                    const participants = cost.participants || 1;
+                    const personalTwdCost = twdCost / participants;
+                    
+                    // 根據費用類型顯示不同的類別和說明
+                    let categoryText = '';
+                    let descriptionText = '';
+                    
+                    if (cost.type === 'activity') {
+                        const categoryLabels = {
+                            attraction: '景點',
+                            transport: '交通',
+                            activity: '活動',
+                            accommodation: '住宿',
+                            shopping: '購物',
+                            other: '其他'
+                        };
+                        categoryText = categoryLabels[cost.category] || cost.category;
+                        descriptionText = cost.name;
+                    } else if (cost.type === 'transport') {
+                        categoryText = '交通';
+                        descriptionText = `${cost.fromActivityName} → ${cost.toActivityName}`;
+                    } else if (cost.type === 'additional') {
+                        const categoryLabels = {
+                            transport: '交通',
+                            shopping: '購物',
+                            food: '飲食',
+                            insurance: '保險',
+                            internet: '網路',
+                            other: '其他'
+                        };
+                        categoryText = categoryLabels[cost.category] || cost.category;
+                        descriptionText = cost.description;
+                    }
+                    
                     costHtml += `
-                        <tr class="cost-category">
-                            <td colspan="6"><strong>${categoryData.label}</strong></td>
+                        <tr>
+                            <td>${formatDate(new Date(cost.date))}</td>
+                            <td>${categoryText}</td>
+                            <td>${descriptionText}</td>
+                            <td>${currency}</td>
+                            <td>${originalCost.toFixed(2)}</td>
+                            <td>${twdCost.toFixed(2)}</td>
+                            <td>${participants}</td>
+                            <td class="total-cost">${personalTwdCost.toFixed(2)}</td>
                         </tr>
                     `;
-                    
-                    // 幣別詳細
-                    currencyKeys.forEach(currency => {
-                        const currencyData = categoryData.currencies[currency];
-                        costHtml += `
-                            <tr class="cost-subcategory">
-                                <td></td>
-                                <td>${currency}</td>
-                                <td>${currencyData.originalCost.toFixed(2)}</td>
-                                <td>${currencyData.twdCost.toFixed(2)}</td>
-                                <td>${currencyData.maxParticipants}</td>
-                                <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                }
-            });
-            
-            // 交通費用（只有主要交通方式才計算費用）
-            Object.keys(costData.transportTypes).forEach(transportType => {
-                const transportData = costData.transportTypes[transportType];
-                const currencyKeys = Object.keys(transportData.currencies);
+                });
                 
-                if (currencyKeys.length > 0) {
-                    // 分類標題
-                    costHtml += `
-                        <tr class="cost-category">
-                            <td colspan="6"><strong>${transportData.label}</strong></td>
-                        </tr>
-                    `;
-                    
-                    // 幣別詳細
-                    currencyKeys.forEach(currency => {
-                        const currencyData = transportData.currencies[currency];
-                        costHtml += `
-                            <tr class="cost-subcategory">
-                                <td></td>
-                                <td>${currency}</td>
-                                <td>${currencyData.originalCost.toFixed(2)}</td>
-                                <td>${currencyData.twdCost.toFixed(2)}</td>
-                                <td>${currencyData.maxParticipants}</td>
-                                <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                }
-            });
-            
-            // 總計
-            costHtml += `
-                <tr class="cost-total-row">
-                    <td colspan="3"><strong>總計 (新台幣)</strong></td>
-                    <td><strong>${costData.totalTWD.toFixed(2)}</strong></td>
-                    <td></td>
-                    <td class="total-cost"><strong>${costData.totalPersonalTWD.toFixed(2)}</strong></td>
-                </tr>
-            `;
+                // 添加總計行
+                const totals = calculateTotalCosts(plan);
+                costHtml += `
+                    <tr class="cost-total-row">
+                        <td colspan="5"><strong>總計 (新台幣)</strong></td>
+                        <td><strong>${totals.totalTWD.toFixed(2)}</strong></td>
+                        <td></td>
+                        <td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            }
             
             html = html.replace('<!-- 費用統計將動態生成 -->', costHtml);
             
@@ -5484,6 +6566,8 @@
                                     walking: '步行',
                                     flight: '飛機',
                                     ship: '輪船',
+                                    coach: '巴士',
+                                    selfdrive: '自駕',
                                     other: '其他'
                                 };
                                 
@@ -5601,217 +6685,6 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        // 計算詳細費用統計（考慮匯率）
-        function calculateDetailedCostSummary(plan) {
-            const categories = {
-                attraction: { label: '景點', currencies: {} },
-                shopping: { label: '購物', currencies: {} },
-                activity: { label: '活動', currencies: {} },
-                accommodation: { label: '住宿', currencies: {} },
-                other: { label: '其他', currencies: {} }
-            };
-            
-            const transportTypes = {
-                taxi: { label: '計程車', currencies: {} },
-                subway: { label: '地鐵', currencies: {} },
-                bus: { label: '公交', currencies: {} },
-                train: { label: '高鐵', currencies: {} },
-                walking: { label: '步行', currencies: {} },
-                flight: { label: '飛機', currencies: {} },
-                ship: { label: '輪船', currencies: {} },
-                other: { label: '交通-其他', currencies: {} }
-            };
-            
-            let totalTWD = 0;
-            let totalPersonalTWD = 0;
-            
-            // 活動費用
-            if (plan.activities) {
-                plan.activities.forEach(activity => {
-                    if (activity.cost > 0) {
-                        const currency = activity.currency || 'TWD';
-                        const exchangeRate = state.exchangeRates[currency] || 1;
-                        const originalCost = activity.cost;
-                        const twdCost = originalCost * exchangeRate;
-                        const participants = activity.participants || 1;
-                        const personalTwdCost = twdCost / participants;
-                        
-                        const category = categories[activity.category];
-                        
-                        if (category) {
-                            if (!category.currencies[currency]) {
-                                category.currencies[currency] = {
-                                    originalCost: 0,
-                                    twdCost: 0,
-                                    maxParticipants: 1,
-                                    personalTwdCost: 0
-                                };
-                            }
-                            
-                            category.currencies[currency].originalCost += originalCost;
-                            category.currencies[currency].twdCost += twdCost;
-                            category.currencies[currency].personalTwdCost += personalTwdCost;
-                            category.currencies[currency].maxParticipants = Math.max(
-                                category.currencies[currency].maxParticipants,
-                                participants
-                            );
-                            
-                            totalTWD += twdCost;
-                            totalPersonalTWD += personalTwdCost;
-                        }
-                    }
-                });
-            }
-            
-            // 交通費用（只有主要交通方式才計算費用）
-            if (plan.transports) {
-                plan.transports.forEach(transport => {
-                    if (transport.isMain && transport.options && transport.options.length > 0) {
-                        transport.options.forEach(option => {
-                            if (option.isMain && option.cost > 0) {
-                                const currency = option.currency || 'TWD';
-                                const exchangeRate = state.exchangeRates[currency] || 1;
-                                const originalCost = option.cost;
-                                const twdCost = originalCost * exchangeRate;
-                                const participants = option.participants || 1;
-                                const personalTwdCost = twdCost / participants;
-                                
-                                const transportType = transportTypes[option.type] || transportTypes.other;
-                                
-                                if (!transportType.currencies[currency]) {
-                                    transportType.currencies[currency] = {
-                                        originalCost: 0,
-                                        twdCost: 0,
-                                        maxParticipants: 1,
-                                        personalTwdCost: 0
-                                    };
-                                }
-                                
-                                transportType.currencies[currency].originalCost += originalCost;
-                                transportType.currencies[currency].twdCost += twdCost;
-                                transportType.currencies[currency].personalTwdCost += personalTwdCost;
-                                transportType.currencies[currency].maxParticipants = Math.max(
-                                    transportType.currencies[currency].maxParticipants,
-                                    participants
-                                );
-                                
-                                totalTWD += twdCost;
-                                totalPersonalTWD += personalTwdCost;
-                            }
-                        });
-                    }
-                });
-            }
-            
-            return {
-                categories: categories,
-                transportTypes: transportTypes,
-                totalTWD: totalTWD,
-                totalPersonalTWD: totalPersonalTWD
-            };
-        }
-
-        // 更新費用統計
-        function updateCostSummary() {
-            const costTableBody = document.getElementById('costTableBody');
-            costTableBody.innerHTML = '';
-            
-            if (!state.currentPlanId) {
-                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">請選擇一個旅遊計劃</td></tr>';
-                return;
-            }
-            
-            const plan = state.plans.find(p => p.id === state.currentPlanId);
-            if (!plan) {
-                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">找不到計劃資料</td></tr>';
-                return;
-            }
-            
-            const costData = calculateDetailedCostSummary(plan);
-            let hasData = false;
-            
-            // 活動費用
-            Object.keys(costData.categories).forEach(category => {
-                const categoryData = costData.categories[category];
-                const currencyKeys = Object.keys(categoryData.currencies);
-                
-                if (currencyKeys.length > 0) {
-                    hasData = true;
-                    // 分類標題
-                    const categoryRow = document.createElement('tr');
-                    categoryRow.className = 'cost-category';
-                    categoryRow.innerHTML = `
-                        <td colspan="6"><strong>${categoryData.label}</strong></td>
-                    `;
-                    costTableBody.appendChild(categoryRow);
-                    
-                    // 幣別詳細
-                    currencyKeys.forEach(currency => {
-                        const currencyData = categoryData.currencies[currency];
-                        const row = document.createElement('tr');
-                        row.className = 'cost-subcategory';
-                        row.innerHTML = `
-                            <td></td>
-                            <td>${currency}</td>
-                            <td>${currencyData.originalCost.toFixed(2)}</td>
-                            <td>${currencyData.twdCost.toFixed(2)}</td>
-                            <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
-                        `;
-                        costTableBody.appendChild(row);
-                    });
-                }
-            });
-            
-            // 交通費用（只有主要交通方式才計算費用）
-            Object.keys(costData.transportTypes).forEach(transportType => {
-                const transportData = costData.transportTypes[transportType];
-                const currencyKeys = Object.keys(transportData.currencies);
-                
-                if (currencyKeys.length > 0) {
-                    hasData = true;
-                    // 分類標題
-                    const categoryRow = document.createElement('tr');
-                    categoryRow.className = 'cost-category';
-                    categoryRow.innerHTML = `
-                        <td colspan="6"><strong>${transportData.label}</strong></td>
-                    `;
-                    costTableBody.appendChild(categoryRow);
-                    
-                    // 幣別詳細
-                    currencyKeys.forEach(currency => {
-                        const currencyData = transportData.currencies[currency];
-                        const row = document.createElement('tr');
-                        row.className = 'cost-subcategory';
-                        row.innerHTML = `
-                            <td></td>
-                            <td>${currency}</td>
-                            <td>${currencyData.originalCost.toFixed(2)}</td>
-                            <td>${currencyData.twdCost.toFixed(2)}</td>
-                            <td>${currencyData.maxParticipants}</td>
-                            <td class="total-cost">${currencyData.personalTwdCost.toFixed(2)}</td>
-                        `;
-                        costTableBody.appendChild(row);
-                    });
-                }
-            });
-            
-            // 總計行
-            if (hasData) {
-                const totalRow = document.createElement('tr');
-                totalRow.className = 'cost-total-row';
-                totalRow.innerHTML = `
-                    <td colspan="3"><strong>總計 (新台幣)</strong></td>
-                    <td><strong>${costData.totalTWD.toFixed(2)}</strong></td>
-                    <td></td>
-                    <td class="total-cost"><strong>${costData.totalPersonalTWD.toFixed(2)}</strong></td>
-                `;
-                costTableBody.appendChild(totalRow);
-            } else {
-                costTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">暫無費用資料</td></tr>';
-            }
         }
 
         // 輔助函數：格式化日期
