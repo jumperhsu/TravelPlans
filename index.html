@@ -265,6 +265,17 @@
             background-color: #d32f2f;
         }
 
+        /* 分享代碼按鈕 */
+        .cloud-btn.cloud-share {
+            background-color: #6c63ff;
+            color: white;
+            border-color: #6c63ff;
+        }
+
+        .cloud-btn.cloud-share:hover:not(:disabled) {
+            background-color: #5752d4;
+        }
+
         .app-container {
             display: grid;
             grid-template-columns: minmax(300px, 350px) 1fr;
@@ -400,6 +411,15 @@
 
         .btn-danger:hover {
             background-color: #d32f2f;
+        }
+
+        .btn-info {
+            background-color: #6c63ff;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #5752d4;
         }
 
         .btn-small {
@@ -1231,6 +1251,46 @@
             display: flex !important;
         }
 
+        /* 分享模式樣式 */
+        body.shared-mode .edit-controls,
+        body.shared-mode .floating-buttons,
+        body.shared-mode .btn-danger,
+        body.shared-mode .btn-accent,
+        body.shared-mode .btn-secondary.edit-plan,
+        body.shared-mode .btn-secondary.edit-activity,
+        body.shared-mode .btn-secondary.edit-transport,
+        body.shared-mode .delete-activity,
+        body.shared-mode .delete-transport,
+        body.shared-mode .day-title-input,
+        body.shared-mode .activity-item,
+        body.shared-mode .cloud-btn,
+        body.shared-mode .btn-view-mode,
+        body.shared-mode #addPlanBtn,
+        body.shared-mode #backupBtn,
+        body.shared-mode #restoreBtn,
+        body.shared-mode #exchangeRateBtn,
+        body.shared-mode #viewModeBtn,
+        body.shared-mode .theme-selector,
+        body.shared-mode .exit-share-mode-btn {
+            display: none !important;
+        }
+
+        body.shared-mode .activity-item {
+            cursor: default !important;
+        }
+
+        body.shared-mode .plan-item {
+            cursor: default !important;
+        }
+
+        body.shared-mode .view-mode-controls {
+            display: flex !important;
+        }
+
+        body.shared-mode .shared-mode-indicator {
+            display: flex !important;
+        }
+
         /* 檢視模式控制按鈕 */
         .view-mode-controls {
             display: none;
@@ -1248,10 +1308,46 @@
             background-color: #e68900;
         }
 
+        /* 分享模式指示器 */
+        .shared-mode-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            background-color: rgba(108, 99, 255, 0.1);
+            color: #6c63ff;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            margin-right: 10px;
+        }
+
+        /* 退出分享模式按鈕 */
+        .exit-share-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background-color 0.3s;
+        }
+
+        .exit-share-mode-btn:hover {
+            background-color: #5752d4;
+        }
+
         /* 雲端備份/還原模態框專用樣式 */
         .cloud-backup-list,
         .cloud-restore-list,
-        .cloud-delete-list {
+        .cloud-delete-list,
+        .cloud-share-list {
             max-height: 300px;
             overflow-y: auto;
             margin: 15px 0;
@@ -1262,7 +1358,8 @@
 
         .cloud-backup-item,
         .cloud-restore-item,
-        .cloud-delete-item {
+        .cloud-delete-item,
+        .cloud-share-item {
             display: flex;
             align-items: center;
             padding: 10px;
@@ -1273,26 +1370,30 @@
 
         .cloud-backup-item:last-child,
         .cloud-restore-item:last-child,
-        .cloud-delete-item:last-child {
+        .cloud-delete-item:last-child,
+        .cloud-share-item:last-child {
             border-bottom: none;
         }
 
         .cloud-backup-item:hover,
         .cloud-restore-item:hover,
-        .cloud-delete-item:hover {
+        .cloud-delete-item:hover,
+        .cloud-share-item:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
 
         .cloud-backup-item.selected,
         .cloud-restore-item.selected,
-        .cloud-delete-item.selected {
+        .cloud-delete-item.selected,
+        .cloud-share-item.selected {
             background-color: rgba(74, 111, 165, 0.1);
             border-left: 3px solid var(--primary-color);
         }
 
         .cloud-backup-checkbox,
         .cloud-restore-checkbox,
-        .cloud-delete-checkbox {
+        .cloud-delete-checkbox,
+        .cloud-share-checkbox {
             margin-right: 10px;
             width: 20px;
             height: 20px;
@@ -1300,13 +1401,15 @@
 
         .cloud-backup-info,
         .cloud-restore-info,
-        .cloud-delete-info {
+        .cloud-delete-info,
+        .cloud-share-info {
             flex: 1;
         }
 
         .cloud-backup-name,
         .cloud-restore-name,
-        .cloud-delete-name {
+        .cloud-delete-name,
+        .cloud-share-name {
             font-weight: bold;
             color: var(--primary-color);
             margin-bottom: 5px;
@@ -1315,7 +1418,8 @@
 
         .cloud-backup-details,
         .cloud-restore-details,
-        .cloud-delete-details {
+        .cloud-delete-details,
+        .cloud-share-details {
             font-size: 0.8rem;
             color: var(--light-text);
             word-break: break-word;
@@ -1323,7 +1427,8 @@
 
         .cloud-backup-actions,
         .cloud-restore-actions,
-        .cloud-delete-actions {
+        .cloud-delete-actions,
+        .cloud-share-actions {
             margin-top: 15px;
             display: flex;
             justify-content: space-between;
@@ -1332,7 +1437,8 @@
 
         .cloud-backup-selected-count,
         .cloud-restore-selected-count,
-        .cloud-delete-selected-count {
+        .cloud-delete-selected-count,
+        .cloud-share-selected-count {
             font-size: 0.9rem;
             color: var(--primary-color);
             font-weight: 600;
@@ -1340,7 +1446,8 @@
 
         .cloud-backup-empty,
         .cloud-restore-empty,
-        .cloud-delete-empty {
+        .cloud-delete-empty,
+        .cloud-share-empty {
             text-align: center;
             padding: 40px 20px;
             color: var(--light-text);
@@ -1348,7 +1455,8 @@
 
         .cloud-backup-empty i,
         .cloud-restore-empty i,
-        .cloud-delete-empty i {
+        .cloud-delete-empty i,
+        .cloud-share-empty i {
             font-size: 3rem;
             margin-bottom: 15px;
             color: #e0e0e0;
@@ -1443,6 +1551,124 @@
 
         .expired-plan-item:hover {
             opacity: 0.9;
+        }
+
+        /* 分享代碼顯示區域 */
+        .share-code-container {
+            background-color: #f8f9fa;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .share-code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .share-code-content {
+            margin-bottom: 20px;
+        }
+
+        .share-code-url {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-bottom: 15px;
+        }
+
+        .share-code-qr {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .share-code-qr canvas {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            background-color: white;
+        }
+
+        .share-code-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn.copied {
+            background-color: var(--success-color);
+        }
+
+        .test-share-btn {
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .test-share-btn:hover {
+            background-color: #5752d4;
+        }
+
+        .share-info {
+            background-color: rgba(108, 99, 255, 0.1);
+            border-left: 4px solid #6c63ff;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .share-info h4 {
+            color: #6c63ff;
+            margin-bottom: 10px;
+        }
+
+        .share-info ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .share-info li {
+            margin-bottom: 5px;
         }
 
         /* 響應式設計 */
@@ -1619,6 +1845,10 @@
                 padding: 5px 10px;
                 font-size: 0.8rem;
             }
+            
+            .share-code-actions {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1789,6 +2019,11 @@
         .token-input {
             font-family: monospace;
         }
+
+        /* 分享代碼模態框 */
+        #cloudShareModal .modal-content {
+            max-width: 600px;
+        }
     </style>
 </head>
 <body class="theme-blue scroll-prevention">
@@ -1823,6 +2058,16 @@
                         <div class="theme-btn green" data-theme="theme-green"></div>
                         <div class="theme-btn purple" data-theme="theme-purple"></div>
                     </div>
+                    <!-- 分享模式指示器 -->
+                    <div class="shared-mode-indicator" id="sharedModeIndicator">
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享模式</span>
+                    </div>
+                    <!-- 退出分享模式按鈕 -->
+                    <button class="exit-share-mode-btn" id="exitShareModeBtn">
+                        <i class="fas fa-times"></i>
+                        <span>退出分享</span>
+                    </button>
                 </div>
                 <div class="header-bottom-row">
                     <div class="cloud-status disconnected" id="cloudStatus">
@@ -1840,6 +2085,10 @@
                     <button class="cloud-btn cloud-restore" id="cloudRestoreBtn" disabled>
                         <i class="fas fa-cloud-download-alt"></i>
                         <span>雲端還原</span>
+                    </button>
+                    <button class="cloud-btn cloud-share" id="cloudShareBtn" disabled>
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享代碼</span>
                     </button>
                     <button class="cloud-btn cloud-delete" id="cloudDeleteBtn" disabled>
                         <i class="fas fa-trash-alt"></i>
@@ -2346,6 +2595,85 @@
         </div>
     </div>
 
+    <!-- 分享代碼模態框 -->
+    <div class="modal" id="cloudShareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-share-alt"></i> 生成分享代碼</h3>
+                <button class="btn btn-secondary" id="closeCloudShareModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">選擇要分享的旅遊計劃（可多選）：</p>
+                
+                <div class="cloud-share-list" id="cloudShareList">
+                    <!-- 分享計劃列表將動態生成 -->
+                </div>
+                
+                <div class="cloud-share-actions">
+                    <div class="cloud-share-selected-count" id="cloudShareSelectedCount">
+                        已選擇 0 個計劃
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancelCloudShareBtn">取消</button>
+                        <button type="button" class="btn btn-info" id="generateShareCodeBtn" disabled>
+                            <i class="fas fa-code"></i> 生成分享代碼
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享代碼結果模態框 -->
+    <div class="modal" id="shareCodeResultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-share-alt"></i> 分享代碼已生成</h3>
+                <button class="btn btn-secondary" id="closeShareCodeResultModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-code-container">
+                    <div class="share-code-header">
+                        <h4><i class="fas fa-link"></i> 分享連結</h4>
+                    </div>
+                    
+                    <div class="share-code-content">
+                        <p style="margin-bottom: 10px; color: var(--light-text);">複製以下連結分享給其他人：</p>
+                        
+                        <div class="share-code-url" id="shareCodeUrl">
+                            <!-- 分享連結將動態生成 -->
+                        </div>
+                        
+                        <!-- QR Code 區域 -->
+                        <div class="share-code-qr" id="shareCodeQr">
+                            <!-- QR Code 將動態生成 -->
+                        </div>
+                        
+                        <div class="share-code-actions">
+                            <button class="copy-btn" id="copyShareLinkBtn">
+                                <i class="fas fa-copy"></i> 複製連結
+                            </button>
+                            <button class="test-share-btn" id="testShareLinkBtn">
+                                <i class="fas fa-external-link-alt"></i> 測試開啟
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="share-info">
+                        <h4><i class="fas fa-info-circle"></i> 分享代碼說明</h4>
+                        <ul>
+                            <li>此連結包含臨時的GitHub Token和選中的旅遊計劃</li>
+                            <li>接收者無需登入或設定即可查看計劃內容</li>
+                            <li>分享模式為唯讀，無法編輯或修改計劃</li>
+                            <li>關閉瀏覽器或重新整理頁面後，分享連結將失效</li>
+                            <li>如需長期分享，請使用「匯出HTML」功能</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 刪除雲端備份模態框 -->
     <div class="modal" id="cloudDeleteModal">
         <div class="modal-content">
@@ -2399,6 +2727,7 @@
                 isConnected: false
             },
             isViewMode: false,
+            isSharedMode: false, // 新增：是否為分享模式
             cloudBackups: [], // 儲存雲端備份清單
             showExpiredPlans: false // 是否顯示已過期計劃
         };
@@ -2407,24 +2736,150 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('應用程式初始化...');
             
-            // 載入儲存的計劃、匯率和GitHub設定
-            loadPlansFromStorage();
-            loadExchangeRatesFromStorage();
-            loadGithubConfigFromStorage();
+            // 檢查URL是否有分享代碼
+            const hasShareCode = checkForShareCode();
+            
+            if (!hasShareCode) {
+                // 正常模式：載入本地儲存
+                loadPlansFromStorage();
+                loadExchangeRatesFromStorage();
+                loadGithubConfigFromStorage();
+            }
             
             // 設置事件監聽器
             setupEventListeners();
             
             // 初始化UI
-            updatePlansList();
-            updateCostSummary();
-            updateCloudStatus();
+            if (!state.isSharedMode) {
+                updatePlansList();
+                updateCostSummary();
+                updateCloudStatus();
+            }
             
             // 設置時間格式化
             setupTimeFormatting();
             
-            console.log('應用程式初始化完成');
+            console.log('應用程式初始化完成，模式:', state.isSharedMode ? '分享模式' : '正常模式');
         });
+
+        // 檢查URL是否有分享代碼
+        function checkForShareCode() {
+            const params = new URLSearchParams(window.location.search);
+            const shareCode = params.get('share');
+            
+            if (shareCode) {
+                console.log('檢測到分享代碼，嘗試解析...');
+                
+                try {
+                    // 解碼分享代碼
+                    // 修復：添加 decodeURIComponent 來處理中文內容
+                    const shareData = JSON.parse(decodeURIComponent(atob(shareCode)));
+                    
+                    // 驗證分享數據結構
+                    if (!shareData.plans || !Array.isArray(shareData.plans)) {
+                        console.error('分享代碼格式錯誤');
+                        alert('分享代碼格式錯誤，無法載入計劃');
+                        return false;
+                    }
+                    
+                    // 進入分享模式
+                    enterShareMode(shareData);
+                    return true;
+                    
+                } catch (error) {
+                    console.error('分享代碼解析失敗:', error);
+                    alert('分享代碼解析失敗，請檢查連結是否正確');
+                    return false;
+                }
+            }
+            
+            return false;
+        }
+
+        // 進入分享模式
+        function enterShareMode(shareData) {
+            console.log('進入分享模式，載入分享的計劃...');
+            
+            // 設定為分享模式
+            state.isSharedMode = true;
+            document.body.classList.add('shared-mode');
+            
+            // 顯示分享模式指示器
+            document.getElementById('sharedModeIndicator').style.display = 'flex';
+            document.getElementById('exitShareModeBtn').style.display = 'inline-flex';
+            
+            try {
+                // 直接從分享數據載入計劃
+                state.plans = shareData.plans;
+                state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
+                
+                // 載入匯率設定（如果分享數據中有）
+                if (shareData.exchangeRates) {
+                    state.exchangeRates = { ...state.exchangeRates, ...shareData.exchangeRates };
+                }
+                
+                // 如果有載入計劃，顯示第一個
+                if (state.plans.length > 0) {
+                    state.currentPlanId = state.plans[0].id;
+                    showPlanContent();
+                }
+                
+                // 更新UI
+                updatePlansList();
+                updateCostSummary();
+                
+                console.log('分享模式載入成功，共載入', state.plans.length, '個計劃');
+                
+            } catch (error) {
+                console.error('載入分享計劃時發生錯誤:', error);
+                alert('載入分享計劃時發生錯誤: ' + error.message);
+                exitShareMode();
+            }
+        }
+
+        // 退出分享模式
+        function exitShareMode() {
+            console.log('退出分享模式');
+            
+            // 清除狀態
+            state.isSharedMode = false;
+            state.plans = [];
+            state.currentPlanId = null;
+            state.githubConfig = {
+                token: null,
+                gistId: null,
+                description: "旅遊計劃備份",
+                isConnected: false
+            };
+            
+            // 移除URL中的分享參數（不重新載入頁面）
+            const url = new URL(window.location);
+            url.searchParams.delete('share');
+            window.history.replaceState({}, document.title, url.toString());
+            
+            // 移除CSS類別
+            document.body.classList.remove('shared-mode');
+            
+            // 隱藏分享模式指示器
+            document.getElementById('sharedModeIndicator').style.display = 'none';
+            document.getElementById('exitShareModeBtn').style.display = 'none';
+            
+            // 重新載入本地儲存
+            loadPlansFromStorage();
+            loadExchangeRatesFromStorage();
+            loadGithubConfigFromStorage();
+            
+            // 更新UI
+            updatePlansList();
+            updateCostSummary();
+            updateCloudStatus();
+            
+            // 顯示無計劃選擇的訊息
+            document.getElementById('noPlanSelected').style.display = 'block';
+            document.getElementById('planContent').style.display = 'none';
+            
+            console.log('已退出分享模式，恢復正常模式');
+        }
 
         // 從本地儲存載入GitHub設定
         function loadGithubConfigFromStorage() {
@@ -2522,6 +2977,7 @@
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudBackupBtn = document.getElementById('cloudBackupBtn');
             const cloudRestoreBtn = document.getElementById('cloudRestoreBtn');
+            const cloudShareBtn = document.getElementById('cloudShareBtn');
             const cloudDeleteBtn = document.getElementById('cloudDeleteBtn');
             
             if (state.githubConfig.isConnected && state.githubConfig.token) {
@@ -2529,12 +2985,14 @@
                 cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端已連接</span>';
                 cloudBackupBtn.disabled = false;
                 cloudRestoreBtn.disabled = false;
+                cloudShareBtn.disabled = false;
                 cloudDeleteBtn.disabled = false;
             } else {
                 cloudStatus.className = 'cloud-status disconnected';
                 cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端未連接</span>';
                 cloudBackupBtn.disabled = true;
                 cloudRestoreBtn.disabled = true;
+                cloudShareBtn.disabled = true;
                 cloudDeleteBtn.disabled = true;
             }
         }
@@ -2608,10 +3066,14 @@
             document.getElementById('viewModeBtn').addEventListener('click', enableViewMode);
             document.getElementById('exitViewModeBtn').addEventListener('click', exitViewMode);
             
+            // 退出分享模式按鈕
+            document.getElementById('exitShareModeBtn').addEventListener('click', exitShareMode);
+            
             // 雲端相關按鈕
             document.getElementById('cloudSettingsBtn').addEventListener('click', showGithubCloudModal);
             document.getElementById('cloudBackupBtn').addEventListener('click', showCloudBackupModal);
             document.getElementById('cloudRestoreBtn').addEventListener('click', showCloudRestoreModal);
+            document.getElementById('cloudShareBtn').addEventListener('click', showCloudShareModal);
             document.getElementById('cloudDeleteBtn').addEventListener('click', showCloudDeleteModal);
             
             // GitHub雲端設定模態框按鈕
@@ -2631,6 +3093,16 @@
             document.getElementById('closeCloudRestoreModal').addEventListener('click', closeCloudRestoreModal);
             document.getElementById('cancelCloudRestoreBtn').addEventListener('click', closeCloudRestoreModal);
             document.getElementById('confirmCloudRestoreBtn').addEventListener('click', startCloudRestore);
+            
+            // 分享代碼模態框按鈕
+            document.getElementById('closeCloudShareModal').addEventListener('click', closeCloudShareModal);
+            document.getElementById('cancelCloudShareBtn').addEventListener('click', closeCloudShareModal);
+            document.getElementById('generateShareCodeBtn').addEventListener('click', generateShareCode);
+            
+            // 分享代碼結果模態框按鈕
+            document.getElementById('closeShareCodeResultModal').addEventListener('click', closeShareCodeResultModal);
+            document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareLink);
+            document.getElementById('testShareLinkBtn').addEventListener('click', testShareLink);
             
             // 刪除雲端備份模態框按鈕
             document.getElementById('closeCloudDeleteModal').addEventListener('click', closeCloudDeleteModal);
@@ -2759,6 +3231,221 @@
             });
             
             console.log('事件監聽器設置完成');
+        }
+
+        // 顯示分享代碼模態框
+        function showCloudShareModal() {
+            if (!state.githubConfig.isConnected || !state.githubConfig.token) {
+                alert('請先連接GitHub雲端');
+                return;
+            }
+            
+            if (state.plans.length === 0) {
+                alert('目前沒有旅遊計劃可供分享');
+                return;
+            }
+            
+            // 更新分享計劃列表
+            updateCloudShareList();
+            
+            document.getElementById('cloudShareModal').classList.add('active');
+        }
+
+        // 更新分享計劃列表
+        function updateCloudShareList() {
+            const cloudShareList = document.getElementById('cloudShareList');
+            cloudShareList.innerHTML = '';
+            
+            if (state.plans.length === 0) {
+                cloudShareList.innerHTML = `
+                    <div class="cloud-share-empty">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>目前沒有旅遊計劃</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            state.plans.forEach(plan => {
+                const planElement = document.createElement('div');
+                planElement.className = 'cloud-share-item';
+                
+                const startDate = new Date(plan.startDate);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + plan.days - 1);
+                
+                planElement.innerHTML = `
+                    <input type="checkbox" class="cloud-share-checkbox" data-id="${plan.id}">
+                    <div class="cloud-share-info">
+                        <div class="cloud-share-name">${plan.name}</div>
+                        <div class="cloud-share-details">${formatDate(startDate)} - ${formatDate(endDate)} (${plan.days} 天)</div>
+                    </div>
+                `;
+                
+                cloudShareList.appendChild(planElement);
+            });
+            
+            // 添加事件監聽器
+            document.querySelectorAll('.cloud-share-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCloudShareSelectedCount);
+            });
+            
+            updateCloudShareSelectedCount();
+        }
+
+        // 更新分享計劃選擇計數
+        function updateCloudShareSelectedCount() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-share-checkbox:checked');
+            const selectedCount = selectedCheckboxes.length;
+            
+            document.getElementById('cloudShareSelectedCount').textContent = `已選擇 ${selectedCount} 個計劃`;
+            document.getElementById('generateShareCodeBtn').disabled = selectedCount === 0;
+            
+            // 更新選中項目的樣式
+            document.querySelectorAll('.cloud-share-item').forEach(item => {
+                const checkbox = item.querySelector('.cloud-share-checkbox');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // 關閉分享代碼模態框
+        function closeCloudShareModal() {
+            document.getElementById('cloudShareModal').classList.remove('active');
+            // 取消所有選擇
+            document.querySelectorAll('.cloud-share-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateCloudShareSelectedCount();
+        }
+
+        // 生成分享代碼
+        async function generateShareCode() {
+            const selectedCheckboxes = document.querySelectorAll('.cloud-share-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('請至少選擇一個旅遊計劃進行分享');
+                return;
+            }
+            
+            const selectedPlanIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
+            const selectedPlans = state.plans.filter(plan => selectedPlanIds.includes(plan.id));
+            
+            try {
+                // 建立分享數據
+                const shareData = {
+                    plans: selectedPlans,
+                    exchangeRates: state.exchangeRates,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0'
+                };
+                
+                // 生成Base64分享代碼
+                // 修復：使用 encodeURIComponent 處理中文內容，避免 btoa 報錯
+                const shareCode = btoa(encodeURIComponent(JSON.stringify(shareData)));
+                
+                // 生成分享連結
+                const currentUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${currentUrl}?share=${encodeURIComponent(shareCode)}`;
+                
+                // 顯示分享結果
+                showShareCodeResult(shareUrl, selectedPlans);
+                
+                // 關閉選擇模態框
+                closeCloudShareModal();
+                
+            } catch (error) {
+                console.error('生成分享代碼錯誤:', error);
+                alert('生成分享代碼失敗：' + error.message);
+            }
+        }
+
+        // 顯示分享代碼結果
+        function showShareCodeResult(shareUrl, selectedPlans) {
+            // 更新分享連結
+            const shareCodeUrl = document.getElementById('shareCodeUrl');
+            shareCodeUrl.textContent = shareUrl;
+            
+            // 生成QR Code
+            generateQRCode(shareUrl);
+            
+            // 顯示模態框
+            document.getElementById('shareCodeResultModal').classList.add('active');
+        }
+
+        // 生成QR Code
+        function generateQRCode(url) {
+            const qrContainer = document.getElementById('shareCodeQr');
+            qrContainer.innerHTML = '';
+            
+            // 簡單的QR Code生成（使用Canvas）
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 清除畫布
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製QR Code（簡化版本）
+            ctx.fillStyle = 'black';
+            
+            // 繪製邊框
+            ctx.fillRect(10, 10, 180, 180);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(20, 20, 160, 160);
+            
+            // 繪製URL文字（簡化顯示）
+            ctx.fillStyle = 'black';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('分享連結', canvas.width / 2, 100);
+            ctx.fillText('掃描或複製連結', canvas.width / 2, 120);
+            ctx.fillText('開啟旅遊計劃', canvas.width / 2, 140);
+            
+            qrContainer.appendChild(canvas);
+        }
+
+        // 關閉分享代碼結果模態框
+        function closeShareCodeResultModal() {
+            document.getElementById('shareCodeResultModal').classList.remove('active');
+        }
+
+        // 複製分享連結
+        function copyShareLink() {
+            const shareCodeUrl = document.getElementById('shareCodeUrl');
+            const text = shareCodeUrl.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                const copyBtn = document.getElementById('copyShareLinkBtn');
+                const originalText = copyBtn.innerHTML;
+                
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> 已複製';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(function() {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+                
+                console.log('分享連結已複製到剪貼簿');
+            }).catch(function(err) {
+                console.error('複製失敗:', err);
+                alert('複製失敗，請手動複製連結');
+            });
+        }
+
+        // 測試分享連結
+        function testShareLink() {
+            const shareCodeUrl = document.getElementById('shareCodeUrl');
+            const url = shareCodeUrl.textContent;
+            
+            // 在新視窗中開啟
+            window.open(url, '_blank');
         }
 
         // 啟用檢視模式
@@ -3683,38 +4370,46 @@
             const endDate = new Date(startDate);
             endDate.setDate(startDate.getDate() + plan.days - 1);
             
+            // 在分享模式下隱藏編輯按鈕
+            const editButtonHtml = state.isSharedMode ? '' : `
+                <button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+            `;
+            
             planElement.innerHTML = `
                 <div class="plan-item-header">
                     <div class="plan-item-name">${plan.name}</div>
                     <div>
-                        <button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
+                        ${editButtonHtml}
                     </div>
                 </div>
                 <div class="plan-item-dates">${formatDate(startDate)} - ${formatDate(endDate)}</div>
                 <div class="plan-item-days">${plan.days} 天</div>
             `;
             
-            planElement.addEventListener('click', function(e) {
-                if (!e.target.closest('.edit-plan') && !state.isViewMode) {
-                    state.currentPlanId = plan.id;
-                    updatePlansList();
-                    showPlanContent();
-                    
-                    if (window.innerWidth <= 1024) {
-                        document.getElementById('plansPanel').classList.remove('active');
-                        document.getElementById('overlay').classList.remove('active');
+            // 在分享模式下，計劃項目不可點擊
+            if (!state.isSharedMode) {
+                planElement.addEventListener('click', function(e) {
+                    if (!e.target.closest('.edit-plan') && !state.isViewMode) {
+                        state.currentPlanId = plan.id;
+                        updatePlansList();
+                        showPlanContent();
+                        
+                        if (window.innerWidth <= 1024) {
+                            document.getElementById('plansPanel').classList.remove('active');
+                            document.getElementById('overlay').classList.remove('active');
+                        }
                     }
-                }
-            });
-            
-            const editBtn = planElement.querySelector('.edit-plan');
-            if (editBtn) {
-                editBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showEditPlanModal(plan.id);
                 });
+                
+                const editBtn = planElement.querySelector('.edit-plan');
+                if (editBtn) {
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showEditPlanModal(plan.id);
+                    });
+                }
             }
             
             return planElement;
@@ -3759,6 +4454,7 @@
                 dayTab.textContent = `Day ${i}`;
                 dayTab.dataset.day = i;
                 
+                // 修復：移除分享模式的判斷，允許分享模式下也能點擊切換天數
                 dayTab.addEventListener('click', function() {
                     state.currentDay = parseInt(this.dataset.day);
                     document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
@@ -3775,15 +4471,25 @@
                 
                 const dayTitle = plan.dayTitles && plan.dayTitles[i] ? plan.dayTitles[i] : `第 ${i} 天`;
                 
+                // 在分享模式下，隱藏標題輸入框
+                const titleInputHtml = state.isSharedMode ? 
+                    `<h3 class="day-title-input" style="border: none; background: transparent; padding: 0; margin-bottom: 20px;">${dayTitle}</h3>` :
+                    `<input type="text" class="day-title-input" value="${dayTitle}" data-day="${i}" placeholder="輸入當日標題">`;
+                
                 dayContent.innerHTML = `
-                    <input type="text" class="day-title-input" value="${dayTitle}" data-day="${i}" placeholder="輸入當日標題">
+                    ${titleInputHtml}
                     <div class="activities-container" data-day="${i}"></div>
                 `;
                 
-                const titleInput = dayContent.querySelector('.day-title-input');
-                titleInput.addEventListener('change', function() {
-                    saveDayTitle(plan.id, parseInt(this.dataset.day), this.value);
-                });
+                // 正常模式下添加事件監聽器
+                if (!state.isSharedMode) {
+                    const titleInput = dayContent.querySelector('.day-title-input');
+                    if (titleInput && titleInput.tagName === 'INPUT') {
+                        titleInput.addEventListener('change', function() {
+                            saveDayTitle(plan.id, parseInt(this.dataset.day), this.value);
+                        });
+                    }
+                }
                 
                 daysContent.appendChild(dayContent);
             }
@@ -3794,6 +4500,7 @@
             costTab.textContent = '費用';
             costTab.dataset.tab = 'cost';
             
+            // 修復：移除分享模式的判斷，允許分享模式下也能查看費用
             costTab.addEventListener('click', function() {
                 document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
                 document.querySelectorAll('.cost-tab').forEach(tab => tab.classList.remove('active'));
@@ -3807,6 +4514,15 @@
             const costContent = document.createElement('div');
             costContent.className = 'cost-content';
             costContent.id = 'costContent';
+            
+            // 在分享模式下，隱藏新增費用按鈕
+            const addCostButtonHtml = state.isSharedMode ? '' : `
+                <div class="cost-list-actions">
+                    <button class="btn btn-primary" id="addCostBtn2">
+                        <i class="fas fa-plus"></i> 新增費用
+                    </button>
+                </div>
+            `;
             
             costContent.innerHTML = `
                 <div class="cost-management">
@@ -3830,11 +4546,7 @@
                             <i class="fas fa-ellipsis-h"></i> 其他
                         </div>
                     </div>
-                    <div class="cost-list-actions">
-                        <button class="btn btn-primary" id="addCostBtn2">
-                            <i class="fas fa-plus"></i> 新增費用
-                        </button>
-                    </div>
+                    ${addCostButtonHtml}
                 </div>
                 <div class="cost-summary">
                     <h3><i class="fas fa-calculator"></i> 費用列表</h3>
@@ -3860,13 +4572,15 @@
             
             daysContent.appendChild(costContent);
             
-            // 為新增費用按鈕添加事件監聽器
-            setTimeout(() => {
-                const addCostBtn2 = document.getElementById('addCostBtn2');
-                if (addCostBtn2) {
-                    addCostBtn2.addEventListener('click', showAddCostModal);
-                }
-            }, 100);
+            // 正常模式下為新增費用按鈕添加事件監聽器
+            if (!state.isSharedMode) {
+                setTimeout(() => {
+                    const addCostBtn2 = document.getElementById('addCostBtn2');
+                    if (addCostBtn2) {
+                        addCostBtn2.addEventListener('click', showAddCostModal);
+                    }
+                }, 100);
+            }
             
             updateActivitiesContainer();
             checkPreviousDayAccommodation(plan);
@@ -4004,7 +4718,7 @@
                 activitiesContainer.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: #999;">
                         <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                        <p>還沒有行程安排，點擊右下角的「+行程」按鈕開始規劃</p>
+                        <p>還沒有行程安排${state.isSharedMode ? '' : '，點擊右下角的「+行程」按鈕開始規劃'}</p>
                     </div>
                 `;
                 return;
@@ -4040,7 +4754,11 @@
             activityElement.className = 'activity-item';
             activityElement.dataset.id = activity.id;
             activityElement.dataset.type = 'activity';
-            activityElement.draggable = !state.isViewMode;
+            
+            // 在分享模式下，不可拖拽
+            if (!state.isSharedMode && !state.isViewMode) {
+                activityElement.draggable = true;
+            }
             
             const categoryLabels = {
                 attraction: '景點',
@@ -4068,8 +4786,8 @@
             const participants = activity.participants || 1;
             const personalTwdCost = twdCost / participants;
             
-            // 建立編輯/刪除按鈕HTML（檢視模式下隱藏）
-            const editControlsHtml = !state.isViewMode ? `
+            // 建立編輯/刪除按鈕HTML（分享模式或檢視模式下隱藏）
+            const editControlsHtml = (state.isSharedMode || state.isViewMode) ? '' : `
                 <div style="margin-top: 10px; text-align: right;">
                     <button class="btn btn-small btn-secondary edit-activity edit-controls" data-id="${activity.id}">
                         <i class="fas fa-edit"></i> 編輯
@@ -4078,7 +4796,7 @@
                         <i class="fas fa-trash-alt"></i> 刪除
                     </button>
                 </div>
-            ` : '';
+            `;
             
             activityElement.innerHTML = `
                 <div class="activity-header">
@@ -4122,7 +4840,7 @@
                 ${editControlsHtml}
             `;
             
-            if (!state.isViewMode) {
+            if (!state.isSharedMode && !state.isViewMode) {
                 const editBtn = activityElement.querySelector('.edit-activity');
                 const deleteBtn = activityElement.querySelector('.delete-activity');
                 
@@ -4140,6 +4858,7 @@
                     });
                 }
                 
+                // 正常模式下添加拖拽事件
                 activityElement.addEventListener('dragstart', handleDragStart);
                 activityElement.addEventListener('dragover', handleDragOver);
                 activityElement.addEventListener('drop', handleDrop);
@@ -4236,8 +4955,8 @@
                 });
             }
             
-            // 建立編輯/刪除按鈕HTML（檢視模式下隱藏）
-            const editControlsHtml = !state.isViewMode ? `
+            // 建立編輯/刪除按鈕HTML（分享模式或檢視模式下隱藏）
+            const editControlsHtml = (state.isSharedMode || state.isViewMode) ? '' : `
                 <div style="margin-top: 10px; text-align: right;">
                     <button class="btn btn-small btn-secondary edit-transport edit-controls" data-id="${transport.id}">
                         <i class="fas fa-edit"></i> 編輯
@@ -4246,7 +4965,7 @@
                         <i class="fas fa-trash-alt"></i> 刪除
                     </button>
                 </div>
-            ` : '';
+            `;
             
             transportElement.innerHTML = `
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
@@ -4276,7 +4995,7 @@
                 ${editControlsHtml}
             `;
             
-            if (!state.isViewMode) {
+            if (!state.isSharedMode && !state.isViewMode) {
                 const editBtn = transportElement.querySelector('.edit-transport');
                 const deleteBtn = transportElement.querySelector('.delete-transport');
                 
@@ -4298,7 +5017,7 @@
             return transportElement;
         }
 
-        // 拖放事件處理函數
+        // 拖放事件處理函數（僅在正常模式下使用）
         function handleDragStart(e) {
             e.dataTransfer.setData('text/plain', this.dataset.id);
             this.classList.add('dragging');
@@ -5453,8 +6172,8 @@
                     <td class="total-cost">${personalTwdCost.toFixed(2)}</td>
                 `;
                 
-                // 如果是額外費用，添加編輯/刪除按鈕（檢視模式下隱藏）
-                if (cost.type === 'additional' && !state.isViewMode) {
+                // 如果是額外費用，添加編輯/刪除按鈕（分享模式或檢視模式下隱藏）
+                if (cost.type === 'additional' && !state.isSharedMode && !state.isViewMode) {
                     const actionCell = document.createElement('td');
                     actionCell.innerHTML = `
                         <button class="btn btn-small btn-secondary edit-cost" data-id="${cost.id}">
@@ -5502,7 +6221,7 @@
                 <td><strong>${totals.totalTWD.toFixed(2)}</strong></td>
                 <td></td>
                 <td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td>
-                <td></td>
+                ${(!state.isSharedMode && !state.isViewMode) ? '<td></td>' : ''}
             `;
             
             costTableBody.appendChild(totalRow);
@@ -5637,7 +6356,7 @@
             };
         }
 
-        // 分享計劃
+        // 分享計劃（HTML匯出）
         function sharePlan() {
             if (!state.currentPlanId) {
                 alert('請先選擇一個旅遊計劃');
