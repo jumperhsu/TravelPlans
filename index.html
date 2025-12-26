@@ -2762,17 +2762,29 @@
             console.log('應用程式初始化完成，模式:', state.isSharedMode ? '分享模式' : '正常模式');
         });
 
-        // 檢查URL是否有分享代碼
+        // 檢查URL是否有分享代碼（修復版本：使用 # 而非 ?）
         function checkForShareCode() {
-            const params = new URLSearchParams(window.location.search);
-            const shareCode = params.get('share');
+            let shareCode = null;
+
+            // 修正點：優先檢查 Hash (#) 中的參數
+            if (window.location.hash) {
+                // 去掉開頭的 #
+                const hashString = window.location.hash.substring(1);
+                const hashParams = new URLSearchParams(hashString);
+                shareCode = hashParams.get('share');
+            }
+
+            // 如果 Hash 沒找到，才檢查 Search (?) (相容舊連結)
+            if (!shareCode) {
+                const searchParams = new URLSearchParams(window.location.search);
+                shareCode = searchParams.get('share');
+            }
             
             if (shareCode) {
                 console.log('檢測到分享代碼，嘗試解析...');
                 
                 try {
                     // 解碼分享代碼
-                    // 修復：添加 decodeURIComponent 來處理中文內容
                     const shareData = JSON.parse(decodeURIComponent(atob(shareCode)));
                     
                     // 驗證分享數據結構
@@ -2852,9 +2864,10 @@
                 isConnected: false
             };
             
-            // 移除URL中的分享參數（不重新載入頁面）
+            // 修正點：清除 URL 中的參數 (包含 search 和 hash)
             const url = new URL(window.location);
-            url.searchParams.delete('share');
+            url.searchParams.delete('share'); // 清除 ?share
+            window.location.hash = '';        // 清除 #share
             window.history.replaceState({}, document.title, url.toString());
             
             // 移除CSS類別
@@ -3322,7 +3335,7 @@
             updateCloudShareSelectedCount();
         }
 
-        // 生成分享代碼
+        // 生成分享代碼（修復版本：使用 # 而非 ?）
         async function generateShareCode() {
             const selectedCheckboxes = document.querySelectorAll('.cloud-share-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
@@ -3343,12 +3356,13 @@
                 };
                 
                 // 生成Base64分享代碼
-                // 修復：使用 encodeURIComponent 處理中文內容，避免 btoa 報錯
                 const shareCode = btoa(encodeURIComponent(JSON.stringify(shareData)));
                 
                 // 生成分享連結
                 const currentUrl = window.location.origin + window.location.pathname;
-                const shareUrl = `${currentUrl}?share=${encodeURIComponent(shareCode)}`;
+                
+                // 修正點：將 ? 改為 #，避免伺服器報錯 "URI Too Long"
+                const shareUrl = `${currentUrl}#share=${encodeURIComponent(shareCode)}`;
                 
                 // 顯示分享結果
                 showShareCodeResult(shareUrl, selectedPlans);
@@ -6898,7 +6912,7 @@
                         }
                         
                         .cost-table th, .cost-table td {
-                            padding: 6px 8px;
+                            padding: 5px 6px;
                         }
                     }
                     
