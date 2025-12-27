@@ -4980,131 +4980,150 @@
         }
 
 
-// 更新活動容器
-function updateActivitiesContainer() {
-    const plan = state.plans.find(p => p.id === state.currentPlanId);
-    if (!plan) return;
+	// 更新活動容器
+	function updateActivitiesContainer() {
+	    const plan = state.plans.find(p => p.id === state.currentPlanId);
+	    if (!plan) return;
 
-    const day = state.currentDay;
-    const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
-    if (!activitiesContainer) return;
+	    const day = state.currentDay;
+	    const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
+	    if (!activitiesContainer) return;
 
-    activitiesContainer.innerHTML = '';
+	    activitiesContainer.innerHTML = '';
 
-    const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
-    const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
+	    const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
+	    const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
 
-    if (dayActivities.length === 0) {
-        activitiesContainer.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: #999;">
-                <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                <p>還沒有行程安排${state.isSharedMode ? '' : '，點擊右下角的「+行程」按鈕開始規劃'}</p>
-            </div>
-        `;
-        return;
-    }
+	    if (dayActivities.length === 0) {
+	        activitiesContainer.innerHTML = `
+	            <div style="text-align: center; padding: 40px 20px; color: #999;">
+	                <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
+	                <p>還沒有行程安排${state.isSharedMode ? '' : '，點擊右下角的「+行程」按鈕開始規劃'}</p>
+	            </div>
+	        `;
+	        return;
+	    }
 
-    // 依照時間排序
-    dayActivities.sort((a, b) => {
-        const timeA = a.startTime ? parseTime(a.startTime) : 0;
-        const timeB = b.startTime ? parseTime(b.startTime) : 0;
-        return timeA - timeB;
-    });
+	    // 依照時間排序
+	    dayActivities.sort((a, b) => {
+	        const timeA = a.startTime ? parseTime(a.startTime) : 0;
+	        const timeB = b.startTime ? parseTime(b.startTime) : 0;
+	        return timeA - timeB;
+	    });
 
-    dayActivities.forEach((activity, index) => {
-        const activityElement = createActivityElement(activity, index, day);
-        activitiesContainer.appendChild(activityElement);
+	    dayActivities.forEach((activity, index) => {
+	        const activityElement = createActivityElement(activity, index, day);
+	        activitiesContainer.appendChild(activityElement);
 
-        // 如果不是最後一個活動，尋找兩者之間的交通
-        if (index < dayActivities.length - 1) {
-            const nextActivity = dayActivities[index + 1];
-            const transportsBetween = dayTransports.filter(t => t.fromActivityId === activity.id && t.toActivityId === nextActivity.id);
+	        // 如果不是最後一個活動，尋找兩者之間的交通
+	        if (index < dayActivities.length - 1) {
+	            const nextActivity = dayActivities[index + 1];
+	            const transportsBetween = dayTransports.filter(t => t.fromActivityId === activity.id && t.toActivityId === nextActivity.id);
             
-            transportsBetween.forEach(transport => {
-                const transportElement = createTransportElement(transport);
-                activitiesContainer.appendChild(transportElement);
-            });
-        }
-    });
-}
+	            transportsBetween.forEach(transport => {
+	                const transportElement = createTransportElement(transport);
+	                activitiesContainer.appendChild(transportElement);
+	            });
+	        }
+	    });
+	}
 
-// 創建活動元素
-function createActivityElement(activity, index, day) {
-    const activityElement = document.createElement('div');
-    activityElement.className = 'activity-item';
-    activityElement.dataset.id = activity.id;
-    activityElement.dataset.type = 'activity';
+	// 創建活動元素 - 完整替換版 (已加入連結顯示邏輯)
+	function createActivityElement(activity, index, day) {
+	    const activityElement = document.createElement('div');
+	    activityElement.className = 'activity-item';
+	    activityElement.dataset.id = activity.id;
+	    activityElement.dataset.type = 'activity';
 
-    if (!state.isSharedMode && !state.isViewMode) {
-        activityElement.draggable = true;
-    }
+	    // 如果不是分享或檢視模式，則允許拖拽
+	    if (!state.isSharedMode && !state.isViewMode) {
+	        activityElement.draggable = true;
+	    }
 
-    const categoryLabels = {
-        attraction: '景點', transport: '交通', activity: '活動',
-        accommodation: '住宿', shopping: '購物', other: '其他'
-    };
-    const categoryClasses = {
-        attraction: 'attraction', transport: 'transport', activity: 'activity',
-        accommodation: 'accommodation', shopping: 'shopping', other: 'other'
-    };
+	    const categoryLabels = {
+	        attraction: '景點', transport: '交通', activity: '活動',
+	        accommodation: '住宿', shopping: '購物', other: '其他'
+	    };
+	    const categoryClasses = {
+	        attraction: 'attraction', transport: 'transport', activity: 'activity',
+	        accommodation: 'accommodation', shopping: 'shopping', other: 'other'
+	    };
 
-    // 費用計算
-    const originalCost = activity.cost || 0;
-    const currency = activity.currency || 'TWD';
-    const exchangeRate = state.exchangeRates[currency] || 1;
-    const twdCost = originalCost * exchangeRate;
-    const participants = activity.participants || 1;
+	    // 費用計算
+	    const originalCost = activity.cost || 0;
+	    const currency = activity.currency || 'TWD';
+	    const exchangeRate = state.exchangeRates[currency] || 1;
+	    const twdCost = originalCost * exchangeRate;
 
-    // 建立編輯/刪除按鈕（僅在非分享且非檢視模式顯示）
-    const showControls = !state.isSharedMode && !state.isViewMode;
-    const editControlsHtml = showControls ? `
-        <div style="margin-top: 10px; text-align: right;" class="edit-controls">
-            <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}">
-                <i class="fas fa-edit"></i> 編輯
-            </button>
-            <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}">
-                <i class="fas fa-trash-alt"></i> 刪除
-            </button>
-        </div>
-    ` : '';
+	    // --- 新增：行程連結 HTML 生成邏輯 ---
+	    let linksHtml = '';
+	    if (activity.links && Array.isArray(activity.links) && activity.links.length > 0) {
+	        linksHtml = '<div class="activity-links" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;">';
+	        activity.links.forEach(link => {
+	            if (link.url) {
+	                // 自動檢查並補上 http 協議
+	                const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+	                const name = link.name || '相關連結';
+	                linksHtml += `
+	                    <a href="${url}" target="_blank" style="font-size: 0.9rem; text-decoration: none; color: #4a6fa5;">
+	                        <i class="fas fa-external-link-alt"></i> ${name}
+	                    </a>`;
+	            }
+	        });
+	        linksHtml += '</div>';
+	    }
 
-    activityElement.innerHTML = `
-        <div class="activity-header">
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
-                <span class="activity-name">${activity.name}</span>
-                <span class="activity-category ${categoryClasses[activity.category]}">
-                    ${categoryLabels[activity.category]}
-                </span>
-            </div>
-            <div class="activity-time">
-                ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
-            </div>
-        </div>
-        <div style="margin-bottom: 10px;">
-            <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
-            ${activity.address ? `<div class="activity-address" style="word-break: break-word;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
-        </div>
-        <div class="activity-details">
-            ${originalCost > 0 ? `
-                <div class="activity-cost">
-                    <i class="fas fa-money-bill-wave"></i> ${currency} ${originalCost.toFixed(2)} (${twdCost.toFixed(0)} TWD)
-                </div>
-            ` : ''}
-            ${activity.notes ? `<div class="activity-notes"><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
-        </div>
-        ${editControlsHtml}
-    `;
+	    // 建立編輯/刪除按鈕（僅在非分享且非檢視模式顯示）
+	    const showControls = !state.isSharedMode && !state.isViewMode;
+	    const editControlsHtml = showControls ? `
+	        <div style="margin-top: 10px; text-align: right;" class="edit-controls">
+	            <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}">
+	                <i class="fas fa-edit"></i> 編輯
+	            </button>
+	            <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}">
+	                <i class="fas fa-trash-alt"></i> 刪除
+	            </button>
+	        </div>
+	    ` : '';
 
-    // 綁定事件
-    if (showControls) {
-        const editBtn = activityElement.querySelector('.edit-activity');
-        const deleteBtn = activityElement.querySelector('.delete-activity');
-        if (editBtn) editBtn.addEventListener('click', () => showEditActivityModal(activity.id));
-        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteActivity(activity.id));
-    }
+	    activityElement.innerHTML = `
+	        <div class="activity-header">
+	            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
+	                <span class="activity-name">${activity.name}</span>
+	                <span class="activity-category ${categoryClasses[activity.category]}">
+	                    ${categoryLabels[activity.category]}
+	                </span>
+	            </div>
+	            <div class="activity-time">
+	                ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
+	            </div>
+	        </div>
+	        <div style="margin-bottom: 10px;">
+	            <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
+	            ${activity.address ? `<div class="activity-address" style="word-break: break-word; color: #666; font-size: 0.85rem;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+	        </div>
+	        <div class="activity-details">
+	            ${originalCost > 0 ? `
+	                <div class="activity-cost">
+	                    <i class="fas fa-money-bill-wave"></i> ${currency} ${Number(originalCost).toFixed(2)} (${Math.round(twdCost)} TWD)
+	                </div>
+	            ` : ''}
+	            ${activity.notes ? `<div class="activity-notes" style="white-space: pre-wrap; margin-bottom: 5px;"><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
+	            ${linksHtml} </div>
+	        ${editControlsHtml}
+	    `;
 
-    return activityElement;
-}
+	    // 綁定事件
+	    if (showControls) {
+	        const editBtn = activityElement.querySelector('.edit-activity');
+	        const deleteBtn = activityElement.querySelector('.delete-activity');
+	        if (editBtn) editBtn.addEventListener('click', () => showEditActivityModal(activity.id));
+	        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteActivity(activity.id));
+	    }
+
+	    return activityElement;
+	}
+
 
         // 創建交通方式元素
         function createTransportElement(transport) {
