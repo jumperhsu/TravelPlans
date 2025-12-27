@@ -1221,10 +1221,13 @@
         }
 
         /* 檢視模式樣式 */
+        /* 檢視模式下隱藏編輯控制項，但不可隱藏 activity-item 本身 */
         body.view-mode .edit-controls,
         body.view-mode .floating-buttons,
         body.view-mode .btn-danger,
-        body.view-mode .btn-accent,
+        body.view-mode .btn-accent {
+            display: none !important;
+        }
         body.view-mode .btn-secondary.edit-plan,
         body.view-mode .btn-secondary.edit-activity,
         body.view-mode .btn-secondary.edit-transport,
@@ -1235,8 +1238,12 @@
             display: none !important;
         }
 
+        /* 確保行程項目在檢視模式依然有背景色與外框 */
         body.view-mode .activity-item {
             cursor: default !important;
+            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
+            display: block !important; /* 強制顯示 */
         }
 
         body.view-mode .plan-item {
@@ -1262,7 +1269,6 @@
         body.shared-mode .delete-activity,
         body.shared-mode .delete-transport,
         body.shared-mode .day-title-input,
-        body.shared-mode .activity-item,
         body.shared-mode .cloud-btn,
         body.shared-mode .btn-view-mode,
         body.shared-mode #addPlanBtn,
@@ -1275,8 +1281,12 @@
             display: none !important;
         }
 
+        /* 確保行程項目在分享模式下是顯示的，並取消滑鼠點擊手勢 */
         body.shared-mode .activity-item {
             cursor: default !important;
+            display: block !important;
+            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
         }
 
         body.shared-mode .plan-item {
@@ -2788,22 +2798,43 @@
                     loadShareFromGist(shareCode);
                 } else {
                     // 嘗試解析舊格式的分享代碼（Base64編碼）
+
                     try {
                         console.log('嘗試解析舊格式分享代碼...');
-                        const shareData = JSON.parse(decodeURIComponent(atob(shareCode)));
+                        // 修正：增加對中文字元的相容性處理
+                        const decodedData = decodeURIComponent(escape(atob(shareCode)));
+                        const shareData = JSON.parse(decodedData);
                         
                         // 驗證分享數據結構
                         if (!shareData.plans || !Array.isArray(shareData.plans)) {
+                            // 如果是單一計劃格式，封裝成陣列以相容 enterShareMode
+                            if (shareData.id && (shareData.activities || shareData.transports)) {
+                                const singlePlan = shareData;
+                                // 【核心修復】確保 activities 陣列存在
+                                if (!singlePlan.activities) singlePlan.activities = [];
+                                if (!singlePlan.transports) singlePlan.transports = [];
+                                
+                                enterShareMode({ plans: [singlePlan] });
+                                return true;
+                            }
+                            
                             console.error('分享代碼格式錯誤');
                             alert('分享代碼格式錯誤，無法載入計劃');
                             return false;
                         }
+                        
+                        // 【核心修復】確保陣列中的每個計劃都有 activities 屬性
+                        shareData.plans.forEach(plan => {
+                            if (!plan.activities) plan.activities = [];
+                            if (!plan.transports) plan.transports = [];
+                        });
                         
                         // 進入分享模式
                         enterShareMode(shareData);
                         return true;
                         
                     } catch (error) {
+                        // ... 原有的 catch 邏輯 ...
                         console.error('分享代碼解析失敗:', error);
                         alert('分享代碼解析失敗，請檢查連結是否正確');
                         return false;
@@ -2891,44 +2922,51 @@
             }
         }
 
-        // 進入分享模式
+        // 進入分享模式 (修復版)
         function enterShareMode(shareData) {
             console.log('進入分享模式，載入分享的計劃...');
             
-            // 設定為分享模式
             state.isSharedMode = true;
+            state.isViewMode = true; // 關鍵：確保渲染函數知道現在是檢視狀態
             document.body.classList.add('shared-mode');
+            document.body.classList.add('view-mode'); 
             
             // 顯示分享模式指示器
-            document.getElementById('sharedModeIndicator').style.display = 'flex';
-            document.getElementById('exitShareModeBtn').style.display = 'inline-flex';
+            const indicator = document.getElementById('sharedModeIndicator');
+            if (indicator) indicator.style.display = 'flex';
+            const exitBtn = document.getElementById('exitShareModeBtn');
+            if (exitBtn) exitBtn.style.display = 'inline-flex';
             
             try {
-                // 直接從分享數據載入計劃
-                state.plans = shareData.plans;
-                state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
-                
-                // 載入匯率設定（如果分享數據中有）
-                if (shareData.exchangeRates) {
-                    state.exchangeRates = { ...state.exchangeRates, ...shareData.exchangeRates };
+                // 確保每個計劃都有資料
+                if (shareData.plans && Array.isArray(shareData.plans)) {
+                    shareData.plans.forEach(plan => {
+                        if (!plan.activities) plan.activities = [];
+                        if (!plan.transports) plan.transports = [];
+                    });
+                    state.plans = shareData.plans;
                 }
-                
-                // 如果有載入計劃，顯示第一個
+
+                // 更新 ID 計數器
                 if (state.plans.length > 0) {
+                    state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
                     state.currentPlanId = state.plans[0].id;
-                    showPlanContent();
+                    
+                    // 延遲渲染確保 DOM 已經準備好
+                    setTimeout(() => {
+                        showPlanContent(); // 這裡負責畫出「行程」與「交通」
+                        updatePlansList();
+                        updateCostSummary();
+                        
+                        // 隱藏編輯元素
+                        document.querySelectorAll('.edit-only, .floating-buttons, .edit-controls').forEach(el => {
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                    }, 100);
                 }
-                
-                // 更新UI
-                updatePlansList();
-                updateCostSummary();
-                
-                console.log('分享模式載入成功，共載入', state.plans.length, '個計劃');
-                
             } catch (error) {
-                console.error('載入分享計劃時發生錯誤:', error);
-                alert('載入分享計劃時發生錯誤: ' + error.message);
-                exitShareMode();
+                console.error('載入分享計劃錯誤:', error);
+                alert('載入失敗: ' + error.message);
             }
         }
 
@@ -3414,6 +3452,7 @@
         }
 
         // 生成分享代碼（新版本：使用Gist儲存）
+        // 生成分享代碼（修正版：確保包含行程與交通數據）
         async function generateShareCode() {
             const selectedCheckboxes = document.querySelectorAll('.cloud-share-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
@@ -3422,7 +3461,15 @@
             }
             
             const selectedPlanIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.id));
-            const selectedPlans = state.plans.filter(plan => selectedPlanIds.includes(plan.id));
+            
+            // 【關鍵修正】提取資料時，明確結構化 activities 和 transports
+            const selectedPlans = state.plans.filter(plan => selectedPlanIds.includes(plan.id)).map(plan => {
+                return {
+                    ...plan,
+                    activities: plan.activities || [], // 確保行程存在
+                    transports: plan.transports || []  // 確保交通存在
+                };
+            });
             
             try {
                 // 建立分享數據（壓縮格式）
@@ -3442,7 +3489,7 @@
                 // 建立Gist數據
                 const gistData = {
                     description: description,
-                    public: true, // 公開Gist，這樣不需要Token也能讀取
+                    public: true, 
                     files: {
                         [filename]: {
                             content: JSON.stringify(shareData, null, 2)
@@ -3459,132 +3506,85 @@
                 let response;
                 let gistId = null;
                 
-                // 嘗試使用GitHub API創建Gist
                 try {
-                    if (state.githubConfig.token) {
-                        // 使用Token創建Gist（更可靠）
-                        response = await fetch('https://api.github.com/gists', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `token ${state.githubConfig.token}`,
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/vnd.github.v3+json'
-                            },
-                            body: JSON.stringify(gistData)
-                        });
-                    } else {
-                        // 嘗試匿名創建（可能被限制）
-                        response = await fetch('https://api.github.com/gists', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/vnd.github.v3+json'
-                            },
-                            body: JSON.stringify(gistData)
-                        });
+                    // 嘗試使用GitHub API創建Gist
+                    const fetchOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/vnd.github.v3+json'
+                        },
+                        body: JSON.stringify(gistData)
+                    };
+
+                    if (state.githubConfig && state.githubConfig.token) {
+                        fetchOptions.headers['Authorization'] = `token ${state.githubConfig.token}`;
                     }
+
+                    response = await fetch('https://api.github.com/gists', fetchOptions);
                     
                     if (response.ok) {
                         const result = await response.json();
                         gistId = result.id;
-                        console.log('Gist創建成功，ID:', gistId);
                     } else {
                         throw new Error('GitHub API請求失敗');
                     }
                 } catch (githubError) {
                     console.warn('GitHub Gist創建失敗，使用備用方案:', githubError);
                     
-                    // 備用方案：如果GitHub失敗，使用傳統方式但壓縮數據
-                    const compressedShareCode = createCompressedShareCode(shareData);
+                    // 備用方案：使用傳統方式產出 Base64 連結
+                    const shareDataStr = JSON.stringify(shareData);
+                    const compressedShareCode = btoa(unescape(encodeURIComponent(shareDataStr)));
                     
-                    // 生成分享連結
                     const currentUrl = window.location.origin + window.location.pathname;
                     const shareUrl = `${currentUrl}#share=${compressedShareCode}`;
                     
-                    // 顯示分享結果
                     showShareCodeResult(shareUrl, selectedPlans, null);
-                    
-                    // 關閉選擇模態框
                     closeCloudShareModal();
                     
-                    // 重置按鈕狀態
                     generateBtn.innerHTML = originalText;
                     generateBtn.disabled = false;
                     return;
                 }
                 
-                // 生成分享連結
+                // 生成 Gist 短連結
                 const currentUrl = window.location.origin + window.location.pathname;
-                // 使用Gist ID的短格式
                 const shareUrl = `${currentUrl}#share=${gistId}`;
                 
-                // 顯示分享結果
                 showShareCodeResult(shareUrl, selectedPlans, gistId);
-                
-                // 關閉選擇模態框
                 closeCloudShareModal();
                 
-                // 重置按鈕狀態
                 generateBtn.innerHTML = originalText;
                 generateBtn.disabled = false;
                 
             } catch (error) {
                 console.error('生成分享代碼錯誤:', error);
-                
-                // 重置按鈕狀態
                 const generateBtn = document.getElementById('generateShareCodeBtn');
                 generateBtn.innerHTML = '<i class="fas fa-code"></i> 生成分享代碼';
                 generateBtn.disabled = false;
-                
                 alert('生成分享代碼失敗：' + error.message);
             }
         }
 
         // 壓縮分享數據
         function compressShareData(shareData) {
-            // 創建壓縮版本的數據，移除不必要的元數據
+            // 創建壓縮版本的數據，確保 activities 和 transports 完整保留
             const compressedData = {
-                plans: shareData.plans.map(plan => ({
-                    id: plan.id,
-                    name: plan.name,
-                    startDate: plan.startDate,
-                    days: plan.days,
-                    activities: plan.activities ? plan.activities.map(activity => ({
-                        id: activity.id,
-                        startTime: activity.startTime,
-                        endTime: activity.endTime,
-                        name: activity.name,
-                        category: activity.category,
-                        location: activity.location,
-                        address: activity.address,
-                        cost: activity.cost,
-                        currency: activity.currency,
-                        participants: activity.participants,
-                        links: activity.links,
-                        notes: activity.notes,
-                        day: activity.day,
-                        order: activity.order
-                    })) : [],
-                    transports: plan.transports ? plan.transports.map(transport => ({
-                        id: transport.id,
-                        startTime: transport.startTime,
-                        endTime: transport.endTime,
-                        fromActivityId: transport.fromActivityId,
-                        toActivityId: transport.toActivityId,
-                        fromActivityName: transport.fromActivityName,
-                        toActivityName: transport.toActivityName,
-                        fromLocation: transport.fromLocation,
-                        toLocation: transport.toLocation,
-                        options: transport.options,
-                        isMain: transport.isMain,
-                        day: transport.day
-                    })) : [],
-                    additionalCosts: plan.additionalCosts || [],
-                    dayTitles: plan.dayTitles || {}
-                })),
+                plans: shareData.plans.map(plan => {
+                    // 確保 activities 和 transports 是陣列
+                    const activities = Array.isArray(plan.activities) ? plan.activities : [];
+                    const transports = Array.isArray(plan.transports) ? plan.transports : [];
+                    
+                    return {
+                        ...plan, // 使用 ... 展開符號保留所有欄位(包含 id, name, days 等)
+                        activities: activities.map(act => ({ ...act })), // 深度複製活動
+                        transports: transports.map(ts => ({ ...ts }))   // 深度複製交通
+                    };
+                }),
                 exchangeRates: shareData.exchangeRates,
                 timestamp: shareData.timestamp,
-                version: shareData.version
+                version: shareData.version,
+                appName: shareData.appName
             };
             
             return compressedData;
@@ -4979,173 +4979,132 @@
             updateCostSummary();
         }
 
-        // 更新活動容器
-        function updateActivitiesContainer() {
-            const plan = state.plans.find(p => p.id === state.currentPlanId);
-            if (!plan) return;
-            
-            const day = state.currentDay;
-            const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
-            if (!activitiesContainer) return;
-            
-            activitiesContainer.innerHTML = '';
-            
-            const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
-            const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
-            
-            if (dayActivities.length === 0) {
-                activitiesContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #999;">
-                        <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                        <p>還沒有行程安排${state.isSharedMode ? '' : '，點擊右下角的「+行程」按鈕開始規劃'}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            dayActivities.sort((a, b) => {
-                const timeA = a.startTime ? parseTime(a.startTime) : 0;
-                const timeB = b.startTime ? parseTime(b.startTime) : 0;
-                return timeA - timeB;
-            });
-            
-            dayActivities.forEach((activity, index) => {
-                const activityElement = createActivityElement(activity, index, day);
-                activitiesContainer.appendChild(activityElement);
-                
-                if (index < dayActivities.length - 1) {
-                    const nextActivity = dayActivities[index + 1];
-                    const transportsBetween = dayTransports.filter(t => 
-                        t.fromActivityId === activity.id && t.toActivityId === nextActivity.id
-                    );
-                    
-                    transportsBetween.forEach(transport => {
-                        const transportElement = createTransportElement(transport);
-                        activitiesContainer.appendChild(transportElement);
-                    });
-                }
-            });
-        }
 
-        // 創建活動元素
-        function createActivityElement(activity, index, day) {
-            const activityElement = document.createElement('div');
-            activityElement.className = 'activity-item';
-            activityElement.dataset.id = activity.id;
-            activityElement.dataset.type = 'activity';
+// 更新活動容器
+function updateActivitiesContainer() {
+    const plan = state.plans.find(p => p.id === state.currentPlanId);
+    if (!plan) return;
+
+    const day = state.currentDay;
+    const activitiesContainer = document.querySelector(`.activities-container[data-day="${day}"]`);
+    if (!activitiesContainer) return;
+
+    activitiesContainer.innerHTML = '';
+
+    const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
+    const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
+
+    if (dayActivities.length === 0) {
+        activitiesContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: #999;">
+                <i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <p>還沒有行程安排${state.isSharedMode ? '' : '，點擊右下角的「+行程」按鈕開始規劃'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    // 依照時間排序
+    dayActivities.sort((a, b) => {
+        const timeA = a.startTime ? parseTime(a.startTime) : 0;
+        const timeB = b.startTime ? parseTime(b.startTime) : 0;
+        return timeA - timeB;
+    });
+
+    dayActivities.forEach((activity, index) => {
+        const activityElement = createActivityElement(activity, index, day);
+        activitiesContainer.appendChild(activityElement);
+
+        // 如果不是最後一個活動，尋找兩者之間的交通
+        if (index < dayActivities.length - 1) {
+            const nextActivity = dayActivities[index + 1];
+            const transportsBetween = dayTransports.filter(t => t.fromActivityId === activity.id && t.toActivityId === nextActivity.id);
             
-            // 在分享模式下，不可拖拽
-            if (!state.isSharedMode && !state.isViewMode) {
-                activityElement.draggable = true;
-            }
-            
-            const categoryLabels = {
-                attraction: '景點',
-                transport: '交通',
-                activity: '活動',
-                accommodation: '住宿',
-                shopping: '購物',
-                other: '其他'
-            };
-            
-            const categoryClasses = {
-                attraction: 'attraction',
-                transport: 'transport',
-                activity: 'activity',
-                accommodation: 'accommodation',
-                shopping: 'shopping',
-                other: 'other'
-            };
-            
-            // 計算換算後的台幣費用
-            const originalCost = activity.cost || 0;
-            const currency = activity.currency || 'TWD';
-            const exchangeRate = state.exchangeRates[currency] || 1;
-            const twdCost = originalCost * exchangeRate;
-            const participants = activity.participants || 1;
-            const personalTwdCost = twdCost / participants;
-            
-            // 建立編輯/刪除按鈕HTML（分享模式或檢視模式下隱藏）
-            const editControlsHtml = (state.isSharedMode || state.isViewMode) ? '' : `
-                <div style="margin-top: 10px; text-align: right;">
-                    <button class="btn btn-small btn-secondary edit-activity edit-controls" data-id="${activity.id}">
-                        <i class="fas fa-edit"></i> 編輯
-                    </button>
-                    <button class="btn btn-small btn-danger delete-activity edit-controls" data-id="${activity.id}">
-                        <i class="fas fa-trash-alt"></i> 刪除
-                    </button>
-                </div>
-            `;
-            
-            activityElement.innerHTML = `
-                <div class="activity-header">
-                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
-                        <span class="activity-name">${activity.name}</span>
-                        <span class="activity-category ${categoryClasses[activity.category]}">
-                            ${categoryLabels[activity.category]}
-                        </span>
-                    </div>
-                    <div class="activity-time">
-                        ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
-                    </div>
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
-                    ${activity.address ? `<div class="activity-address" style="word-break: break-word;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
-                </div>
-                <div class="activity-details">
-                    ${originalCost > 0 ? `
-                        <div class="activity-cost">
-                            <i class="fas fa-money-bill-wave"></i> 
-                            ${currency} ${originalCost.toFixed(2)} 
-                            <small>(${twdCost.toFixed(2)} TWD)</small>
-                            ${participants > 1 ? ` (每人 ${personalTwdCost.toFixed(2)} TWD)` : ''}
-                        </div>
-                    ` : ''}
-                    ${activity.links && activity.links.length > 0 ? `
-                        <div class="activity-links">
-                            <i class="fas fa-link"></i>
-                            ${activity.links.map(link => 
-                                `<a href="${link.url}" target="_blank" style="word-break: break-all;">${link.name}</a>`
-                            ).join(' ')}
-                        </div>
-                    ` : ''}
-                    ${activity.notes ? `
-                        <div class="activity-notes" style="word-break: break-word;">
-                            <i class="fas fa-sticky-note"></i> ${activity.notes}
-                        </div>
-                    ` : ''}
-                </div>
-                ${editControlsHtml}
-            `;
-            
-            if (!state.isSharedMode && !state.isViewMode) {
-                const editBtn = activityElement.querySelector('.edit-activity');
-                const deleteBtn = activityElement.querySelector('.delete-activity');
-                
-                if (editBtn) {
-                    editBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showEditActivityModal(activity.id);
-                    });
-                }
-                
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        deleteActivity(activity.id);
-                    });
-                }
-                
-                // 正常模式下添加拖拽事件
-                activityElement.addEventListener('dragstart', handleDragStart);
-                activityElement.addEventListener('dragover', handleDragOver);
-                activityElement.addEventListener('drop', handleDrop);
-                activityElement.addEventListener('dragend', handleDragEnd);
-            }
-            
-            return activityElement;
+            transportsBetween.forEach(transport => {
+                const transportElement = createTransportElement(transport);
+                activitiesContainer.appendChild(transportElement);
+            });
         }
+    });
+}
+
+// 創建活動元素
+function createActivityElement(activity, index, day) {
+    const activityElement = document.createElement('div');
+    activityElement.className = 'activity-item';
+    activityElement.dataset.id = activity.id;
+    activityElement.dataset.type = 'activity';
+
+    if (!state.isSharedMode && !state.isViewMode) {
+        activityElement.draggable = true;
+    }
+
+    const categoryLabels = {
+        attraction: '景點', transport: '交通', activity: '活動',
+        accommodation: '住宿', shopping: '購物', other: '其他'
+    };
+    const categoryClasses = {
+        attraction: 'attraction', transport: 'transport', activity: 'activity',
+        accommodation: 'accommodation', shopping: 'shopping', other: 'other'
+    };
+
+    // 費用計算
+    const originalCost = activity.cost || 0;
+    const currency = activity.currency || 'TWD';
+    const exchangeRate = state.exchangeRates[currency] || 1;
+    const twdCost = originalCost * exchangeRate;
+    const participants = activity.participants || 1;
+
+    // 建立編輯/刪除按鈕（僅在非分享且非檢視模式顯示）
+    const showControls = !state.isSharedMode && !state.isViewMode;
+    const editControlsHtml = showControls ? `
+        <div style="margin-top: 10px; text-align: right;" class="edit-controls">
+            <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}">
+                <i class="fas fa-edit"></i> 編輯
+            </button>
+            <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}">
+                <i class="fas fa-trash-alt"></i> 刪除
+            </button>
+        </div>
+    ` : '';
+
+    activityElement.innerHTML = `
+        <div class="activity-header">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
+                <span class="activity-name">${activity.name}</span>
+                <span class="activity-category ${categoryClasses[activity.category]}">
+                    ${categoryLabels[activity.category]}
+                </span>
+            </div>
+            <div class="activity-time">
+                ${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}
+            </div>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
+            ${activity.address ? `<div class="activity-address" style="word-break: break-word;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+        </div>
+        <div class="activity-details">
+            ${originalCost > 0 ? `
+                <div class="activity-cost">
+                    <i class="fas fa-money-bill-wave"></i> ${currency} ${originalCost.toFixed(2)} (${twdCost.toFixed(0)} TWD)
+                </div>
+            ` : ''}
+            ${activity.notes ? `<div class="activity-notes"><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
+        </div>
+        ${editControlsHtml}
+    `;
+
+    // 綁定事件
+    if (showControls) {
+        const editBtn = activityElement.querySelector('.edit-activity');
+        const deleteBtn = activityElement.querySelector('.delete-activity');
+        if (editBtn) editBtn.addEventListener('click', () => showEditActivityModal(activity.id));
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteActivity(activity.id));
+    }
+
+    return activityElement;
+}
 
         // 創建交通方式元素
         function createTransportElement(transport) {
