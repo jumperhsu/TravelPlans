@@ -6247,7 +6247,8 @@ function createActivityElement(activity, index, day) {
         }
 
         // 備份計劃（本地）
-        function backupPlan() {
+	// 備份計劃（本地）- 修改版：支援自行選取儲存位置
+        async function backupPlan() {
             if (!state.currentPlanId) {
                 alert('請先選擇一個旅遊計劃');
                 return;
@@ -6261,15 +6262,46 @@ function createActivityElement(activity, index, day) {
             const filename = `旅遊計劃_${plan.name}_${dateStr}.json`;
             
             const dataStr = JSON.stringify(plan, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+
+            // 檢查瀏覽器是否支援 showSaveFilePicker (選取視窗功能)
+            if ('showSaveFilePicker' in window) {
+                try {
+                    // 彈出視窗讓使用者選擇資料夾與輸入檔名
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{
+                            description: 'JSON Files',
+                            accept: {'application/json': ['.json']},
+                        }],
+                    });
+
+                    // 執行寫入檔案
+                    const writable = await handle.createWritable();
+                    await writable.write(dataStr);
+                    await writable.close();
+                    
+                    alert('備份成功！檔案已儲存。');
+                } catch (err) {
+                    // 如果使用者點擊取消，則不報錯
+                    if (err.name !== 'AbortError') {
+                        console.error('儲存失敗:', err);
+                        alert('儲存失敗：' + err.message);
+                    }
+                }
+            } else {
+                // 如果瀏覽器不支援新 API (如舊版 Safari 或手機)，則跳回原本的下載方式
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                alert('您的瀏覽器不支援選取資料夾功能，已自動下載至預設位置。');
+            }
         }
+
+
 
         // 還原計劃（本地）
         function restorePlan() {
