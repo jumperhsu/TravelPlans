@@ -2979,6 +2979,13 @@
                     state.plans = shareData.plans;
                 }
 
+                // 【修正重點：載入匯率設定】
+                // 檢查分享資料中是否有 exchangeRates，若有則更新 state
+                if (shareData.exchangeRates) {
+                    state.exchangeRates = { ...state.exchangeRates, ...shareData.exchangeRates };
+                    console.log('已載入分享的匯率設定', state.exchangeRates);
+                }
+
                 // 更新 ID 計數器
                 if (state.plans.length > 0) {
                     state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
