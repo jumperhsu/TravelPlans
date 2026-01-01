@@ -3428,36 +3428,61 @@ function showRouteOnMap() {
     const plan = state.plans.find(p => p.id === state.currentPlanId);
     if (!plan) return;
 
-    // 1. 取得當天行程
-    const dayActivities = plan.activities.filter(act => act.day === state.currentDay);
+    // 1. 取得當天所有活動（不包含交通連接線，只取景點/住宿等實體地點）
+    const dayActivities = (plan.activities || []).filter(act => 
+        String(act.day) === String(state.currentDay) && 
+        act.type !== 'transportation'
+    );
 
-    if (dayActivities.length < 1) {
-        alert('當天尚無行程資料');
+    if (dayActivities.length === 0) {
+        alert(`第 ${state.currentDay} 天尚無行程地點。`);
         return;
     }
 
-    // 2. 依照時間排序 (使用檔案中已有的 parseTime 輔助函數)
-    const sortedActivities = [...dayActivities].sort((a, b) => {
-        return parseTime(a.startTime) - parseTime(b.startTime);
+    // 2. 依照「開始時間」進行排序
+    dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+
+    // 3. 提取地點或地址 (地址優先)，並過濾掉空值
+    let rawLocations = dayActivities.map(act => {
+        const addr = (act.address && act.address.trim() !== "") ? act.address : act.location;
+        return addr ? addr.trim() : null;
+    }).filter(loc => loc !== null);
+
+    if (rawLocations.length < 2) {
+        alert('地點數量不足以構成路線（至少需要兩個不同的地點）。');
+        return;
+    }
+
+    // 4. 進階去重邏輯
+    const finalPath = [];
+    rawLocations.forEach((loc, index) => {
+        // 情況 A: 第一個點永遠加入
+        if (index === 0) {
+            finalPath.push(loc);
+        } 
+        // 情況 B: 最後一個點，如果與「第一個點」相同則保留（閉環），
+        //        否則如果與「前一個點」不同才加入。
+        else if (index === rawLocations.length - 1) {
+            if (loc === finalPath[0] || loc !== finalPath[finalPath.length - 1]) {
+                finalPath.push(loc);
+            }
+        }
+        // 情況 C: 中間的點，只有與「前一個點」不同時才加入
+        else {
+            if (loc !== finalPath[finalPath.length - 1]) {
+                finalPath.push(loc);
+            }
+        }
     });
 
-    // 3. 提取地點 (地址優先，無地址取地點)
-    const locations = sortedActivities
-        .map(act => (act.address && act.address.trim() !== "") ? act.address : act.location)
-        .filter(loc => loc && loc.trim() !== "");
-
-    if (locations.length < 1) {
-        alert('行程中沒有有效的地點或地址');
-        return;
-    }
-
-    // 4. 根據您指定的 Google 地圖格式產生網址
-    // 格式範例：https://www.google.com/maps/dir/地點1/地點2/地點3/地點1/地點2/...
-    const baseUrl = "https://www.google.com/maps/dir/";
-    const routePath = locations.map(loc => encodeURIComponent(loc)).join('/');
+    // 5. 生成 Google 地圖網址
+    const baseUrl = "https://www.google.com/maps/dir/...`）。0";
+    const pathString = finalPath.map(loc => encodeURIComponent(loc)).join('/');
     
-    window.open(baseUrl + routePath, '_blank');
+    window.open(baseUrl + pathString, '_blank');
 }
+
+
 
         // 顯示分享代碼模態框
         function showCloudShareModal() {
