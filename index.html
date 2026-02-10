@@ -1377,8 +1377,9 @@
             display: flex !important;
         }
 
-        /* 分享模式樣式 */
-        body.shared-mode .edit-controls,
+        /* 分享模式樣式 - 修改的部分 */
+        body.shared-mode header,
+        body.shared-mode .plans-panel,
         body.shared-mode .floating-buttons,
         body.shared-mode .btn-danger,
         body.shared-mode .btn-accent,
@@ -1396,6 +1397,10 @@
         body.shared-mode #exchangeRateBtn,
         body.shared-mode #viewModeBtn,
         body.shared-mode .theme-selector,
+        body.shared-mode .about-btn,
+        body.shared-mode .settings-container,
+        body.shared-mode .mobile-menu-btn,
+        body.shared-mode .scroll-buttons,
         body.shared-mode .exit-share-mode-btn {
             display: none !important;
         }
@@ -1417,6 +1422,52 @@
 
         body.shared-mode .shared-mode-indicator {
             display: flex !important;
+        }
+
+        /* 分享模式下的容器調整 */
+        body.shared-mode .app-container {
+            grid-template-columns: 1fr !important;
+            gap: 0 !important;
+        }
+
+        body.shared-mode .container {
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+
+        body.shared-mode .itinerary-panel {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 20px !important;
+            min-height: 100vh !important;
+            background-color: var(--background-color) !important;
+        }
+
+        /* 分享模式下的計劃標題樣式調整 */
+        body.shared-mode .plan-header {
+            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
+
+        body.shared-mode .plan-header-left {
+            width: 100%;
+        }
+
+        body.shared-mode .plan-header-left h2 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        body.shared-mode .plan-header-left p {
+            font-size: 1.1rem;
+            color: var(--light-text);
+            margin-bottom: 0;
+        }
+
+        body.shared-mode .plan-header-right {
+            display: none;
         }
 
         /* 檢視模式控制按鈕 */
@@ -1861,6 +1912,19 @@
             .link-item input {
                 width: 100%;
             }
+            
+            /* 分享模式響應式 */
+            body.shared-mode .itinerary-panel {
+                padding: 15px !important;
+            }
+            
+            body.shared-mode .plan-header-left h2 {
+                font-size: 1.5rem;
+            }
+            
+            body.shared-mode .plan-header-left p {
+                font-size: 1rem;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1955,6 +2019,23 @@
             .share-code-actions {
                 flex-direction: column;
             }
+            
+            /* 分享模式響應式 */
+            body.shared-mode .itinerary-panel {
+                padding: 10px !important;
+            }
+            
+            body.shared-mode .plan-header {
+                margin-bottom: 15px;
+            }
+            
+            body.shared-mode .plan-header-left h2 {
+                font-size: 1.3rem;
+            }
+            
+            body.shared-mode .plan-header-left p {
+                font-size: 0.9rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2016,6 +2097,19 @@
                 top: 60px;
                 right: 10px;
                 left: 10px;
+            }
+            
+            /* 分享模式響應式 */
+            body.shared-mode .itinerary-panel {
+                padding: 8px !important;
+            }
+            
+            body.shared-mode .plan-header-left h2 {
+                font-size: 1.2rem;
+            }
+            
+            body.shared-mode .plan-header-left p {
+                font-size: 0.85rem;
             }
         }
 
