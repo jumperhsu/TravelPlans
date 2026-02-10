@@ -87,26 +87,8 @@
 
         .header-right {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
-        }
-
-        .header-top-row {
-            display: flex;
             align-items: center;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .header-bottom-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+            gap: 15px;
         }
 
         h1 {
@@ -135,85 +117,106 @@
             word-break: break-word;
         }
 
-        .theme-selector {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        /* 設定按鈕和面板 */
+        .settings-container {
+            position: relative;
         }
 
-        .theme-btn {
-            width: 30px;
-            height: 30px;
+        .settings-btn {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
             cursor: pointer;
-            transition: transform 0.2s;
-            flex-shrink: 0;
+            transition: all 0.3s;
+            color: var(--primary-color);
+            font-size: 1.2rem;
         }
 
-        .theme-btn:hover {
-            transform: scale(1.1);
+        .settings-btn:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
         }
 
-        .theme-btn.active {
-            border-color: var(--text-color);
+        .settings-btn.connected {
+            color: var(--success-color);
         }
 
-        .theme-btn.blue {
-            background: linear-gradient(135deg, #4a6fa5 50%, #ff7e5f 50%);
+        .settings-btn.disconnected {
+            color: var(--danger-color);
         }
 
-        .theme-btn.green {
-            background: linear-gradient(135deg, #4a9c7d 50%, #ff9a5f 50%);
+        .settings-panel {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            min-width: 300px;
+            z-index: 1000;
+            display: none;
+            border: 1px solid var(--border-color);
         }
 
-        .theme-btn.purple {
-            background: linear-gradient(135deg, #7a4a9c 50%, #5fd4ff 50%);
+        .settings-panel.active {
+            display: block;
         }
 
-        /* 雲端狀態顯示 */
-        .cloud-status {
+        .settings-panel h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.1rem;
+        }
+
+        .cloud-status-display {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
             font-weight: 500;
-            white-space: nowrap;
         }
 
-        .cloud-status.connected {
+        .cloud-status-display.connected {
             background-color: rgba(76, 175, 80, 0.1);
             color: var(--success-color);
-            border: 1px solid rgba(76, 175, 80, 0.3);
         }
 
-        .cloud-status.disconnected {
+        .cloud-status-display.disconnected {
             background-color: rgba(244, 67, 54, 0.1);
             color: var(--danger-color);
-            border: 1px solid rgba(244, 67, 54, 0.3);
         }
 
-        .cloud-status i {
-            font-size: 0.9rem;
+        .cloud-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        /* 雲端按鈕 */
         .cloud-btn {
-            padding: 6px 12px;
+            padding: 10px 15px;
             border-radius: var(--border-radius);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
             border: 1px solid var(--border-color);
             background-color: #f8f9fa;
             color: var(--text-color);
-            white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            text-align: left;
+            width: 100%;
         }
 
         .cloud-btn:hover:not(:disabled) {
@@ -265,7 +268,6 @@
             background-color: #d32f2f;
         }
 
-        /* 分享代碼按鈕 */
         .cloud-btn.cloud-share {
             background-color: #6c63ff;
             color: white;
@@ -276,6 +278,126 @@
             background-color: #5752d4;
         }
 
+        /* 關於按鈕和模態框 */
+        .about-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .about-btn:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+
+        #aboutModal .modal-content {
+            max-width: 500px;
+        }
+
+        .about-content {
+            text-align: center;
+        }
+
+        .about-content h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .about-content .version {
+            color: var(--light-text);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .about-content .credit {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .about-content .credit h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .about-content .credit p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* 主題選擇器 */
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: var(--text-color);
+        }
+
+        .theme-btn.blue {
+            background: linear-gradient(135deg, #4a6fa5 50%, #ff7e5f 50%);
+        }
+
+        .theme-btn.green {
+            background: linear-gradient(135deg, #4a9c7d 50%, #ff9a5f 50%);
+        }
+
+        .theme-btn.purple {
+            background: linear-gradient(135deg, #7a4a9c 50%, #5fd4ff 50%);
+        }
+
+        /* 分享模式指示器 */
+        .shared-mode-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            background-color: rgba(108, 99, 255, 0.1);
+            color: #6c63ff;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        body.shared-mode .shared-mode-indicator {
+            display: flex !important;
+        }
+
+        /* 移除退出分享模式按鈕的樣式 */
+        .exit-share-mode-btn {
+            display: none !important;
+        }
+
+        /* 其餘樣式保持不變 */
         .app-container {
             display: grid;
             grid-template-columns: minmax(300px, 350px) 1fr;
@@ -1330,25 +1452,6 @@
             margin-right: 10px;
         }
 
-        /* 退出分享模式按鈕 */
-        .exit-share-mode-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 12px;
-            background-color: #6c63ff;
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: background-color 0.3s;
-        }
-
-        .exit-share-mode-btn:hover {
-            background-color: #5752d4;
-        }
-
         /* 雲端備份/還原模態框專用樣式 */
         .cloud-backup-list,
         .cloud-restore-list,
@@ -1743,12 +1846,12 @@
                 align-items: flex-start;
             }
             
-            .header-top-row {
-                justify-content: flex-start;
-            }
-            
-            .header-bottom-row {
-                justify-content: flex-start;
+            .settings-panel {
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                left: 20px;
+                min-width: auto;
             }
             
             .link-item {
@@ -1843,13 +1946,10 @@
                 padding: 6px 8px;
             }
             
-            .cloud-status {
-                font-size: 0.8rem;
-            }
-            
-            .cloud-btn {
-                padding: 5px 10px;
-                font-size: 0.8rem;
+            .settings-panel {
+                top: 70px;
+                right: 15px;
+                left: 15px;
             }
             
             .share-code-actions {
@@ -1912,14 +2012,10 @@
                 padding: 5px 6px;
             }
             
-            .cloud-status {
-                font-size: 0.75rem;
-                padding: 5px 10px;
-            }
-            
-            .cloud-btn {
-                padding: 4px 8px;
-                font-size: 0.75rem;
+            .settings-panel {
+                top: 60px;
+                right: 10px;
+                left: 10px;
             }
         }
 
@@ -2101,52 +2197,62 @@
     <div class="container scroll-prevention">
         <header>
             <div class="header-left">
-                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260105.01</span></h1>
+                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260210.01</span></h1>
                 <p class="tagline">輕鬆規劃您的完美旅程</p>
             </div>
             <div class="header-right">
-                <div class="header-top-row">
-                    <div class="theme-selector">
-                        <div class="theme-btn blue active" data-theme="theme-blue"></div>
-                        <div class="theme-btn green" data-theme="theme-green"></div>
-                        <div class="theme-btn purple" data-theme="theme-purple"></div>
-                    </div>
-                    <!-- 分享模式指示器 -->
-                    <div class="shared-mode-indicator" id="sharedModeIndicator">
-                        <i class="fas fa-share-alt"></i>
-                        <span>分享模式</span>
-                    </div>
-                    <!-- 退出分享模式按鈕 -->
-                    <button class="exit-share-mode-btn" id="exitShareModeBtn">
-                        <i class="fas fa-times"></i>
-                        <span>退出分享</span>
-                    </button>
+                <!-- 主題選擇器 -->
+                <div class="theme-selector">
+                    <div class="theme-btn blue active" data-theme="theme-blue"></div>
+                    <div class="theme-btn green" data-theme="theme-green"></div>
+                    <div class="theme-btn purple" data-theme="theme-purple"></div>
                 </div>
-                <div class="header-bottom-row">
-                    <div class="cloud-status disconnected" id="cloudStatus">
+                
+                <!-- 分享模式指示器 -->
+                <div class="shared-mode-indicator" id="sharedModeIndicator">
+                    <i class="fas fa-share-alt"></i>
+                    <span>分享模式</span>
+                </div>
+                
+                <!-- 關於按鈕 -->
+                <div class="about-btn" id="aboutBtn">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                
+                <!-- 設定按鈕和面板 -->
+                <div class="settings-container">
+                    <div class="settings-btn disconnected" id="settingsBtn">
                         <i class="fas fa-cloud"></i>
-                        <span>雲端未連接</span>
                     </div>
-                    <button class="cloud-btn cloud-settings" id="cloudSettingsBtn">
-                        <i class="fas fa-cog"></i>
-                        <span>雲端設定</span>
-                    </button>
-                    <button class="cloud-btn cloud-backup" id="cloudBackupBtn" disabled>
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <span>雲端備份</span>
-                    </button>
-                    <button class="cloud-btn cloud-restore" id="cloudRestoreBtn" disabled>
-                        <i class="fas fa-cloud-download-alt"></i>
-                        <span>雲端還原</span>
-                    </button>
-                    <button class="cloud-btn cloud-share" id="cloudShareBtn" disabled>
-                        <i class="fas fa-share-alt"></i>
-                        <span>分享代碼</span>
-                    </button>
-                    <button class="cloud-btn cloud-delete" id="cloudDeleteBtn" disabled>
-                        <i class="fas fa-trash-alt"></i>
-                        <span>刪除備份</span>
-                    </button>
+                    <div class="settings-panel" id="settingsPanel">
+                        <h3>雲端設定</h3>
+                        <div class="cloud-status-display disconnected" id="cloudStatusDisplay">
+                            <i class="fas fa-cloud"></i>
+                            <span>雲端未連接</span>
+                        </div>
+                        <div class="cloud-buttons-container">
+                            <button class="cloud-btn cloud-settings" id="cloudSettingsBtn">
+                                <i class="fas fa-cog"></i>
+                                <span>雲端設定</span>
+                            </button>
+                            <button class="cloud-btn cloud-backup" id="cloudBackupBtn" disabled>
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>雲端備份</span>
+                            </button>
+                            <button class="cloud-btn cloud-restore" id="cloudRestoreBtn" disabled>
+                                <i class="fas fa-cloud-download-alt"></i>
+                                <span>雲端還原</span>
+                            </button>
+                            <button class="cloud-btn cloud-share" id="cloudShareBtn" disabled>
+                                <i class="fas fa-share-alt"></i>
+                                <span>分享代碼</span>
+                            </button>
+                            <button class="cloud-btn cloud-delete" id="cloudDeleteBtn" disabled>
+                                <i class="fas fa-trash-alt"></i>
+                                <span>刪除備份</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -2198,7 +2304,6 @@
                         </div>
                         <div class="plan-header-right">
                             <div class="plan-actions">
-                                <!-- 已移除分享按鈕 -->
                                 <button class="btn btn-danger" id="deletePlanBtn"><i class="fas fa-trash-alt"></i> 刪除</button>
                                 <div class="view-mode-controls">
                                     <button class="btn btn-primary" id="exitViewModeBtn"><i class="fas fa-edit"></i> 退出檢視模式</button>
@@ -2595,6 +2700,42 @@
         </div>
     </div>
 
+    <!-- 關於模態框 -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> 關於旅遊計劃規劃</h3>
+                <button class="btn btn-secondary" id="closeAboutModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="about-content">
+                    <h3>旅遊計劃規劃應用程式</h3>
+                    <div class="version">版本：v20260210.01</div>
+                    <p>這是一個功能完整的旅遊計劃規劃工具，幫助您輕鬆規劃完美的旅程。</p>
+                    
+                    <div class="credit">
+                        <h4>開發團隊</h4>
+                        <p><strong>構想：</strong>Jumper.Hsu@gmail.com</p>
+                        <p><strong>程式：</strong>DeepSeek</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <h4>主要功能</h4>
+                        <ul style="text-align: left; margin-left: 20px; margin-top: 10px;">
+                            <li>建立和管理多個旅遊計劃</li>
+                            <li>詳細的每日行程規劃</li>
+                            <li>費用統計和管理</li>
+                            <li>雲端備份和還原</li>
+                            <li>計劃分享功能</li>
+                            <li>多種主題配色</li>
+                            <li>響應式設計，支援行動裝置</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 雲端備份模態框 -->
     <div class="modal" id="cloudBackupModal">
         <div class="modal-content">
@@ -2964,7 +3105,6 @@
             } catch (error) {
                 console.error('載入分享數據失敗:', error);
                 alert('載入分享數據失敗：' + error.message);
-                exitShareMode();
             }
         }
 
@@ -2980,8 +3120,6 @@
             // 顯示分享模式指示器
             const indicator = document.getElementById('sharedModeIndicator');
             if (indicator) indicator.style.display = 'flex';
-            const exitBtn = document.getElementById('exitShareModeBtn');
-            if (exitBtn) exitBtn.style.display = 'inline-flex';
             
             try {
                 // 確保每個計劃都有資料
@@ -3020,51 +3158,6 @@
                 console.error('載入分享計劃錯誤:', error);
                 alert('載入失敗: ' + error.message);
             }
-        }
-
-        // 退出分享模式
-        function exitShareMode() {
-            console.log('退出分享模式');
-            
-            // 清除狀態
-            state.isSharedMode = false;
-            state.plans = [];
-            state.currentPlanId = null;
-            state.githubConfig = {
-                token: null,
-                gistId: null,
-                description: "旅遊計劃備份",
-                isConnected: false
-            };
-            
-            // 修正點：清除 URL 中的參數
-            const url = new URL(window.location);
-            url.searchParams.delete('share');
-            window.location.hash = '';
-            window.history.replaceState({}, document.title, url.toString());
-            
-            // 移除CSS類別
-            document.body.classList.remove('shared-mode');
-            
-            // 隱藏分享模式指示器
-            document.getElementById('sharedModeIndicator').style.display = 'none';
-            document.getElementById('exitShareModeBtn').style.display = 'none';
-            
-            // 重新載入本地儲存
-            loadPlansFromStorage();
-            loadExchangeRatesFromStorage();
-            loadGithubConfigFromStorage();
-            
-            // 更新UI
-            updatePlansList();
-            updateCostSummary();
-            updateCloudStatus();
-            
-            // 顯示無計劃選擇的訊息
-            document.getElementById('noPlanSelected').style.display = 'block';
-            document.getElementById('planContent').style.display = 'none';
-            
-            console.log('已退出分享模式，恢復正常模式');
         }
 
         // 從本地儲存載入GitHub設定
@@ -3160,22 +3253,35 @@
 
         // 更新雲端狀態顯示
         function updateCloudStatus() {
-            const cloudStatus = document.getElementById('cloudStatus');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const cloudStatusDisplay = document.getElementById('cloudStatusDisplay');
             const cloudBackupBtn = document.getElementById('cloudBackupBtn');
             const cloudRestoreBtn = document.getElementById('cloudRestoreBtn');
             const cloudShareBtn = document.getElementById('cloudShareBtn');
             const cloudDeleteBtn = document.getElementById('cloudDeleteBtn');
             
             if (state.githubConfig.isConnected && state.githubConfig.token) {
-                cloudStatus.className = 'cloud-status connected';
-                cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端已連接</span>';
+                // 更新設定按鈕
+                settingsBtn.className = 'settings-btn connected';
+                
+                // 更新狀態顯示
+                cloudStatusDisplay.className = 'cloud-status-display connected';
+                cloudStatusDisplay.innerHTML = '<i class="fas fa-cloud"></i><span>雲端已連接</span>';
+                
+                // 啟用按鈕
                 cloudBackupBtn.disabled = false;
                 cloudRestoreBtn.disabled = false;
                 cloudShareBtn.disabled = false;
                 cloudDeleteBtn.disabled = false;
             } else {
-                cloudStatus.className = 'cloud-status disconnected';
-                cloudStatus.innerHTML = '<i class="fas fa-cloud"></i><span>雲端未連接</span>';
+                // 更新設定按鈕
+                settingsBtn.className = 'settings-btn disconnected';
+                
+                // 更新狀態顯示
+                cloudStatusDisplay.className = 'cloud-status-display disconnected';
+                cloudStatusDisplay.innerHTML = '<i class="fas fa-cloud"></i><span>雲端未連接</span>';
+                
+                // 禁用按鈕
                 cloudBackupBtn.disabled = true;
                 cloudRestoreBtn.disabled = true;
                 cloudShareBtn.disabled = true;
@@ -3245,22 +3351,34 @@
             document.getElementById('backupBtn').addEventListener('click', backupPlan);
             document.getElementById('restoreBtn').addEventListener('click', restorePlan);
             document.getElementById('exchangeRateBtn').addEventListener('click', showExchangeRateModal);
-            // 已移除：document.getElementById('sharePlanBtn').addEventListener('click', sharePlan);
             document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
             
             // 檢視模式按鈕
             document.getElementById('viewModeBtn').addEventListener('click', enableViewMode);
             document.getElementById('exitViewModeBtn').addEventListener('click', exitViewMode);
             
-            // 退出分享模式按鈕
-            document.getElementById('exitShareModeBtn').addEventListener('click', exitShareMode);
+            // 設定按鈕
+            document.getElementById('settingsBtn').addEventListener('click', toggleSettingsPanel);
             
-            // 雲端相關按鈕
+            // 關於按鈕
+            document.getElementById('aboutBtn').addEventListener('click', showAboutModal);
+            
+            // 雲端相關按鈕（現在在設定面板中）
             document.getElementById('cloudSettingsBtn').addEventListener('click', showGithubCloudModal);
             document.getElementById('cloudBackupBtn').addEventListener('click', showCloudBackupModal);
             document.getElementById('cloudRestoreBtn').addEventListener('click', showCloudRestoreModal);
             document.getElementById('cloudShareBtn').addEventListener('click', showCloudShareModal);
             document.getElementById('cloudDeleteBtn').addEventListener('click', showCloudDeleteModal);
+            
+            // 點擊設定面板外部關閉面板
+            document.addEventListener('click', function(e) {
+                const settingsPanel = document.getElementById('settingsPanel');
+                const settingsBtn = document.getElementById('settingsBtn');
+                
+                if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target) && settingsPanel.classList.contains('active')) {
+                    settingsPanel.classList.remove('active');
+                }
+            });
             
             // GitHub雲端設定模態框按鈕
             document.getElementById('closeGithubCloudModal').addEventListener('click', closeGithubCloudModal);
@@ -3294,6 +3412,9 @@
             document.getElementById('closeCloudDeleteModal').addEventListener('click', closeCloudDeleteModal);
             document.getElementById('cancelCloudDeleteBtn').addEventListener('click', closeCloudDeleteModal);
             document.getElementById('confirmCloudDeleteBtn').addEventListener('click', startCloudDelete);
+            
+            // 關於模態框按鈕
+            document.getElementById('closeAboutModal').addEventListener('click', closeAboutModal);
             
             // 已過期計劃展開/收合
             document.getElementById('expiredPlansHeader').addEventListener('click', function() {
@@ -3420,6 +3541,23 @@
             });
             
             console.log('事件監聽器設置完成');
+        }
+
+        // 切換設定面板顯示/隱藏
+        function toggleSettingsPanel(e) {
+            e.stopPropagation();
+            const settingsPanel = document.getElementById('settingsPanel');
+            settingsPanel.classList.toggle('active');
+        }
+
+        // 顯示關於模態框
+        function showAboutModal() {
+            document.getElementById('aboutModal').classList.add('active');
+        }
+
+        // 關閉關於模態框
+        function closeAboutModal() {
+            document.getElementById('aboutModal').classList.remove('active');
         }
 
         // 顯示分享代碼模態框
