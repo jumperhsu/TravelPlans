@@ -1,0 +1,2326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅遊計劃規劃應用程式 - 編輯模式</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <!-- QR Code 產生器 (用於分享連結) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        /* ----- 完整保留您原有的所有樣式，一字未改 ----- */
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff7e5f;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --light-text: #666666;
+            --border-color: #e0e0e0;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+        .theme-blue { --primary-color: #4a6fa5; --secondary-color: #6b8cbc; --accent-color: #ff7e5f; }
+        .theme-green { --primary-color: #4a9c7d; --secondary-color: #6bb89c; --accent-color: #ff9a5f; }
+        .theme-purple { --primary-color: #7a4a9c; --secondary-color: #9c6bbc; --accent-color: #5fd4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background-color); color: var(--text-color); transition: all 0.3s ease; line-height: 1.6; min-height: 100vh; overflow-x: hidden; width: 100%; max-width: 100vw; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; width: 100%; overflow-x: hidden; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 30px; flex-wrap: wrap; gap: 15px; width: 100%; }
+        .header-left { flex: 1; min-width: 200px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        h1 { color: var(--primary-color); font-size: clamp(1.5rem, 4vw, 2.2rem); margin-bottom: 5px; word-break: break-word; }
+        .tagline { color: var(--light-text); font-size: clamp(0.9rem, 2vw, 1rem); }
+        h2 { color: var(--secondary-color); margin-bottom: 20px; font-size: clamp(1.3rem, 3vw, 1.8rem); word-break: break-word; }
+        h3 { color: var(--primary-color); margin-bottom: 15px; font-size: clamp(1.1rem, 2.5vw, 1.4rem); word-break: break-word; }
+        .settings-container { position: relative; }
+        .settings-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--card-color); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.3s; color: var(--primary-color); font-size: 1.2rem; }
+        .settings-btn:hover { background-color: #f0f0f0; transform: scale(1.05); }
+        .settings-btn.connected { color: var(--success-color); }
+        .settings-panel { position: absolute; top: 50px; right: 0; background-color: var(--card-color); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 20px; min-width: 300px; z-index: 1000; display: none; border: 1px solid var(--border-color); }
+        .settings-panel.active { display: block; }
+        .settings-panel h3 { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); font-size: 1.1rem; }
+        .cloud-status-display { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; font-weight: 500; background-color: rgba(76, 175, 80, 0.1); color: var(--success-color); }
+        .cloud-buttons-container { display: flex; flex-direction: column; gap: 10px; }
+        .cloud-btn { padding: 10px 15px; border-radius: var(--border-radius); font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s; border: 1px solid var(--border-color); background-color: #f8f9fa; color: var(--text-color); display: flex; align-items: center; gap: 8px; text-align: left; width: 100%; }
+        .cloud-btn:hover { background-color: #e9ecef; }
+        .cloud-btn.cloud-manage { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .cloud-btn.cloud-manage:hover { background-color: var(--secondary-color); }
+        .app-container { display: grid; grid-template-columns: minmax(300px, 350px) 1fr; gap: 30px; width: 100%; max-width: 100%; }
+        .plans-panel { background-color: var(--card-color); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow); height: fit-content; width: 100%; max-width: 100%; overflow: hidden; }
+        .plans-list { margin-top: 20px; max-height: 400px; overflow-y: auto; width: 100%; }
+        .plan-item { padding: 15px; border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 15px; cursor: pointer; transition: all 0.3s; width: 100%; box-sizing: border-box; }
+        .plan-item:hover { border-color: var(--primary-color); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); }
+        .plan-item.active { border-color: var(--accent-color); background-color: rgba(255, 126, 95, 0.05); }
+        .plan-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 100%; }
+        .plan-item-name { font-weight: bold; color: var(--primary-color); font-size: clamp(0.9rem, 2vw, 1rem); word-break: break-word; max-width: 80%; }
+        .plan-item-dates { font-size: 0.85rem; color: var(--light-text); margin-bottom: 5px; word-break: break-word; }
+        .plan-item-days { font-size: 0.85rem; color: var(--light-text); }
+        .plan-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; width: 100%; }
+        .btn { padding: 10px 20px; border: none; border-radius: var(--border-radius); cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; font-size: clamp(0.8rem, 1.5vw, 0.9rem); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--secondary-color); }
+        .btn-secondary { background-color: #f0f0f0; color: var(--text-color); }
+        .btn-secondary:hover { background-color: #e0e0e0; }
+        .btn-accent { background-color: var(--accent-color); color: white; }
+        .btn-accent:hover { background-color: #ff6b4a; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover { background-color: #d32f2f; }
+        .btn-info { background-color: #6c63ff; color: white; }
+        .btn-info:hover { background-color: #5752d4; }
+        .btn-small { padding: 5px 10px; font-size: 0.8rem; }
+        .btn-view-mode { background-color: var(--warning-color); color: white; }
+        .btn-view-mode:hover { background-color: #e68900; }
+        .itinerary-panel { background-color: var(--card-color); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow); min-height: 800px; width: 100%; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
+        .no-plan-selected { text-align: center; padding: 60px 20px; color: var(--light-text); width: 100%; }
+        .no-plan-selected i { font-size: clamp(3rem, 10vw, 4rem); color: #e0e0e0; margin-bottom: 20px; }
+        .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px; width: 100%; max-width: 100%; }
+        .plan-header-left { flex: 1; min-width: 200px; max-width: 100%; }
+        .plan-header-right { flex-shrink: 0; }
+        .days-tabs-container { width: 100%; max-width: 100%; overflow-x: auto; margin-bottom: 30px; padding-bottom: 5px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+        .days-tabs { display: flex; min-width: min-content; width: max-content; }
+        .days-tabs-container::-webkit-scrollbar { height: 6px; }
+        .days-tabs-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        .days-tabs-container::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
+        .day-tab { padding: 12px 20px; border: 1px solid var(--border-color); background-color: #f9f9f9; cursor: pointer; white-space: nowrap; transition: all 0.3s; border-radius: var(--border-radius) var(--border-radius) 0 0; margin-right: 5px; font-size: clamp(0.8rem, 1.5vw, 0.9rem); min-width: 80px; text-align: center; }
+        .day-tab:hover { background-color: #f0f0f0; }
+        .day-tab.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .cost-tab { background-color: #f0f0f0; color: var(--text-color); }
+        .cost-tab.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .day-content { display: none; width: 100%; max-width: 100%; overflow-x: hidden; }
+        .day-content.active { display: block; }
+        .cost-content { display: none; width: 100%; max-width: 100%; overflow-x: hidden; }
+        .cost-content.active { display: block; }
+        .day-title-input { width: 100%; max-width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-size: clamp(1rem, 2vw, 1.1rem); margin-bottom: 20px; box-sizing: border-box; }
+        .activities-container { min-height: 500px; width: 100%; max-width: 100%; overflow-x: hidden; }
+        .activity-item { background-color: #f9f9f9; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; cursor: move; transition: all 0.3s; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; }
+        .activity-item:hover { box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08); }
+        .activity-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; }
+        .activity-name { font-weight: bold; font-size: clamp(1rem, 2vw, 1.2rem); color: var(--primary-color); word-break: break-word; max-width: 100%; }
+        .activity-category { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-left: 10px; white-space: nowrap; flex-shrink: 0; }
+        .activity-category.attraction { background-color: #e3f2fd; color: #1565c0; }
+        .activity-category.transport { background-color: #f3e5f5; color: #7b1fa2; }
+        .activity-category.activity { background-color: #e8f5e9; color: #2e7d32; }
+        .activity-category.accommodation { background-color: #fff3e0; color: #ef6c00; }
+        .activity-category.shopping { background-color: #fff0f5; color: #c2185b; }
+        .activity-category.other { background-color: #f5f5f5; color: #616161; }
+        .activity-time { color: var(--light-text); font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+        .activity-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; max-width: 100%; }
+        .activity-address, .activity-cost, .activity-links, .activity-notes { font-size: 0.9rem; word-break: break-word; max-width: 100%; overflow-wrap: break-word; }
+        .activity-links a { color: var(--primary-color); text-decoration: none; margin-right: 10px; word-break: break-all; display: inline-block; max-width: 100%; }
+        .activity-links a:hover { text-decoration: underline; }
+        .transport-item { background-color: #f0f7ff; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; margin-bottom: 15px; margin-left: clamp(20px, 5vw, 30px); position: relative; width: calc(100% - clamp(20px, 5vw, 30px)); max-width: 100%; box-sizing: border-box; overflow: hidden; }
+        .transport-item::before { content: ""; position: absolute; left: -20px; top: 50%; width: 20px; height: 1px; background-color: var(--border-color); }
+        .transport-item::after { content: "→"; position: absolute; left: -25px; top: 50%; transform: translateY(-50%); color: var(--light-text); font-size: 0.9rem; }
+        .transport-type { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background-color: #e3f2fd; color: #1565c0; margin-bottom: 10px; white-space: nowrap; }
+        .transport-main { border-left: 4px solid #4caf50; }
+        .transport-alternate { border-left: 4px solid #ff9800; }
+        .floating-buttons { position: fixed; right: clamp(15px, 3vw, 30px); bottom: clamp(15px, 3vw, 30px); display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+        .floating-btn { width: clamp(50px, 10vw, 60px); height: clamp(50px, 10vw, 60px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(1.2rem, 3vw, 1.5rem); color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: all 0.3s; position: relative; }
+        .floating-btn:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); }
+        .floating-btn.add-activity { background-color: var(--primary-color); }
+        .floating-btn.add-transport { background-color: var(--accent-color); }
+        .floating-btn.add-cost { background-color: var(--success-color); }
+        .floating-btn-text { display: none; position: absolute; right: calc(100% + 10px); background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.85rem; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .floating-btn:hover .floating-btn-text { display: block; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: var(--card-color); border-radius: var(--border-radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .modal-body { padding: 25px; width: 100%; max-width: 100%; overflow-x: hidden; }
+        .form-group { margin-bottom: 20px; width: 100%; max-width: 100%; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; width: 100%; max-width: 100%; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); font-size: clamp(0.9rem, 1.5vw, 1rem); word-break: break-word; }
+        input, select, textarea { width: 100%; max-width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-size: clamp(0.9rem, 1.5vw, 1rem); transition: border-color 0.3s; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
+        .form-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; flex-wrap: wrap; width: 100%; }
+        .cost-summary { margin-top: 40px; background-color: #f9f9f9; border-radius: var(--border-radius); padding: 20px; width: 100%; max-width: 100%; overflow-x: auto; }
+        .cost-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: clamp(0.8rem, 1.5vw, 0.9rem); min-width: 600px; }
+        .cost-table th, .cost-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); word-break: break-word; white-space: nowrap; max-width: none; overflow: hidden; text-overflow: ellipsis; }
+        .cost-table th { background-color: #f0f0f0; color: var(--text-color); font-weight: 600; position: sticky; top: 0; }
+        .cost-table tr:last-child td { border-bottom: none; }
+        .total-cost { font-weight: bold; color: var(--accent-color); }
+        .cost-category { font-weight: 600; color: var(--primary-color); background-color: rgba(74, 111, 165, 0.1); }
+        .cost-subcategory { padding-left: 20px !important; font-weight: 500; }
+        .cost-total-row { font-weight: bold; background-color: rgba(255, 126, 95, 0.1); }
+        .currency-input-group { display: flex; align-items: center; gap: 10px; }
+        .currency-input-group input { flex: 1; }
+        .currency-input-group select { width: 120px; }
+        .mobile-menu-btn { display: none; position: fixed; top: 20px; left: 20px; width: 50px; height: 50px; background-color: var(--primary-color); color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 1001; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .scroll-buttons { position: fixed; right: clamp(15px, 3vw, 30px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 99; }
+        .scroll-btn { width: clamp(40px, 8vw, 50px); height: clamp(40px, 8vw, 50px); border-radius: 50%; background-color: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.2); transition: all 0.3s; border: none; font-size: 1.2rem; }
+        .scroll-btn:hover { background-color: var(--secondary-color); transform: scale(1.1); }
+        .links-container { margin-top: 10px; padding: 15px; background-color: #f8f9fa; border-radius: var(--border-radius); border: 1px dashed var(--border-color); }
+        .link-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .link-item:last-child { margin-bottom: 0; }
+        .link-item input { flex: 1; }
+        .link-item .link-name { min-width: 120px; }
+        .link-item .link-url { flex: 2; }
+        .add-link-btn, .remove-link-btn { padding: 5px 10px; border-radius: var(--border-radius); cursor: pointer; border: none; background-color: var(--light-text); color: white; font-size: 0.8rem; min-width: 30px; height: 36px; display: flex; align-items: center; justify-content: center; }
+        .add-link-btn { background-color: var(--success-color); }
+        .add-link-btn:hover { background-color: #45a049; }
+        .remove-link-btn { background-color: var(--danger-color); }
+        .remove-link-btn:hover { background-color: #d32f2f; }
+        .links-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .transport-options-container { margin-top: 10px; padding: 15px; background-color: #f8f9fa; border-radius: var(--border-radius); border: 1px dashed var(--border-color); }
+        .transport-option { background-color: white; padding: 15px; border-radius: var(--border-radius); margin-bottom: 15px; border: 1px solid var(--border-color); }
+        .transport-option-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .transport-option-type { display: flex; align-items: center; gap: 10px; }
+        .transport-option-title { font-weight: bold; color: var(--primary-color); }
+        .transport-option-actions { display: flex; gap: 5px; }
+        .add-transport-option-btn { width: 100%; padding: 10px; background-color: var(--secondary-color); color: white; border: none; border-radius: var(--border-radius); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+        .add-transport-option-btn:hover { background-color: var(--primary-color); }
+        .previous-accommodation { background-color: #fff3e0; border-left: 4px solid #ef6c00; padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 0.9rem; }
+        .previous-accommodation select { margin-top: 5px; }
+        .expired-plans-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); cursor: pointer; }
+        .expired-plans-title { color: var(--light-text); font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .expired-plans-count { background-color: var(--light-text); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+        .expired-plans-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .expired-plans-content.expanded { max-height: 1000px; }
+        .expired-plan-item { opacity: 0.7; background-color: #f9f9f9; }
+        .share-code-container { background-color: #f8f9fa; border: 2px dashed var(--border-color); border-radius: var(--border-radius); padding: 20px; margin-top: 20px; position: relative; }
+        .share-code-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .share-code-content { margin-bottom: 20px; }
+        .share-code-url { background-color: white; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px; font-family: monospace; font-size: 0.9rem; word-break: break-all; overflow-x: auto; white-space: nowrap; margin-bottom: 15px; }
+        .share-code-qr { text-align: center; margin: 20px 0; }
+        .share-code-qr canvas { max-width: 200px; max-height: 200px; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 10px; background-color: white; }
+        .share-code-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .copy-btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: var(--border-radius); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background-color 0.3s; }
+        .copy-btn:hover { background-color: var(--secondary-color); }
+        .copy-btn.copied { background-color: var(--success-color); }
+        .test-share-btn { background-color: #6c63ff; color: white; border: none; padding: 10px 20px; border-radius: var(--border-radius); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background-color 0.3s; }
+        .test-share-btn:hover { background-color: #5752d4; }
+        .share-info { background-color: rgba(108, 99, 255, 0.1); border-left: 4px solid #6c63ff; padding: 15px; margin-top: 20px; border-radius: 4px; font-size: 0.9rem; color: var(--text-color); }
+        .share-info h4 { color: #6c63ff; margin-bottom: 10px; }
+        .share-info ul { padding-left: 20px; margin-bottom: 10px; }
+        .share-info li { margin-bottom: 5px; }
+        @media (max-width: 1024px) { .app-container { grid-template-columns: 1fr; } .plans-panel { max-height: 500px; overflow-y: auto; max-width: 100%; } .floating-buttons { right: 20px; bottom: 20px; } .scroll-buttons { display: none; } .mobile-menu-btn { display: flex; } .plans-panel { position: fixed; top: 0; left: -100%; width: 100%; max-width: 350px; height: 100vh; z-index: 1000; transition: left 0.3s ease; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.1); } .plans-panel.active { left: 0; } .plan-header { flex-direction: column; align-items: stretch; gap: 15px; } .days-tabs { width: max-content; } .cost-table { min-width: 800px; } .cost-table th, .cost-table td { padding: 8px 10px; font-size: 0.75rem; } .header-right { align-items: flex-start; } .settings-panel { position: fixed; top: 80px; right: 20px; left: 20px; min-width: auto; } .link-item { flex-direction: column; } .link-item input { width: 100%; } }
+        @media (max-width: 768px) { .container { padding: 15px; } header { flex-direction: column; align-items: flex-start; gap: 15px; } .header-right { width: 100%; align-items: flex-start; } .form-row { grid-template-columns: 1fr; } .activity-details { grid-template-columns: 1fr; } .activity-header { flex-direction: column; align-items: flex-start; gap: 10px; } .activity-category { margin-left: 0; margin-top: 5px; } .floating-buttons { right: 15px; bottom: 15px; gap: 10px; } .floating-btn { width: 50px; height: 50px; font-size: 1.2rem; } .floating-btn-text { display: none !important; } .plan-actions { justify-content: center; } .btn { flex: 1; min-width: 120px; justify-content: center; } .modal-content { max-height: 85vh; } .modal-body { padding: 20px; } .day-tab { min-width: 70px; padding: 10px 15px; } .cost-table { min-width: 700px; font-size: 0.7rem; } .cost-table th, .cost-table td { padding: 6px 8px; } .settings-panel { top: 70px; right: 15px; left: 15px; } .share-code-actions { flex-direction: column; } }
+        @media (max-width: 480px) { .container { padding: 10px; } h1 { font-size: 1.5rem; } h2 { font-size: 1.3rem; } h3 { font-size: 1.1rem; } .btn { padding: 8px 15px; font-size: 0.8rem; } .day-tab { padding: 8px 12px; min-width: 60px; font-size: 0.8rem; } .activity-item { padding: 15px; } .transport-item { padding: 12px; margin-left: 20px; width: calc(100% - 20px); } .mobile-menu-btn { top: 15px; left: 15px; width: 45px; height: 45px; font-size: 1.3rem; } .cost-table { min-width: 600px; font-size: 0.65rem; } .cost-table th, .cost-table td { padding: 5px 6px; } .settings-panel { top: 60px; right: 10px; left: 10px; } }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 999; }
+        .overlay.active { display: block; }
+        .scroll-prevention { max-width: 100%; overflow-x: hidden; }
+        .exchange-rate-btn { margin-top: 10px; background-color: var(--secondary-color); color: white; border: none; padding: 8px 15px; border-radius: var(--border-radius); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .exchange-rate-btn:hover { background-color: var(--primary-color); }
+        #exchangeRateModal .modal-content { max-width: 500px; }
+        .exchange-rate-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .exchange-rate-item label { min-width: 80px; margin-bottom: 0; }
+        .exchange-rate-item input { flex: 1; }
+        .cost-group-header { background-color: #e3f2fd; color: var(--primary-color); font-weight: bold; padding: 10px; margin-top: 15px; border-left: 5px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; border-radius: 4px; }
+        .cost-group-header .group-title { font-size: 1rem; }
+        .cost-group-header .group-subtotal { color: var(--accent-color); font-size: 1rem; }
+        .btn-map-route { background-color: #0F9D58; color: white; border: none; padding: 2px 10px; font-size: 0.8rem; border-radius: 20px; margin-left: 10px; display: inline-flex; align-items: center; gap: 4px; vertical-align: middle; transition: all 0.2s; }
+        .btn-map-route:hover { background-color: #0b8043; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-map-route i { font-size: 0.75rem; }
+
+        /* ----- Firebase 雲端管理模態框專用樣式 ----- */
+        .cloud-manage-layout { display: flex; gap: 20px; min-height: 400px; }
+        .cloud-plan-list { width: 35%; border-right: 1px solid var(--border-color); padding-right: 15px; overflow-y: auto; max-height: 500px; }
+        .cloud-version-list { width: 65%; padding-left: 15px; overflow-y: auto; max-height: 500px; }
+        .cloud-plan-item { padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .cloud-plan-item:hover { background-color: #f5f5f5; }
+        .cloud-plan-item.active { border-color: var(--primary-color); background-color: rgba(74,111,165,0.1); }
+        .cloud-plan-name { font-weight: bold; color: var(--primary-color); }
+        .cloud-plan-meta { font-size: 0.8rem; color: var(--light-text); margin-top: 5px; }
+        .cloud-version-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-color); }
+        .cloud-version-info { flex: 1; }
+        .cloud-version-time { font-size: 0.8rem; color: var(--light-text); }
+        .cloud-version-actions { display: flex; gap: 8px; }
+        .cloud-empty { text-align: center; padding: 40px 20px; color: var(--light-text); }
+        .cloud-empty i { font-size: 3rem; margin-bottom: 15px; color: #e0e0e0; }
+        .backup-current-btn { width: 100%; margin-bottom: 20px; background-color: var(--success-color); color: white; border: none; padding: 12px; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; cursor: pointer; }
+        .backup-current-btn:hover { background-color: #45a049; }
+    </style>
+</head>
+<body class="theme-blue scroll-prevention">
+    <!-- 手機選單按鈕 -->
+    <div class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></div>
+    <div class="overlay" id="overlay"></div>
+    <!-- 滾動到頂部/底部按鈕 -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn" id="scrollToTopBtn"><i class="fas fa-chevron-up"></i></button>
+        <button class="scroll-btn" id="scrollToBottomBtn"><i class="fas fa-chevron-down"></i></button>
+    </div>
+
+    <div class="container scroll-prevention">
+        <header>
+            <div class="header-left">
+                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260211.03 (Firebase 穩定版)</span></h1>
+                <p class="tagline">編輯模式 - Firebase 雲端備份／分享（已修正c.type錯誤）</p>
+            </div>
+            <div class="header-right">
+                <!-- 主題選擇器 -->
+                <div class="theme-selector">
+                    <div class="theme-btn blue active" data-theme="theme-blue"></div>
+                    <div class="theme-btn green" data-theme="theme-green"></div>
+                    <div class="theme-btn purple" data-theme="theme-purple"></div>
+                </div>
+                <!-- 關於按鈕 -->
+                <div class="about-btn" id="aboutBtn"><i class="fas fa-info-circle"></i></div>
+                <!-- 設定面板（雲端管理入口） -->
+                <div class="settings-container">
+                    <div class="settings-btn connected" id="settingsBtn"><i class="fas fa-cloud"></i></div>
+                    <div class="settings-panel" id="settingsPanel">
+                        <h3>雲端管理</h3>
+                        <div class="cloud-status-display"><i class="fas fa-check-circle"></i><span>Firebase 已連線</span></div>
+                        <div class="cloud-buttons-container">
+                            <button class="cloud-btn cloud-manage" id="cloudManageBtn"><i class="fas fa-database"></i> 開啟雲端管理</button>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #999; margin-top: 10px; text-align: center;">每個版本獨立儲存，支援分享、還原、刪除</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-container">
+            <!-- 左側旅遊計劃面板 -->
+            <div class="plans-panel" id="plansPanel">
+                <h2><i class="fas fa-calendar-alt"></i> 旅遊計劃</h2>
+                <div class="plan-actions">
+                    <button class="btn btn-primary" id="addPlanBtn"><i class="fas fa-plus"></i> 新增計劃</button>
+                    <button class="btn btn-secondary" id="backupBtn"><i class="fas fa-download"></i> 本地備份</button>
+                    <button class="btn btn-secondary" id="restoreBtn"><i class="fas fa-upload"></i> 本地還原</button>
+                    <button class="btn btn-secondary" id="exchangeRateBtn"><i class="fas fa-money-bill-wave"></i> 匯率設定</button>
+                    <button class="btn btn-view-mode" id="quickShareBtn"><i class="fas fa-share-alt"></i> 快速分享</button>
+                </div>
+                <div class="plans-list" id="plansList"></div>
+                <!-- 已過期計劃區域 -->
+                <div id="expiredPlansContainer" style="display: none;">
+                    <div class="expired-plans-header" id="expiredPlansHeader">
+                        <div class="expired-plans-title"><i class="fas fa-chevron-down" id="expiredPlansIcon"></i><span>已過期旅遊計劃</span><span class="expired-plans-count" id="expiredPlansCount">0</span></div>
+                    </div>
+                    <div class="expired-plans-content" id="expiredPlansContent"></div>
+                </div>
+            </div>
+
+            <!-- 右側行程面板 -->
+            <div class="itinerary-panel scroll-prevention">
+                <div id="noPlanSelected" class="no-plan-selected">
+                    <i class="fas fa-plane"></i>
+                    <h3>請選擇或建立一個旅遊計劃</h3>
+                    <p>從左側面板選擇一個計劃，或點擊「新增計劃」按鈕開始規劃</p>
+                </div>
+                <div id="planContent" style="display: none;">
+                    <div class="plan-header">
+                        <div class="plan-header-left">
+                            <h2 id="currentPlanName">計劃名稱</h2>
+                            <p id="currentPlanDates">日期範圍</p>
+                        </div>
+                        <div class="plan-header-right">
+                            <div class="plan-actions">
+                                <button class="btn btn-danger" id="deletePlanBtn"><i class="fas fa-trash-alt"></i> 刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="days-tabs-container" id="daysTabsContainer">
+                        <div class="days-tabs" id="daysTabs"></div>
+                    </div>
+                    <div id="daysContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 浮動按鈕 -->
+    <div class="floating-buttons">
+        <div class="floating-btn add-activity" id="addActivityBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+行程</span></div>
+        <div class="floating-btn add-transport" id="addTransportBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+交通</span></div>
+        <div class="floating-btn add-cost" id="addCostBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+費用</span></div>
+    </div>
+
+    <!-- ========== 模態框（完全保留） ========== -->
+    <!-- 新增/編輯計劃模態框 -->
+    <div class="modal" id="planModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="planModalTitle">新增旅遊計劃</h3>
+                <button class="btn btn-secondary" id="closePlanModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="planForm">
+                    <div class="form-group">
+                        <label for="planName">計劃名稱</label>
+                        <input type="text" id="planName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="planStartDate">旅遊開始日期</label>
+                            <input type="date" id="planStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="planDays">預計旅遊天數</label>
+                            <input type="number" id="planDays" min="1" max="365" value="3" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelPlanBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯行程模態框 -->
+    <div class="modal" id="activityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="activityModalTitle">新增行程</h3>
+                <button class="btn btn-secondary" id="closeActivityModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="activityForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityStartTime">開始時間</label>
+                            <input type="text" id="activityStartTime" placeholder="例如：0900" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="activityEndTime">結束時間（非必填）</label>
+                            <input type="text" id="activityEndTime" placeholder="例如：1100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityName">行程名稱</label>
+                        <input type="text" id="activityName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityCategory">分類</label>
+                        <select id="activityCategory" required>
+                            <option value="attraction">景點</option>
+                            <option value="transport">交通</option>
+                            <option value="activity">活動</option>
+                            <option value="accommodation">住宿</option>
+                            <option value="shopping">購物</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <!-- 前一晚住宿選擇（僅當類別為住宿時顯示） -->
+                    <div id="previousAccommodationContainer" class="previous-accommodation" style="display: none;">
+                        <label for="previousAccommodation">選擇前一晚住宿地點</label>
+                        <select id="previousAccommodation"><option value="">無（新住宿地點）</option></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityLocation">地點</label>
+                            <input type="text" id="activityLocation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="activityAddress">地址</label>
+                            <input type="text" id="activityAddress">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="activityCost">費用</label>
+                                <input type="number" id="activityCost" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="activityCurrency">幣別</label>
+                                <select id="activityCurrency">
+                                    <option value="TWD">新台幣 (TWD)</option>
+                                    <option value="USD">美元 (USD)</option>
+                                    <option value="JPY">日圓 (JPY)</option>
+                                    <option value="EUR">歐元 (EUR)</option>
+                                    <option value="CNY">人民幣 (CNY)</option>
+                                    <option value="KRW">韓元 (KRW)</option>
+                                    <option value="HKD">港幣 (HKD)</option>
+                                    <option value="GBP">英鎊 (GBP)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="activityParticipants">分攤人數</label>
+                                <input type="number" id="activityParticipants" min="1" value="1">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 多連結區域 -->
+                    <div class="links-container">
+                        <div class="links-title">
+                            <label>相關連結</label>
+                            <button type="button" class="add-link-btn" id="addActivityLinkBtn"><i class="fas fa-plus"></i> 新增連結</button>
+                        </div>
+                        <div id="activityLinksContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityNotes">行程備註</label>
+                        <textarea id="activityNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelActivityBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯交通方式模態框 -->
+    <div class="modal" id="transportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="transportModalTitle">新增交通方式</h3>
+                <button class="btn btn-secondary" id="closeTransportModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="transportForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportFromActivity">起始行程</label>
+                            <select id="transportFromActivity" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportToActivity">結束行程</label>
+                            <select id="transportToActivity" required></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transportStartTime">開始時間</label>
+                            <input type="text" id="transportStartTime" placeholder="例如：0900" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportEndTime">結束時間</label>
+                            <input type="text" id="transportEndTime" placeholder="例如：0930" required>
+                        </div>
+                    </div>
+                    <!-- 多交通方式區域 -->
+                    <div class="transport-options-container">
+                        <div class="links-title">
+                            <label>交通方式選項</label>
+                            <button type="button" class="add-transport-option-btn" id="addTransportOptionBtn"><i class="fas fa-plus"></i> 新增交通方式</button>
+                        </div>
+                        <div id="transportOptionsContainer"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelTransportBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯費用模態框 -->
+    <div class="modal" id="costModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="costModalTitle">新增費用</h3>
+                <button class="btn btn-secondary" id="closeCostModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="costForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="costDate">日期</label>
+                            <input type="date" id="costDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="costCategory">類別</label>
+                            <select id="costCategory" required>
+                                <option value="transport">交通</option>
+                                <option value="shopping">購物</option>
+                                <option value="food">飲食</option>
+                                <option value="insurance">保險</option>
+                                <option value="internet">網路</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="costDescription">費用說明</label>
+                        <input type="text" id="costDescription" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="costAmount">金額</label>
+                            <input type="number" id="costAmount" min="0" step="0.01" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="costCurrency">幣別</label>
+                            <select id="costCurrency" required>
+                                <option value="TWD">新台幣 (TWD)</option>
+                                <option value="USD">美元 (USD)</option>
+                                <option value="JPY">日圓 (JPY)</option>
+                                <option value="EUR">歐元 (EUR)</option>
+                                <option value="CNY">人民幣 (CNY)</option>
+                                <option value="KRW">韓元 (KRW)</option>
+                                <option value="HKD">港幣 (HKD)</option>
+                                <option value="GBP">英鎊 (GBP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="costParticipants">分攤人數</label>
+                            <input type="number" id="costParticipants" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="costNotes">備註</label>
+                        <textarea id="costNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCostBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 匯率設定模態框 -->
+    <div class="modal" id="exchangeRateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exchange-alt"></i> 匯率設定</h3>
+                <button class="btn btn-secondary" id="closeExchangeRateModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--light-text);">設定外幣對新台幣(TWD)的匯率，用於費用統計計算。</p>
+                <button type="button" class="btn btn-info" id="autoFetchRateBtn" style="margin-bottom: 20px; width: 100%; justify-content: center;"><i class="fas fa-sync-alt"></i> 自動取得最新匯率 (來源: ExchangeRate-API)</button>
+                <div class="form-group">
+                    <div class="exchange-rate-item"><label>美元 (USD):</label><input type="number" id="usdRate" min="0" step="0.01" value="30.5" placeholder="1 USD = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>日圓 (JPY):</label><input type="number" id="jpyRate" min="0" step="0.0001" value="0.22" placeholder="1 JPY = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>歐元 (EUR):</label><input type="number" id="eurRate" min="0" step="0.01" value="33.5" placeholder="1 EUR = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>人民幣 (CNY):</label><input type="number" id="cnyRate" min="0" step="0.01" value="4.3" placeholder="1 CNY = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>韓元 (KRW):</label><input type="number" id="krwRate" min="0" step="0.0001" value="0.023" placeholder="1 KRW = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>港幣 (HKD):</label><input type="number" id="hkdRate" min="0" step="0.01" value="3.9" placeholder="1 HKD = ? TWD"></div>
+                    <div class="exchange-rate-item"><label>英鎊 (GBP):</label><input type="number" id="gbpRate" min="0" step="0.01" value="38.5" placeholder="1 GBP = ? TWD"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelExchangeRateBtn">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveExchangeRateBtn">儲存匯率</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 關於模態框 -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> 關於旅遊計劃規劃</h3>
+                <button class="btn btn-secondary" id="closeAboutModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="about-content">
+                    <h3>旅遊計劃規劃應用程式</h3>
+                    <div class="version">版本：v20260211.03 (Firebase 穩定版)</div>
+                    <p>這是一個功能完整的旅遊計劃規劃工具，幫助您輕鬆規劃完美的旅程。</p>
+                    <div class="credit">
+                        <h4>開發團隊</h4>
+                        <p><strong>構想：</strong>Jumper.Hsu@gmail.com</p>
+                        <p><strong>程式：</strong>DeepSeek</p>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <h4>主要功能</h4>
+                        <ul style="text-align: left; margin-left: 20px; margin-top: 10px;">
+                            <li>建立和管理多個旅遊計劃</li>
+                            <li>詳細的每日行程規劃</li>
+                            <li>費用統計和管理</li>
+                            <li>Firebase 雲端備份／版本控制</li>
+                            <li>一鍵分享版本連結＋QR Code</li>
+                            <li>多種主題配色</li>
+                            <li>響應式設計，支援行動裝置</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Firebase 雲端管理模態框 ===== -->
+    <div class="modal" id="cloudManageModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Firebase 雲端管理</h3>
+                <button class="btn btn-secondary" id="closeCloudManageModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="backup-current-btn" id="backupCurrentPlanBtn">
+                    <i class="fas fa-cloud-upload-alt"></i> 備份目前選擇的計劃
+                </button>
+                <div class="cloud-manage-layout">
+                    <div class="cloud-plan-list">
+                        <h4 style="margin-bottom: 15px; display: flex; align-items: center;">
+                            <i class="fas fa-folder-open"></i> 備份計劃
+                            <button id="refreshCloudPlansBtn" style="margin-left: auto; background: none; border: none; color: var(--primary-color); cursor: pointer;">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </h4>
+                        <div id="cloudPlanItemsContainer"><div class="cloud-empty"><i class="fas fa-cloud"></i><p>載入中...</p></div></div>
+                    </div>
+                    <div class="cloud-version-list">
+                        <h4 style="margin-bottom: 15px;"><i class="fas fa-history"></i> <span id="selectedPlanNameDisplay">請選擇計劃</span></h4>
+                        <div id="cloudVersionItemsContainer"><div class="cloud-empty"><i class="fas fa-archive"></i><p>選擇計劃以顯示版本</p></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享代碼結果模態框 (已支援真實QR Code) -->
+    <div class="modal" id="shareCodeResultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-share-alt"></i> 分享代碼已生成</h3>
+                <button class="btn btn-secondary" id="closeShareCodeResultModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-code-container">
+                    <div class="share-code-header"><h4><i class="fas fa-link"></i> 分享連結 (Firebase)</h4></div>
+                    <div class="share-code-content">
+                        <p style="margin-bottom: 10px; color: var(--light-text);">複製以下連結分享給其他人：</p>
+                        <div class="share-code-url" id="shareCodeUrl"></div>
+                        <div class="share-code-qr" id="shareCodeQr"></div>
+                        <div class="share-code-actions">
+                            <button class="copy-btn" id="copyShareLinkBtn"><i class="fas fa-copy"></i> 複製連結</button>
+                            <button class="test-share-btn" id="testShareLinkBtn"><i class="fas fa-external-link-alt"></i> 測試開啟</button>
+                        </div>
+                    </div>
+                    <div class="share-info">
+                        <h4><i class="fas fa-info-circle"></i> 分享說明</h4>
+                        <ul>
+                            <li>此連結使用 Firebase 即時資料庫儲存計劃版本</li>
+                            <li>接收者將直接開啟檢視模式，無需登入</li>
+                            <li>連結永久有效，直到您手動刪除該版本</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Firebase 初始化 ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyAx25sF8HaBVULC4754V4UUS-5i6HtdY_c",
+            authDomain: "travelplan-1f122.firebaseapp.com",
+            databaseURL: "https://travelplan-1f122-default-rtdb.firebaseio.com",
+            projectId: "travelplan-1f122",
+            storageBucket: "travelplan-1f122.firebasestorage.app",
+            messagingSenderId: "383887445959",
+            appId: "1:383887445959:web:af118b60a90fb42fc453e2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const VERSIONS_NODE = 'plan_versions';
+
+        // ========== 全域狀態 ==========
+        const state = {
+            currentPlanId: null,
+            currentDay: 1,
+            costSortMode: 'date',
+            plans: [],
+            nextId: 1,
+            exchangeRates: { USD: 30.5, JPY: 0.22, EUR: 33.5, CNY: 4.3, KRW: 0.023, HKD: 3.9, GBP: 38.5, TWD: 1 },
+            showExpiredPlans: false,
+            cloudVersions: []
+        };
+
+        // ========== 輔助函數 ==========
+        function generateGuid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // ========== Firebase 讀取所有版本 ==========
+        async function loadAllVersions() {
+            const snapshot = await db.ref(VERSIONS_NODE).once('value');
+            const versions = [];
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    versions.push({
+                        versionId: child.key,
+                        ...child.val()
+                    });
+                });
+            }
+            versions.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+            state.cloudVersions = versions;
+            return versions;
+        }
+
+        // ========== 備份目前計劃到 Firebase ==========
+        async function backupCurrentPlanToCloud() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return null; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return null;
+            const versionId = generateGuid();
+            const timestamp = Date.now();
+            const backupData = {
+                planId: plan.id,
+                planName: plan.name,
+                timestamp: timestamp,
+                planData: JSON.parse(JSON.stringify(plan))
+            };
+            try {
+                await db.ref(`${VERSIONS_NODE}/${versionId}`).set(backupData);
+                alert(`計劃「${plan.name}」已備份成功！版本 ID: ${versionId.substr(0,8)}`);
+                return versionId;
+            } catch (error) {
+                console.error('備份失敗:', error);
+                alert('備份失敗：' + error.message);
+                return null;
+            }
+        }
+
+        // ========== 刪除單一版本 ==========
+        async function deleteCloudVersion(versionId) {
+            try {
+                await db.ref(`${VERSIONS_NODE}/${versionId}`).remove();
+                return true;
+            } catch (error) {
+                console.error('刪除失敗:', error);
+                alert('刪除失敗：' + error.message);
+                return false;
+            }
+        }
+
+        // ========== 還原版本到本地 ==========
+        async function restoreVersion(versionId) {
+            const version = state.cloudVersions.find(v => v.versionId === versionId);
+            if (!version) { alert('找不到版本資料'); return; }
+            const planData = JSON.parse(JSON.stringify(version.planData));
+            const existing = state.plans.find(p => p.id === planData.id);
+            if (existing) {
+                planData.id = state.nextId++;
+                planData.name = `${planData.name} (還原${versionId.substr(0,4)})`;
+            } else {
+                if (state.plans.some(p => p.id === planData.id)) planData.id = state.nextId++;
+                else state.nextId = Math.max(state.nextId, planData.id + 1);
+            }
+            if (planData.activities) planData.activities.forEach(a => { if (!a.id) a.id = Date.now() + Math.random(); });
+            if (planData.transports) planData.transports.forEach(t => { if (!t.id) t.id = Date.now() + Math.random(); });
+            state.plans.push(planData);
+            savePlansToStorage();
+            updatePlansList();
+            if (!state.currentPlanId) { state.currentPlanId = planData.id; showPlanContent(); }
+            alert(`已還原計劃：${planData.name}`);
+        }
+
+        // ========== 生成分享連結 ==========
+        function generateShareLink(versionId) {
+            const base = window.location.origin + window.location.pathname;
+            const routerPath = base.substring(0, base.lastIndexOf('/') + 1) + 'index.html';
+            return `${routerPath}?share=${versionId}`;
+        }
+
+        // ========== 顯示分享結果 (真實QR Code) ==========
+        function showShareCodeResult(shareUrl) {
+            document.getElementById('shareCodeUrl').textContent = shareUrl;
+            const qrContainer = document.getElementById('shareCodeQr');
+            qrContainer.innerHTML = '';
+
+            if (typeof qrcode !== 'undefined') {
+                try {
+                    const qr = qrcode(0, 'M');
+                    qr.addData(shareUrl);
+                    qr.make();
+                    const size = qr.getModuleCount();
+                    const cellSize = 5;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size * cellSize;
+                    canvas.height = size * cellSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#000000';
+                    for (let row = 0; row < size; row++) {
+                        for (let col = 0; col < size; col++) {
+                            if (qr.isDark(row, col)) {
+                                ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                            }
+                        }
+                    }
+                    qrContainer.appendChild(canvas);
+                } catch (e) {
+                    console.error('QR code 生成失敗', e);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200; canvas.height = 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white'; ctx.fillRect(0,0,200,200);
+                    ctx.fillStyle = 'black'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+                    ctx.fillText('分享連結', 100, 100);
+                    ctx.fillText('掃描或複製', 100, 130);
+                    qrContainer.appendChild(canvas);
+                }
+            } else {
+                const canvas = document.createElement('canvas');
+                canvas.width = 200; canvas.height = 200;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'white'; ctx.fillRect(0,0,200,200);
+                ctx.fillStyle = 'black'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+                ctx.fillText('分享連結', 100, 100);
+                ctx.fillText('掃描或複製', 100, 130);
+                qrContainer.appendChild(canvas);
+            }
+            document.getElementById('shareCodeResultModal').classList.add('active');
+        }
+
+        // ========== 快速分享 ==========
+        async function quickSharePlan() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const versionId = await backupCurrentPlanToCloud();
+            if (versionId) showShareCodeResult(generateShareLink(versionId));
+        }
+
+        // ========== 開啟雲端管理模態框 ==========
+        async function openCloudManageModal() {
+            document.getElementById('cloudManageModal').classList.add('active');
+            await loadAllVersions();
+            renderCloudPlanList();
+            document.getElementById('selectedPlanNameDisplay').innerText = '請選擇計劃';
+            document.getElementById('cloudVersionItemsContainer').innerHTML = '<div class="cloud-empty"><i class="fas fa-archive"></i><p>選擇計劃以顯示版本</p></div>';
+        }
+
+        // ========== 渲染左側計劃清單 ==========
+        function renderCloudPlanList() {
+            const container = document.getElementById('cloudPlanItemsContainer');
+            if (state.cloudVersions.length === 0) {
+                container.innerHTML = '<div class="cloud-empty"><i class="fas fa-cloud"></i><p>尚無任何雲端備份</p></div>';
+                return;
+            }
+            const planMap = new Map();
+            state.cloudVersions.forEach(v => {
+                if (!planMap.has(v.planId)) {
+                    planMap.set(v.planId, { planId: v.planId, planName: v.planName, lastBackup: v.timestamp, versionCount: 1 });
+                } else {
+                    const entry = planMap.get(v.planId);
+                    entry.versionCount++;
+                    if (v.timestamp > entry.lastBackup) entry.lastBackup = v.timestamp;
+                }
+            });
+            const sorted = Array.from(planMap.values()).sort((a,b) => b.lastBackup - a.lastBackup);
+            let html = '';
+            sorted.forEach(p => {
+                const date = new Date(p.lastBackup).toLocaleString('zh-TW');
+                html += `<div class="cloud-plan-item" data-plan-id="${p.planId}" data-plan-name="${p.planName}">
+                            <div class="cloud-plan-name">${p.planName}</div>
+                            <div class="cloud-plan-meta">版本數: ${p.versionCount} | 最新: ${date}</div>
+                        </div>`;
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.cloud-plan-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    container.querySelectorAll('.cloud-plan-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    renderVersionList(parseInt(this.dataset.planId), this.dataset.planName);
+                });
+            });
+        }
+
+        // ========== 渲染右側版本清單 ==========
+        function renderVersionList(planId, planName) {
+            document.getElementById('selectedPlanNameDisplay').innerText = planName;
+            const versions = state.cloudVersions.filter(v => v.planId === planId).sort((a,b) => b.timestamp - a.timestamp);
+            const container = document.getElementById('cloudVersionItemsContainer');
+            if (versions.length === 0) {
+                container.innerHTML = '<div class="cloud-empty"><i class="fas fa-archive"></i><p>此計劃尚無版本</p></div>';
+                return;
+            }
+            let html = '';
+            versions.forEach(v => {
+                const date = new Date(v.timestamp).toLocaleString('zh-TW');
+                html += `<div class="cloud-version-item" data-version-id="${v.versionId}">
+                            <div class="cloud-version-info">
+                                <div style="font-weight:bold;">版本: ${v.versionId.substr(0,8)}</div>
+                                <div class="cloud-version-time">${date}</div>
+                            </div>
+                            <div class="cloud-version-actions">
+                                <button class="btn btn-small btn-secondary restore-version" title="還原至本地"><i class="fas fa-download"></i></button>
+                                <button class="btn btn-small btn-info share-version" title="分享連結"><i class="fas fa-share-alt"></i></button>
+                                <button class="btn btn-small btn-danger delete-version" title="刪除備份"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>`;
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.cloud-version-item').forEach(el => {
+                const vid = el.dataset.versionId;
+                el.querySelector('.restore-version').addEventListener('click', async e => {
+                    e.stopPropagation();
+                    await restoreVersion(vid);
+                    await loadAllVersions();
+                    renderCloudPlanList();
+                    renderVersionList(planId, planName);
+                });
+                el.querySelector('.share-version').addEventListener('click', e => {
+                    e.stopPropagation();
+                    showShareCodeResult(generateShareLink(vid));
+                });
+                el.querySelector('.delete-version').addEventListener('click', async e => {
+                    e.stopPropagation();
+                    if (confirm('確定刪除此版本？')) {
+                        const ok = await deleteCloudVersion(vid);
+                        if (ok) {
+                            await loadAllVersions();
+                            renderCloudPlanList();
+                            renderVersionList(planId, planName);
+                        }
+                    }
+                });
+            });
+        }
+
+        // ----- 本地儲存 -----
+        function loadPlansFromStorage() {
+            const savedPlans = localStorage.getItem('travelPlans');
+            if (savedPlans) {
+                try {
+                    state.plans = JSON.parse(savedPlans);
+                    state.nextId = state.plans.reduce((maxId, plan) => Math.max(maxId, plan.id), 0) + 1;
+                    console.log('已載入計劃:', state.plans.length, '個');
+                } catch (error) {
+                    console.error('載入計劃時發生錯誤:', error);
+                    state.plans = [];
+                }
+            }
+            if (state.plans.length > 0) {
+                state.currentPlanId = state.plans[0].id;
+                showPlanContent();
+            }
+        }
+
+        function savePlansToStorage() {
+            try {
+                localStorage.setItem('travelPlans', JSON.stringify(state.plans));
+                console.log('計劃已儲存到本地儲存');
+                updateCostSummary();
+            } catch (error) {
+                console.error('儲存計劃時發生錯誤:', error);
+            }
+        }
+
+        function loadExchangeRatesFromStorage() {
+            const savedRates = localStorage.getItem('exchangeRates');
+            if (savedRates) {
+                try {
+                    const rates = JSON.parse(savedRates);
+                    state.exchangeRates = { ...state.exchangeRates, ...rates };
+                } catch (error) { console.error('載入匯率時發生錯誤:', error); }
+            }
+        }
+
+        function saveExchangeRatesToStorage() {
+            try { localStorage.setItem('exchangeRates', JSON.stringify(state.exchangeRates)); } 
+            catch (error) { console.error('儲存匯率時發生錯誤:', error); }
+        }
+
+        // ----- 計劃相關 -----
+        function showAddPlanModal() {
+            document.getElementById('planModalTitle').textContent = '新增旅遊計劃';
+            document.getElementById('planForm').reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('planStartDate').value = today;
+            document.getElementById('planModal').classList.add('active');
+            delete document.getElementById('planForm').dataset.editingId;
+            setTimeout(() => document.getElementById('planName').focus(), 100);
+        }
+
+        function showEditPlanModal(planId) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan) return;
+            document.getElementById('planModalTitle').textContent = '編輯旅遊計劃';
+            document.getElementById('planName').value = plan.name;
+            document.getElementById('planStartDate').value = plan.startDate;
+            document.getElementById('planDays').value = plan.days;
+            document.getElementById('planModal').classList.add('active');
+            document.getElementById('planForm').dataset.editingId = planId;
+        }
+
+        function closePlanModal() {
+            document.getElementById('planModal').classList.remove('active');
+            document.getElementById('planForm').reset();
+            delete document.getElementById('planForm').dataset.editingId;
+        }
+
+        function savePlan() {
+            const planName = document.getElementById('planName').value;
+            const startDate = document.getElementById('planStartDate').value;
+            const days = parseInt(document.getElementById('planDays').value);
+            if (!planName || !startDate || !days) { alert('請填寫所有必要欄位'); return; }
+            if (days < 1 || days > 365) { alert('旅遊天數必須在1到365天之間'); return; }
+            const editingId = document.getElementById('planForm').dataset.editingId;
+            if (editingId) {
+                const plan = state.plans.find(p => p.id === parseInt(editingId));
+                if (plan) {
+                    const originalDays = plan.days;
+                    plan.name = planName; plan.startDate = startDate; plan.days = days;
+                    if (days < originalDays) {
+                        plan.activities = plan.activities ? plan.activities.filter(a => a.day <= days) : [];
+                        plan.transports = plan.transports ? plan.transports.filter(t => t.day <= days) : [];
+                        if (plan.dayTitles) Object.keys(plan.dayTitles).forEach(day => { if (parseInt(day) > days) delete plan.dayTitles[day]; });
+                    }
+                }
+            } else {
+                const newPlan = { id: state.nextId++, name: planName, startDate: startDate, days: days, activities: [], transports: [], additionalCosts: [], dayTitles: {} };
+                state.plans.push(newPlan);
+                state.currentPlanId = newPlan.id;
+            }
+            savePlansToStorage();
+            updatePlansList();
+            showPlanContent();
+            closePlanModal();
+        }
+
+        // ----- 計劃列表渲染 -----
+        function updatePlansList() {
+            const plansList = document.getElementById('plansList');
+            const expiredPlansContent = document.getElementById('expiredPlansContent');
+            const expiredPlansContainer = document.getElementById('expiredPlansContainer');
+            plansList.innerHTML = ''; expiredPlansContent.innerHTML = '';
+            if (state.plans.length === 0) {
+                plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無旅遊計劃</div>';
+                expiredPlansContainer.style.display = 'none'; return;
+            }
+            const today = new Date(); today.setHours(0,0,0,0);
+            const activePlans = [], expiredPlans = [];
+            state.plans.forEach(plan => {
+                const endDate = new Date(plan.startDate); endDate.setDate(endDate.getDate() + plan.days - 1);
+                if (endDate >= today) activePlans.push(plan); else expiredPlans.push(plan);
+            });
+            activePlans.sort((a,b) => new Date(a.startDate) - new Date(b.startDate));
+            if (activePlans.length === 0) plansList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">暫無未過期旅遊計劃</div>';
+            else activePlans.forEach(plan => plansList.appendChild(createPlanElement(plan)));
+            if (expiredPlans.length > 0) {
+                expiredPlansContainer.style.display = 'block';
+                document.getElementById('expiredPlansCount').textContent = expiredPlans.length;
+                expiredPlans.forEach(plan => expiredPlansContent.appendChild(createPlanElement(plan, true)));
+            } else expiredPlansContainer.style.display = 'none';
+        }
+
+        function createPlanElement(plan, isExpired = false) {
+            const el = document.createElement('div');
+            el.className = `plan-item ${state.currentPlanId === plan.id ? 'active' : ''} ${isExpired ? 'expired-plan-item' : ''}`;
+            el.dataset.id = plan.id;
+            const startDate = new Date(plan.startDate), endDate = new Date(startDate); endDate.setDate(startDate.getDate() + plan.days - 1);
+            el.innerHTML = `<div class="plan-item-header"><div class="plan-item-name">${plan.name}</div><div><button class="btn btn-small btn-secondary edit-plan edit-controls" data-id="${plan.id}"><i class="fas fa-edit"></i></button></div></div>
+                            <div class="plan-item-dates">${formatDate(startDate)} - ${formatDate(endDate)}</div><div class="plan-item-days">${plan.days} 天</div>`;
+            el.addEventListener('click', function(e) {
+                if (!e.target.closest('.edit-plan')) {
+                    state.currentPlanId = plan.id; updatePlansList(); showPlanContent();
+                    if (window.innerWidth <= 1024) { document.getElementById('plansPanel').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); }
+                }
+            });
+            el.querySelector('.edit-plan').addEventListener('click', e => { e.stopPropagation(); showEditPlanModal(plan.id); });
+            return el;
+        }
+
+        // ----- 顯示計劃內容 -----
+        function showPlanContent() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) { document.getElementById('noPlanSelected').style.display = 'block'; document.getElementById('planContent').style.display = 'none'; return; }
+            document.getElementById('noPlanSelected').style.display = 'none'; document.getElementById('planContent').style.display = 'block';
+            document.getElementById('currentPlanName').textContent = plan.name;
+            const startDate = new Date(plan.startDate), endDate = new Date(startDate); endDate.setDate(startDate.getDate() + plan.days - 1);
+            document.getElementById('currentPlanDates').textContent = `${formatDate(startDate)} - ${formatDate(endDate)} (${plan.days} 天)`;
+            updateDaysTabs(plan);
+            showDayContent(1);
+        }
+
+        // ----- 更新天數頁籤 -----
+        function updateDaysTabs(plan) {
+            const daysTabs = document.getElementById('daysTabs');
+            const daysContent = document.getElementById('daysContent');
+            daysTabs.innerHTML = '';
+            daysContent.innerHTML = '';
+
+            for (let i = 1; i <= plan.days; i++) {
+                const tab = document.createElement('div');
+                tab.className = `day-tab ${i === state.currentDay ? 'active' : ''}`;
+                tab.textContent = `Day ${i}`;
+                tab.dataset.day = i;
+                tab.addEventListener('click', function() {
+                    state.currentDay = parseInt(this.dataset.day);
+                    document.querySelectorAll('.day-tab, .cost-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    showDayContent(state.currentDay);
+                });
+                daysTabs.appendChild(tab);
+
+                const content = document.createElement('div');
+                content.className = `day-content ${i === state.currentDay ? 'active' : ''}`;
+                content.dataset.day = i;
+
+                const dayTitle = plan.dayTitles?.[i] || `第 ${i} 天`;
+                const mapBtn = `<button class="btn btn-sm btn-map-route" onclick="openDailyMapRoute(${plan.id}, ${i})"><i class="fas fa-map-marked-alt"></i> 查看地圖路線</button>`;
+
+                content.innerHTML = `<div class="day-header d-flex align-items-center mb-3"><h4 class="mb-0">第 ${i} 天</h4>${mapBtn}</div>
+                                     <input type="text" class="day-title-input" value="${dayTitle}" data-day="${i}" placeholder="輸入當日標題">
+                                     <div class="activities-container" data-day="${i}"></div>`;
+
+                const titleInput = content.querySelector('.day-title-input');
+                titleInput.addEventListener('change', function() {
+                    saveDayTitle(plan.id, parseInt(this.dataset.day), this.value);
+                });
+
+                daysContent.appendChild(content);
+            }
+
+            const costTab = document.createElement('div');
+            costTab.className = 'day-tab cost-tab';
+            costTab.textContent = '費用';
+            costTab.dataset.tab = 'cost';
+            costTab.addEventListener('click', function() {
+                document.querySelectorAll('.day-tab, .cost-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                showCostContent();
+            });
+            daysTabs.appendChild(costTab);
+
+            const costContent = document.createElement('div');
+            costContent.className = 'cost-content';
+            costContent.id = 'costContent';
+
+            const addCostBtn2 = `<button class="btn btn-primary" id="addCostBtn2"><i class="fas fa-plus"></i> 新增費用</button>`;
+            const sortControl = `<div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                                    <label for="costSortSelect" style="margin:0; font-weight:600;">分組方式：</label>
+                                    <select id="costSortSelect" style="padding: 6px; border-radius: 4px; width: auto;">
+                                        <option value="date" ${state.costSortMode==='date'?'selected':''}>依日期</option>
+                                        <option value="category" ${state.costSortMode==='category'?'selected':''}>依類別</option>
+                                    </select>
+                                 </div>`;
+
+            // ===== 已移除費用類別徽章區塊 (cost-categories) =====
+            costContent.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                        ${addCostBtn2}
+                                        ${sortControl}
+                                    </div>
+                                    <div class="cost-summary">
+                                        <h3><i class="fas fa-calculator"></i> 費用列表</h3>
+                                        <div class="table-responsive">
+                                            <table class="cost-table">
+                                                <thead>
+                                                    <tr><th>日期</th><th>類別</th><th>說明</th><th>幣別</th><th>原幣費用</th><th>換算台幣</th><th>分攤人數</th><th>每人費用(台幣)</th><th>操作</th></tr>
+                                                </thead>
+                                                <tbody id="costTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>`;
+            daysContent.appendChild(costContent);
+
+            setTimeout(() => {
+                document.getElementById('addCostBtn2')?.addEventListener('click', showAddCostModal);
+                document.getElementById('costSortSelect')?.addEventListener('change', function() {
+                    state.costSortMode = this.value;
+                    updateCostSummary();
+                });
+            }, 100);
+
+            updateActivitiesContainer();
+            checkPreviousDayAccommodation(plan);
+            updateCostSummary();
+        }
+
+        function showDayContent(day) {
+            document.querySelectorAll('.day-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.day-content[data-day="${day}"]`)?.classList.add('active');
+            document.querySelectorAll('.cost-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.day-tab[data-day="${day}"]`)?.classList.add('active');
+            document.querySelectorAll('.cost-tab').forEach(t => t.classList.remove('active'));
+            state.currentDay = day;
+            updateActivitiesContainer();
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (plan) checkPreviousDayAccommodation(plan);
+        }
+
+        function showCostContent() {
+            document.querySelectorAll('.day-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.cost-content').forEach(c => c.classList.add('active'));
+            document.querySelectorAll('.day-tab, .cost-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.cost-tab').forEach(t => t.classList.add('active'));
+            updateCostSummary();
+        }
+
+        // ----- 活動容器更新 -----
+        function updateActivitiesContainer() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return;
+            const day = state.currentDay;
+            const container = document.querySelector(`.activities-container[data-day="${day}"]`);
+            if (!container) return;
+            container.innerHTML = '';
+            const dayActivities = plan.activities ? plan.activities.filter(a => a.day === day) : [];
+            const dayTransports = plan.transports ? plan.transports.filter(t => t.day === day) : [];
+            if (dayActivities.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: #999;"><i class="fas fa-calendar-plus" style="font-size: 3rem; margin-bottom: 15px;"></i><p>還沒有行程安排，點擊右下角的「+行程」按鈕開始規劃</p></div>';
+                return;
+            }
+            dayActivities.sort((a,b) => (parseTime(a.startTime)||0) - (parseTime(b.startTime)||0));
+            dayActivities.forEach((activity, idx) => {
+                const actEl = createActivityElement(activity, idx, day);
+                container.appendChild(actEl);
+                if (idx < dayActivities.length - 1) {
+                    const next = dayActivities[idx+1];
+                    const transportsBetween = dayTransports.filter(t => t.fromActivityId === activity.id && t.toActivityId === next.id);
+                    transportsBetween.forEach(t => {
+                        const transEl = createTransportElement(t);
+                        container.appendChild(transEl);
+                    });
+                }
+            });
+        }
+
+        // ----- 建立活動元素 -----
+        function createActivityElement(activity, index, day) {
+            const el = document.createElement('div');
+            el.className = 'activity-item';
+            el.dataset.id = activity.id;
+            el.dataset.type = 'activity';
+            el.draggable = true;
+
+            const categoryLabels = { attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', shopping:'購物', other:'其他' };
+            const categoryClasses = { attraction:'attraction', transport:'transport', activity:'activity', accommodation:'accommodation', shopping:'shopping', other:'other' };
+
+            const originalCost = activity.cost || 0;
+            const currency = activity.currency || 'TWD';
+            const rate = state.exchangeRates[currency] || 1;
+            const twdCost = originalCost * rate;
+
+            let linksHtml = '';
+            if (activity.links && activity.links.length) {
+                linksHtml = '<div class="activity-links" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;">';
+                activity.links.forEach(link => {
+                    if (link.url) {
+                        const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                        linksHtml += `<a href="${url}" target="_blank" style="font-size: 0.9rem; text-decoration: none; color: #4a6fa5;"><i class="fas fa-external-link-alt"></i> ${link.name || '相關連結'}</a>`;
+                    }
+                });
+                linksHtml += '</div>';
+            }
+
+            el.innerHTML = `<div class="activity-header">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%;">
+                                    <span class="activity-name">${activity.name}</span>
+                                    <span class="activity-category ${categoryClasses[activity.category]}">${categoryLabels[activity.category]}</span>
+                                </div>
+                                <div class="activity-time">${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}</div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <div style="word-break: break-word;"><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
+                                ${activity.address ? `<div class="activity-address" style="word-break: break-word; color: #666; font-size: 0.85rem;"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+                            </div>
+                            <div class="activity-details">
+                                ${originalCost > 0 ? `<div class="activity-cost"><i class="fas fa-money-bill-wave"></i> ${currency} ${Number(originalCost).toFixed(2)} (${Math.round(twdCost)} TWD)</div>` : ''}
+                                ${activity.notes ? `<div class="activity-notes" style="white-space: pre-wrap; margin-bottom: 5px;"><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
+                                ${linksHtml}
+                            </div>
+                            <div style="margin-top: 10px; text-align: right;" class="edit-controls">
+                                <button class="btn btn-small btn-secondary edit-activity" data-id="${activity.id}"><i class="fas fa-edit"></i> 編輯</button>
+                                <button class="btn btn-small btn-danger delete-activity" data-id="${activity.id}"><i class="fas fa-trash-alt"></i> 刪除</button>
+                            </div>`;
+
+            el.querySelector('.edit-activity')?.addEventListener('click', () => showEditActivityModal(activity.id));
+            el.querySelector('.delete-activity')?.addEventListener('click', () => deleteActivity(activity.id));
+
+            el.addEventListener('dragstart', handleDragStart);
+            el.addEventListener('dragend', handleDragEnd);
+            el.addEventListener('dragover', handleDragOver);
+            el.addEventListener('drop', handleDrop);
+            return el;
+        }
+
+        // ----- 建立交通元素 -----
+        function createTransportElement(transport) {
+            const el = document.createElement('div');
+            el.className = `transport-item ${transport.isMain ? 'transport-main' : 'transport-alternate'}`;
+            el.dataset.id = transport.id;
+            el.dataset.type = 'transport';
+
+            const transportLabels = { taxi:'計程車', subway:'地鐵', bus:'公交', train:'高鐵', walking:'步行', flight:'飛機', ship:'輪船', coach:'巴士', selfdrive:'自駕', other:'其他' };
+            const routeDesc = transport.fromLocation && transport.toLocation ? `${transport.fromLocation} → ${transport.toLocation}` : `${transport.fromActivityName} → ${transport.toActivityName}`;
+
+            let totalCostTWD = 0, totalPersonalTWD = 0;
+            if (transport.isMain && transport.options) {
+                transport.options.forEach(opt => {
+                    if (opt.isMain && opt.cost > 0) {
+                        const rate = state.exchangeRates[opt.currency || 'TWD'] || 1;
+                        const twd = opt.cost * rate;
+                        const per = twd / (opt.participants || 1);
+                        totalCostTWD += twd;
+                        totalPersonalTWD += per;
+                    }
+                });
+            }
+
+            let optionsHtml = '';
+            if (transport.options && transport.options.length) {
+                transport.options.forEach((opt, idx) => {
+                    const typeLabel = transportLabels[opt.type] || opt.type;
+                    const isMainLabel = opt.isMain ? '✓ 主要' : '○ 次要';
+                    const rate = state.exchangeRates[opt.currency || 'TWD'] || 1;
+                    const twd = (opt.cost || 0) * rate;
+                    const per = twd / (opt.participants || 1);
+                    optionsHtml += `<div style="margin: 8px 0; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid ${opt.isMain ? '#4caf50' : '#ff9800'};">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <span><strong>${typeLabel}</strong> <span style="color: ${opt.isMain ? '#4caf50' : '#ff9800'};">(${isMainLabel})</span></span>
+                                        </div>
+                                        ${opt.cost > 0 ? `<div style="font-size: 0.9rem;"><i class="fas fa-money-bill-wave"></i> ${opt.currency || 'TWD'} ${opt.cost.toFixed(2)} <small>(${twd.toFixed(2)} TWD)</small>${opt.participants > 1 ? ` (每人 ${per.toFixed(2)} TWD)` : ''}</div>` : ''}
+                                        ${opt.link && opt.linkName ? `<div style="font-size: 0.9rem; margin-top: 5px;"><a href="${opt.link}" target="_blank" style="word-break: break-all;"><i class="fas fa-link"></i> ${opt.linkName}</a></div>` : ''}
+                                        ${opt.notes ? `<div style="font-size: 0.9rem; margin-top: 5px;"><i class="fas fa-sticky-note"></i> ${opt.notes}</div>` : ''}
+                                    </div>`;
+                });
+            }
+
+            el.innerHTML = `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                <div>${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}</div>
+                            </div>
+                            <div style="margin: 8px 0; word-break: break-word;"><i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}</div>
+                            <div style="margin: 8px 0; word-break: break-word;"><i class="fas fa-route"></i> ${routeDesc}</div>
+                            <div style="margin: 15px 0;">${optionsHtml}</div>
+                            ${totalCostTWD > 0 ? `<div style="margin: 8px 0; padding: 10px; background: #e8f5e9; border-radius: 4px; word-break: break-word;"><i class="fas fa-money-bill-wave"></i> <strong>總費用: ${totalCostTWD.toFixed(2)} TWD</strong> <small> (每人 ${totalPersonalTWD.toFixed(2)} TWD)</small></div>` : ''}
+                            <div style="margin-top: 10px; text-align: right;">
+                                <button class="btn btn-small btn-secondary edit-transport edit-controls" data-id="${transport.id}"><i class="fas fa-edit"></i> 編輯</button>
+                                <button class="btn btn-small btn-danger delete-transport edit-controls" data-id="${transport.id}"><i class="fas fa-trash-alt"></i> 刪除</button>
+                            </div>`;
+
+            el.querySelector('.edit-transport')?.addEventListener('click', e => { e.stopPropagation(); showEditTransportModal(transport.id); });
+            el.querySelector('.delete-transport')?.addEventListener('click', e => { e.stopPropagation(); deleteTransport(transport.id); });
+            return el;
+        }
+
+        // ----- 拖放處理 -----
+        function handleDragStart(e) { e.dataTransfer.setData('text/plain', this.dataset.id); this.classList.add('dragging'); }
+        function handleDragOver(e) { e.preventDefault(); }
+        function handleDrop(e) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            const dragged = document.querySelector(`[data-id="${id}"]`);
+            if (dragged && this !== dragged) {
+                const container = this.parentNode;
+                const after = getDragAfterElement(container, e.clientY);
+                if (after == null) container.appendChild(dragged);
+                else container.insertBefore(dragged, after);
+                updateActivitiesOrder();
+            }
+        }
+        function handleDragEnd(e) { this.classList.remove('dragging'); }
+        function getDragAfterElement(container, y) {
+            const draggable = [...container.querySelectorAll('.activity-item:not(.dragging)')];
+            return draggable.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height/2;
+                if (offset < 0 && offset > closest.offset) return { offset, element: child };
+                else return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        function updateActivitiesOrder() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            const day = state.currentDay;
+            const container = document.querySelector(`.activities-container[data-day="${day}"]`);
+            const elements = container.querySelectorAll('.activity-item');
+            elements.forEach((el, idx) => {
+                const aid = parseInt(el.dataset.id);
+                const act = plan.activities.find(a => a.id === aid);
+                if (act) act.order = idx;
+            });
+            plan.activities.sort((a,b) => (a.day!==b.day) ? a.day-b.day : (a.order||0)-(b.order||0));
+            savePlansToStorage();
+        }
+
+        // ----- 前一晚住宿檢查 -----
+        function checkPreviousDayAccommodation(plan) {
+            if (state.currentDay > 1) {
+                const prevDay = state.currentDay - 1;
+                const prevActs = plan.activities ? plan.activities.filter(a => a.day === prevDay) : [];
+                const prevAcc = prevActs.find(a => a.category === 'accommodation');
+                if (prevAcc) {
+                    const currActs = plan.activities ? plan.activities.filter(a => a.day === state.currentDay) : [];
+                    const hasStart = currActs.some(a => a.location === prevAcc.location);
+                    if (!hasStart && currActs.length > 0) {
+                        const container = document.querySelector(`.activities-container[data-day="${state.currentDay}"]`);
+                        if (container && !container.querySelector('.accommodation-start-point')) {
+                            const point = document.createElement('div');
+                            point.className = 'transport-item accommodation-start-point';
+                            point.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-bed" style="color: #ef6c00;"></i><div><div style="font-weight: bold; color: #ef6c00;">今日起點：前一天的住宿</div><div>${prevAcc.name} - ${prevAcc.location}</div></div></div>`;
+                            container.insertBefore(point, container.firstChild);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ----- 載入前一晚住宿選項 -----
+        function loadPreviousAccommodations() {
+            const select = document.getElementById('previousAccommodation');
+            select.innerHTML = '<option value="">無（新住宿地點）</option>';
+            if (state.currentPlanId && state.currentDay > 1) {
+                const plan = state.plans.find(p => p.id === state.currentPlanId);
+                if (plan && plan.activities) {
+                    const prevDay = state.currentDay - 1;
+                    plan.activities.filter(a => a.day === prevDay && a.category === 'accommodation').forEach(acc => {
+                        const opt = document.createElement('option');
+                        opt.value = acc.id;
+                        opt.textContent = `${acc.name} - ${acc.location}`;
+                        select.appendChild(opt);
+                    });
+                }
+            }
+        }
+
+        // ----- 新增活動連結欄位 -----
+        function addActivityLinkField(linkData = { name: '', url: '' }) {
+            const container = document.getElementById('activityLinksContainer');
+            const idx = container.children.length;
+            const item = document.createElement('div');
+            item.className = 'link-item';
+            item.innerHTML = `<input type="text" class="link-name" placeholder="連結名稱" value="${linkData.name||''}">
+                              <input type="url" class="link-url" placeholder="https://example.com" value="${linkData.url||''}">
+                              <button type="button" class="remove-link-btn" data-index="${idx}"><i class="fas fa-times"></i></button>`;
+            container.appendChild(item);
+            item.querySelector('.remove-link-btn').addEventListener('click', function() { this.parentElement.remove(); });
+        }
+
+        // ----- 新增交通方式選項欄位 -----
+        function addTransportOptionField(optionData = null) {
+            const container = document.getElementById('transportOptionsContainer');
+            const idx = container.children.length;
+            const item = document.createElement('div');
+            item.className = 'transport-option';
+            const optId = optionData ? optionData.id || Date.now()+Math.random() : Date.now()+Math.random();
+
+            let html = `<div class="transport-option-header">
+                            <div class="transport-option-title">交通方式選項 #${idx+1}</div>
+                            <div class="transport-option-actions">
+                                <button type="button" class="btn btn-small btn-secondary set-main-option" data-id="${optId}"><i class="fas fa-star"></i> 設為主要</button>
+                                <button type="button" class="remove-link-btn remove-transport-option" data-id="${optId}"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="transportOptionType_${optId}">交通類別</label>
+                            <select id="transportOptionType_${optId}" class="transport-option-type">`;
+            const types = ['taxi','subway','bus','train','walking','flight','ship','coach','selfdrive','other'];
+            const labels = ['計程車','地鐵','公交','高鐵','步行','飛機','輪船','巴士','自駕','其他'];
+            types.forEach((t,i) => {
+                const selected = (optionData && optionData.type === t) ? 'selected' : '';
+                html += `<option value="${t}" ${selected}>${labels[i]}</option>`;
+            });
+            html += `</select></div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="transportOptionCost_${optId}">交通費用</label><input type="number" id="transportOptionCost_${optId}" class="transport-option-cost" min="0" step="0.01" value="${optionData ? optionData.cost || 0 : 0}"></div>
+                        <div class="form-group"><label for="transportOptionCurrency_${optId}">幣別</label><select id="transportOptionCurrency_${optId}" class="transport-option-currency">`;
+            const currencies = ['TWD','USD','JPY','EUR','CNY','KRW','HKD','GBP'];
+            const curLabels = ['新台幣 (TWD)','美元 (USD)','日圓 (JPY)','歐元 (EUR)','人民幣 (CNY)','韓元 (KRW)','港幣 (HKD)','英鎊 (GBP)'];
+            currencies.forEach((c,ci) => {
+                const selected = (optionData && optionData.currency === c) ? 'selected' : '';
+                html += `<option value="${c}" ${selected}>${curLabels[ci]}</option>`;
+            });
+            html += `</select></div>
+                        <div class="form-group"><label for="transportOptionParticipants_${optId}">分攤人數</label><input type="number" id="transportOptionParticipants_${optId}" class="transport-option-participants" min="1" value="${optionData ? optionData.participants || 1 : 1}"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="transportOptionLinkName_${optId}">連結名稱</label><input type="text" id="transportOptionLinkName_${optId}" class="transport-option-link-name" value="${optionData ? optionData.linkName || '' : ''}"></div>
+                        <div class="form-group"><label for="transportOptionLink_${optId}">連結</label><input type="url" id="transportOptionLink_${optId}" class="transport-option-link" placeholder="https://example.com" value="${optionData ? optionData.link || '' : ''}"></div>
+                    </div>
+                    <div class="form-group"><label for="transportOptionNotes_${optId}">備註</label><textarea id="transportOptionNotes_${optId}" class="transport-option-notes" rows="2">${optionData ? optionData.notes || '' : ''}</textarea></div>
+                    <div class="form-group"><label><input type="checkbox" class="transport-option-is-main" ${optionData && optionData.isMain ? 'checked' : ''}> 設為主要交通方式（只有主要方式才計算費用）</label></div>`;
+            item.innerHTML = html;
+            container.appendChild(item);
+
+            item.querySelector('.set-main-option')?.addEventListener('click', function() {
+                container.querySelectorAll('.transport-option-is-main').forEach(cb => cb.checked = false);
+                this.closest('.transport-option').querySelector('.transport-option-is-main').checked = true;
+            });
+            item.querySelector('.remove-transport-option')?.addEventListener('click', function() { this.closest('.transport-option').remove(); });
+            return optId;
+        }
+
+        // ----- 活動相關 CRUD -----
+        function showAddActivityModal() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            document.getElementById('activityModalTitle').textContent = '新增行程';
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityCurrency').value = 'TWD';
+            document.getElementById('activityParticipants').value = 1;
+            document.getElementById('activityLinksContainer').innerHTML = '';
+            addActivityLinkField();
+            document.getElementById('previousAccommodationContainer').style.display = 'none';
+            document.getElementById('activityModal').classList.add('active');
+            delete document.getElementById('activityForm').dataset.editingId;
+            setTimeout(() => document.getElementById('activityStartTime').focus(), 100);
+        }
+
+        function showEditActivityModal(activityId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            const act = plan.activities.find(a => a.id === activityId);
+            if (!act) return;
+            document.getElementById('activityModalTitle').textContent = '編輯行程';
+            document.getElementById('activityStartTime').value = act.startTime || '';
+            document.getElementById('activityEndTime').value = act.endTime || '';
+            document.getElementById('activityName').value = act.name;
+            document.getElementById('activityCategory').value = act.category;
+            document.getElementById('activityLocation').value = act.location;
+            document.getElementById('activityAddress').value = act.address || '';
+            document.getElementById('activityCost').value = act.cost || 0;
+            document.getElementById('activityCurrency').value = act.currency || 'TWD';
+            document.getElementById('activityParticipants').value = act.participants || 1;
+            document.getElementById('activityNotes').value = act.notes || '';
+            document.getElementById('activityLinksContainer').innerHTML = '';
+            if (act.links && act.links.length) act.links.forEach(l => addActivityLinkField(l));
+            else addActivityLinkField();
+            if (act.category === 'accommodation' && state.currentDay > 1) { loadPreviousAccommodations(); document.getElementById('previousAccommodationContainer').style.display = 'block'; }
+            else document.getElementById('previousAccommodationContainer').style.display = 'none';
+            document.getElementById('activityModal').classList.add('active');
+            document.getElementById('activityForm').dataset.editingId = activityId;
+        }
+
+        function closeActivityModal() {
+            document.getElementById('activityModal').classList.remove('active');
+            document.getElementById('activityForm').reset();
+            delete document.getElementById('activityForm').dataset.editingId;
+            document.getElementById('activityLinksContainer').innerHTML = '';
+        }
+
+        function saveActivity() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) { alert('找不到選擇的計劃'); return; }
+            formatTimeInput(document.getElementById('activityStartTime'));
+            formatTimeInput(document.getElementById('activityEndTime'));
+            const startTime = document.getElementById('activityStartTime').value;
+            const endTime = document.getElementById('activityEndTime').value || null;
+            const name = document.getElementById('activityName').value;
+            const category = document.getElementById('activityCategory').value;
+            const location = document.getElementById('activityLocation').value;
+            const address = document.getElementById('activityAddress').value || null;
+            const cost = parseFloat(document.getElementById('activityCost').value) || 0;
+            const currency = document.getElementById('activityCurrency').value;
+            const participants = parseInt(document.getElementById('activityParticipants').value) || 1;
+            const notes = document.getElementById('activityNotes').value || null;
+            if (!startTime || !name || !location) { alert('請填寫必要欄位：開始時間、行程名稱、地點'); return; }
+            const links = [];
+            document.querySelectorAll('#activityLinksContainer .link-item').forEach(item => {
+                const n = item.querySelector('.link-name').value.trim();
+                const u = item.querySelector('.link-url').value.trim();
+                if (n && u) links.push({ name: n, url: u });
+            });
+            const actData = { startTime, endTime, name, category, location, address, cost, currency, participants, links: links.length ? links : null, notes, day: state.currentDay };
+            const editingId = document.getElementById('activityForm').dataset.editingId;
+            if (editingId) {
+                const idx = plan.activities.findIndex(a => a.id === parseInt(editingId));
+                if (idx !== -1) { actData.id = parseInt(editingId); actData.order = plan.activities[idx].order; plan.activities[idx] = actData; }
+            } else {
+                actData.id = Date.now();
+                actData.order = plan.activities.filter(a => a.day === state.currentDay).length;
+                if (!plan.activities) plan.activities = [];
+                plan.activities.push(actData);
+            }
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+            closeActivityModal();
+        }
+
+        function deleteActivity(activityId) {
+            if (!confirm('確定要刪除這個行程嗎？')) return;
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            plan.activities = plan.activities.filter(a => a.id !== activityId);
+            if (plan.transports) plan.transports = plan.transports.filter(t => t.fromActivityId !== activityId && t.toActivityId !== activityId);
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+        }
+
+        // ----- 交通相關 -----
+        function showAddTransportModal() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) { alert('請先添加行程，然後才能添加交通方式'); return; }
+            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            if (dayActs.length < 2) { alert('需要至少兩個行程才能添加交通方式'); return; }
+            const fromSel = document.getElementById('transportFromActivity');
+            const toSel = document.getElementById('transportToActivity');
+            fromSel.innerHTML = ''; toSel.innerHTML = '';
+            dayActs.forEach(a => {
+                fromSel.innerHTML += `<option value="${a.id}">${a.startTime||''} ${a.name} (${a.location})</option>`;
+                toSel.innerHTML += `<option value="${a.id}">${a.startTime||''} ${a.name} (${a.location})</option>`;
+            });
+            fromSel.selectedIndex = 0; toSel.selectedIndex = Math.min(1, dayActs.length-1);
+            const fromAct = dayActs[fromSel.selectedIndex];
+            const toAct = dayActs[toSel.selectedIndex];
+            document.getElementById('transportStartTime').value = fromAct.endTime || fromAct.startTime || '';
+            document.getElementById('transportEndTime').value = toAct.startTime || '';
+            document.getElementById('transportModalTitle').textContent = '新增交通方式';
+            document.getElementById('transportForm').reset();
+            document.getElementById('transportOptionsContainer').innerHTML = '';
+            addTransportOptionField();
+            document.getElementById('transportModal').classList.add('active');
+            delete document.getElementById('transportForm').dataset.editingId;
+            fromSel.addEventListener('change', updateTransportTimes);
+            toSel.addEventListener('change', updateTransportTimes);
+            setTimeout(() => document.getElementById('transportStartTime').focus(), 100);
+        }
+
+        function showEditTransportModal(transportId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.transports) return;
+            const trans = plan.transports.find(t => t.id === transportId);
+            if (!trans) return;
+            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            const fromSel = document.getElementById('transportFromActivity');
+            const toSel = document.getElementById('transportToActivity');
+            fromSel.innerHTML = ''; toSel.innerHTML = '';
+            dayActs.forEach(a => {
+                fromSel.innerHTML += `<option value="${a.id}" ${a.id===trans.fromActivityId?'selected':''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
+                toSel.innerHTML += `<option value="${a.id}" ${a.id===trans.toActivityId?'selected':''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
+            });
+            document.getElementById('transportModalTitle').textContent = '編輯交通方式';
+            document.getElementById('transportStartTime').value = trans.startTime;
+            document.getElementById('transportEndTime').value = trans.endTime;
+            document.getElementById('transportOptionsContainer').innerHTML = '';
+            if (trans.options && trans.options.length) trans.options.forEach(opt => addTransportOptionField(opt));
+            else addTransportOptionField();
+            document.getElementById('transportModal').classList.add('active');
+            document.getElementById('transportForm').dataset.editingId = transportId;
+            fromSel.addEventListener('change', updateTransportTimes);
+            toSel.addEventListener('change', updateTransportTimes);
+        }
+
+        function closeTransportModal() {
+            document.getElementById('transportModal').classList.remove('active');
+            document.getElementById('transportForm').reset();
+            delete document.getElementById('transportForm').dataset.editingId;
+            document.getElementById('transportOptionsContainer').innerHTML = '';
+            const fromSel = document.getElementById('transportFromActivity');
+            const toSel = document.getElementById('transportToActivity');
+            fromSel.removeEventListener('change', updateTransportTimes);
+            toSel.removeEventListener('change', updateTransportTimes);
+        }
+
+        function updateTransportTimes() {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.activities) return;
+            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            const fromId = parseInt(document.getElementById('transportFromActivity').value);
+            const toId = parseInt(document.getElementById('transportToActivity').value);
+            const fromAct = dayActs.find(a => a.id === fromId);
+            const toAct = dayActs.find(a => a.id === toId);
+            if (fromAct) document.getElementById('transportStartTime').value = fromAct.endTime || fromAct.startTime || '';
+            if (toAct) document.getElementById('transportEndTime').value = toAct.startTime || '';
+        }
+
+        function saveTransport() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) { alert('找不到選擇的計劃'); return; }
+            formatTimeInput(document.getElementById('transportStartTime'));
+            formatTimeInput(document.getElementById('transportEndTime'));
+            const startTime = document.getElementById('transportStartTime').value;
+            const endTime = document.getElementById('transportEndTime').value;
+            const fromId = parseInt(document.getElementById('transportFromActivity').value);
+            const toId = parseInt(document.getElementById('transportToActivity').value);
+            if (!startTime || !endTime || !fromId || !toId) { alert('請填寫所有必要欄位'); return; }
+            if (fromId === toId) { alert('起始行程和結束行程不能相同'); return; }
+            const fromAct = plan.activities.find(a => a.id === fromId);
+            const toAct = plan.activities.find(a => a.id === toId);
+            if (!fromAct || !toAct) { alert('無法找到選擇的行程，請重新選擇'); return; }
+            const options = [];
+            let hasMain = false;
+            document.querySelectorAll('.transport-option').forEach(el => {
+                const type = el.querySelector('.transport-option-type').value;
+                const cost = parseFloat(el.querySelector('.transport-option-cost').value) || 0;
+                const currency = el.querySelector('.transport-option-currency').value;
+                const participants = parseInt(el.querySelector('.transport-option-participants').value) || 1;
+                const linkName = el.querySelector('.transport-option-link-name').value.trim() || null;
+                const link = el.querySelector('.transport-option-link').value.trim() || null;
+                const notes = el.querySelector('.transport-option-notes').value.trim() || null;
+                const isMain = el.querySelector('.transport-option-is-main').checked;
+                if (isMain && hasMain) { alert('只能有一個主要交通方式！'); return; }
+                if (isMain) hasMain = true;
+                options.push({ id: Date.now()+Math.random(), type, cost, currency, participants, linkName, link, notes, isMain });
+            });
+            if (options.length === 0) { alert('請至少添加一個交通方式選項'); return; }
+            const transData = { startTime, endTime, fromActivityId: fromId, toActivityId: toId, fromActivityName: fromAct.name, toActivityName: toAct.name, fromLocation: fromAct.location, toLocation: toAct.location, options, isMain: hasMain, day: state.currentDay };
+            const editingId = document.getElementById('transportForm').dataset.editingId;
+            if (editingId) {
+                const idx = plan.transports.findIndex(t => t.id === parseInt(editingId));
+                if (idx !== -1) { transData.id = parseInt(editingId); plan.transports[idx] = transData; }
+            } else {
+                transData.id = Date.now();
+                if (!plan.transports) plan.transports = [];
+                plan.transports.push(transData);
+            }
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+            closeTransportModal();
+        }
+
+        function deleteTransport(transportId) {
+            if (!confirm('確定要刪除這個交通方式嗎？')) return;
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.transports) return;
+            plan.transports = plan.transports.filter(t => t.id !== transportId);
+            savePlansToStorage();
+            updateActivitiesContainer();
+            updateCostSummary();
+        }
+
+        // ----- 費用相關 -----
+        function showAddCostModal() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            document.getElementById('costModalTitle').textContent = '新增費用';
+            document.getElementById('costForm').reset();
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (plan) {
+                const start = new Date(plan.startDate).toISOString().split('T')[0];
+                document.getElementById('costDate').value = start;
+            }
+            document.getElementById('costAmount').value = 0;
+            document.getElementById('costCurrency').value = 'TWD';
+            document.getElementById('costParticipants').value = 1;
+            document.getElementById('costModal').classList.add('active');
+            delete document.getElementById('costForm').dataset.editingId;
+            setTimeout(() => document.getElementById('costDescription').focus(), 100);
+        }
+
+        function showEditCostModal(costId) {
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.additionalCosts) return;
+            const cost = plan.additionalCosts.find(c => c.id === costId);
+            if (!cost) return;
+            document.getElementById('costModalTitle').textContent = '編輯費用';
+            document.getElementById('costDate').value = cost.date;
+            document.getElementById('costCategory').value = cost.category;
+            document.getElementById('costDescription').value = cost.description;
+            document.getElementById('costAmount').value = cost.amount || 0;
+            document.getElementById('costCurrency').value = cost.currency || 'TWD';
+            document.getElementById('costParticipants').value = cost.participants || 1;
+            document.getElementById('costNotes').value = cost.notes || '';
+            document.getElementById('costModal').classList.add('active');
+            document.getElementById('costForm').dataset.editingId = costId;
+        }
+
+        function closeCostModal() {
+            document.getElementById('costModal').classList.remove('active');
+            document.getElementById('costForm').reset();
+            delete document.getElementById('costForm').dataset.editingId;
+        }
+
+        function saveCost() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) { alert('找不到選擇的計劃'); return; }
+            const date = document.getElementById('costDate').value;
+            const category = document.getElementById('costCategory').value;
+            const description = document.getElementById('costDescription').value;
+            const amount = parseFloat(document.getElementById('costAmount').value) || 0;
+            const currency = document.getElementById('costCurrency').value;
+            const participants = parseInt(document.getElementById('costParticipants').value) || 1;
+            const notes = document.getElementById('costNotes').value || null;
+            if (!date || !category || !description) { alert('請填寫必要欄位：日期、類別、費用說明'); return; }
+            const costData = { date, category, description, amount, currency, participants, notes };
+            const editingId = document.getElementById('costForm').dataset.editingId;
+            if (editingId) {
+                const idx = plan.additionalCosts.findIndex(c => c.id === editingId);
+                if (idx !== -1) { costData.id = editingId; plan.additionalCosts[idx] = costData; }
+            } else {
+                costData.id = Date.now().toString();
+                if (!plan.additionalCosts) plan.additionalCosts = [];
+                plan.additionalCosts.push(costData);
+            }
+            savePlansToStorage();
+            updateCostSummary();
+            closeCostModal();
+        }
+
+        function deleteCost(costId) {
+            if (!confirm('確定要刪除這個費用嗎？')) return;
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan || !plan.additionalCosts) return;
+            plan.additionalCosts = plan.additionalCosts.filter(c => c.id !== costId);
+            savePlansToStorage();
+            updateCostSummary();
+        }
+
+        // ----- 儲存每日標題 -----
+        function saveDayTitle(planId, day, title) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan) return;
+            if (!plan.dayTitles) plan.dayTitles = {};
+            plan.dayTitles[day] = title;
+            savePlansToStorage();
+        }
+
+        // ----- 刪除計劃 -----
+        function deletePlan() {
+            if (!state.currentPlanId) return;
+            if (!confirm('確定要刪除這個旅遊計劃嗎？此操作無法復原。')) return;
+            state.plans = state.plans.filter(p => p.id !== state.currentPlanId);
+            if (state.plans.length > 0) state.currentPlanId = state.plans[0].id;
+            else state.currentPlanId = null;
+            savePlansToStorage();
+            updatePlansList();
+            updateCostSummary();
+            if (state.currentPlanId) showPlanContent();
+            else { document.getElementById('noPlanSelected').style.display = 'block'; document.getElementById('planContent').style.display = 'none'; }
+        }
+
+        // ----- 匯率設定 -----
+        function showExchangeRateModal() {
+            document.getElementById('exchangeRateModal').classList.add('active');
+            document.getElementById('usdRate').value = state.exchangeRates.USD;
+            document.getElementById('jpyRate').value = state.exchangeRates.JPY;
+            document.getElementById('eurRate').value = state.exchangeRates.EUR;
+            document.getElementById('cnyRate').value = state.exchangeRates.CNY;
+            document.getElementById('krwRate').value = state.exchangeRates.KRW;
+            document.getElementById('hkdRate').value = state.exchangeRates.HKD;
+            document.getElementById('gbpRate').value = state.exchangeRates.GBP;
+        }
+
+        function closeExchangeRateModal() { document.getElementById('exchangeRateModal').classList.remove('active'); }
+
+        async function fetchLiveExchangeRates() {
+            const btn = document.getElementById('autoFetchRateBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在連線取得數據...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+                if (!res.ok) throw new Error('網路連線失敗');
+                const data = await res.json();
+                const rates = data.rates;
+                const map = { usdRate:'USD', jpyRate:'JPY', eurRate:'EUR', cnyRate:'CNY', krwRate:'KRW', hkdRate:'HKD', gbpRate:'GBP' };
+                let cnt = 0;
+                for (const [id, code] of Object.entries(map)) {
+                    if (rates[code]) {
+                        const rate = 1 / rates[code];
+                        const prec = (code==='JPY'||code==='KRW') ? 4 : 2;
+                        document.getElementById(id).value = rate.toFixed(prec);
+                        cnt++;
+                    }
+                }
+                alert(`成功更新匯率！\n資料日期：${data.date}\n請記得點擊「儲存匯率」按鈕以套用設定。`);
+            } catch(e) {
+                console.error(e);
+                alert('無法取得最新匯率，請檢查網路連線或稍後再試。');
+            } finally {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            }
+        }
+
+        function saveExchangeRates() {
+            state.exchangeRates.USD = parseFloat(document.getElementById('usdRate').value) || 30.5;
+            state.exchangeRates.JPY = parseFloat(document.getElementById('jpyRate').value) || 0.22;
+            state.exchangeRates.EUR = parseFloat(document.getElementById('eurRate').value) || 33.5;
+            state.exchangeRates.CNY = parseFloat(document.getElementById('cnyRate').value) || 4.3;
+            state.exchangeRates.KRW = parseFloat(document.getElementById('krwRate').value) || 0.023;
+            state.exchangeRates.HKD = parseFloat(document.getElementById('hkdRate').value) || 3.9;
+            state.exchangeRates.GBP = parseFloat(document.getElementById('gbpRate').value) || 38.5;
+            saveExchangeRatesToStorage();
+            updateCostSummary();
+            updateActivitiesContainer();
+            alert('匯率設定已更新！');
+            closeExchangeRateModal();
+        }
+
+        // ----- 本地備份 -----
+        async function backupPlan() {
+            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) return;
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0,19).replace(/:/g,'-');
+            const filename = `旅遊計劃_${plan.name}_${dateStr}.json`;
+            const dataStr = JSON.stringify(plan, null, 2);
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await window.showSaveFilePicker({ suggestedName: filename, types: [{ description: 'JSON Files', accept: {'application/json':['.json']} }] });
+                    const writable = await handle.createWritable();
+                    await writable.write(dataStr);
+                    await writable.close();
+                    alert('備份成功！檔案已儲存。');
+                } catch(err) { if (err.name !== 'AbortError') console.error(err); }
+            } else {
+                const blob = new Blob([dataStr], {type:'application/json'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            }
+        }
+
+        // ----- 本地還原 -----
+        function restorePlan() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    try {
+                        const planData = JSON.parse(ev.target.result);
+                        if (!planData.name || !planData.startDate || !planData.days) { alert('檔案格式不正確，無法還原計劃'); return; }
+                        planData.id = state.nextId++;
+                        if (planData.activities) planData.activities.forEach(a => { if (!a.id) a.id = Date.now()+Math.random(); });
+                        if (planData.transports) planData.transports.forEach(t => { if (!t.id) t.id = Date.now()+Math.random(); });
+                        state.plans.push(planData);
+                        state.currentPlanId = planData.id;
+                        savePlansToStorage();
+                        updatePlansList();
+                        showPlanContent();
+                        alert('計劃已成功還原！');
+                    } catch(err) { alert('讀取檔案時發生錯誤：' + err.message); }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ----- 取得所有費用 (確保每個項目都有 type) -----
+        function getAllCosts(plan) {
+            const costs = [];
+            if (plan.activities) plan.activities.forEach(a => {
+                if (a.cost > 0) {
+                    const d = new Date(plan.startDate); d.setDate(d.getDate() + a.day - 1);
+                    costs.push({ type:'activity', date: d.toISOString().split('T')[0], category: a.category, name: a.name, amount: a.cost, currency: a.currency||'TWD', participants: a.participants||1 });
+                }
+            });
+            if (plan.transports) plan.transports.forEach(t => {
+                if (t.isMain && t.options) t.options.forEach(opt => {
+                    if (opt.isMain && opt.cost > 0) {
+                        const d = new Date(plan.startDate); d.setDate(d.getDate() + t.day - 1);
+                        costs.push({ type:'transport', date: d.toISOString().split('T')[0], category: opt.type, fromActivityName: t.fromActivityName, toActivityName: t.toActivityName, amount: opt.cost, currency: opt.currency||'TWD', participants: opt.participants||1 });
+                    }
+                });
+            });
+            if (plan.additionalCosts) plan.additionalCosts.forEach(c => {
+                costs.push({ type:'additional', id: c.id, date: c.date, category: c.category, description: c.description, amount: c.amount, currency: c.currency||'TWD', participants: c.participants||1 });
+            });
+            return costs;
+        }
+
+        // ----- 計算總費用 -----
+        function calculateTotalCosts(plan) {
+            let total = 0, totalPer = 0;
+            getAllCosts(plan).forEach(c => {
+                const rate = state.exchangeRates[c.currency||'TWD']||1;
+                const twd = c.amount * rate;
+                total += twd;
+                totalPer += twd / (c.participants||1);
+            });
+            return { totalTWD: total, totalPersonalTWD: totalPer };
+        }
+
+        // ----- ⭐ 費用統計與表格渲染 (已修正 c.type undefined 錯誤，並支援類別合併與小計) ⭐ -----
+        function updateCostSummary() {
+            const tbody = document.getElementById('costTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!state.currentPlanId) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">請選擇一個旅遊計劃</td></tr>'; return; }
+            const plan = state.plans.find(p => p.id === state.currentPlanId);
+            if (!plan) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">找不到計劃資料</td></tr>'; return; }
+            let all = getAllCosts(plan);
+            
+            // 🔥 保險：確保每個費用項目都有 type 屬性，防止舊資料缺少 type 導致錯誤
+            all = all.map(item => {
+                if (!item.type) {
+                    if (item.description !== undefined) item.type = 'additional';
+                    else if (item.fromActivityName !== undefined) item.type = 'transport';
+                    else if (item.name !== undefined) item.type = 'activity';
+                    else item.type = 'unknown';
+                }
+                return item;
+            });
+
+            if (all.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">暫無費用資料</td></tr>'; return; }
+
+            const catLabels = { attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' };
+            const groups = {};
+            const mode = state.costSortMode || 'date';
+            all.forEach(c => {
+                let key, title;
+                if (mode === 'date') { key = c.date; title = formatDate(new Date(c.date)); }
+                else { key = c.category; title = catLabels[c.category] || c.category; }
+                if (!groups[key]) groups[key] = { title, items: [], totalTWD: 0 };
+                groups[key].items.push(c);
+            });
+            let sortedKeys = mode === 'date' ? Object.keys(groups).sort((a,b)=>new Date(a)-new Date(b)) : Object.keys(groups).sort((a,b)=>groups[a].title.localeCompare(groups[b].title,'zh-TW'));
+
+            // ========== 依類別分組：合併類別欄，組尾加小計 ==========
+            if (mode === 'category') {
+                sortedKeys.forEach(key => {
+                    const g = groups[key];
+                    g.totalTWD = 0;
+                    g.items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+                    g.items.forEach(c => { const r = state.exchangeRates[c.currency||'TWD']||1; g.totalTWD += c.amount * r; });
+                    
+                    g.items.forEach((c, index) => {
+                        const row = document.createElement('tr');
+                        const original = c.amount || 0;
+                        const cur = c.currency || 'TWD';
+                        const rate = state.exchangeRates[cur]||1;
+                        const twd = original * rate;
+                        const participants = c.participants || 1;
+                        const per = twd / participants;
+                        let catText = catLabels[c.category] || c.category;
+                        let desc = '';
+                        if (c.type === 'activity') desc = c.name;
+                        else if (c.type === 'transport') { catText = '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
+                        else if (c.type === 'additional') desc = c.description;
+                        let action = '';
+                        if (c.type === 'additional') action = `<button class="btn btn-small btn-secondary edit-cost" data-id="${c.id}"><i class="fas fa-edit"></i></button> <button class="btn btn-small btn-danger delete-cost" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>`;
+                        else action = `<span style="color:#999;font-size:0.8rem;">(由行程管理)</span>`;
+
+                        if (index === 0) {
+                            row.innerHTML = `<td>${formatDate(new Date(c.date))}</td>
+                                              <td rowspan="${g.items.length}">${g.title}</td>
+                                              <td>${desc}</td>
+                                              <td>${cur}</td>
+                                              <td>${original.toFixed(2)}</td>
+                                              <td>${twd.toFixed(2)}</td>
+                                              <td>${participants}</td>
+                                              <td class="total-cost">${per.toFixed(2)}</td>
+                                              <td>${action}</td>`;
+                        } else {
+                            row.innerHTML = `<td>${formatDate(new Date(c.date))}</td>
+                                              <td>${desc}</td>
+                                              <td>${cur}</td>
+                                              <td>${original.toFixed(2)}</td>
+                                              <td>${twd.toFixed(2)}</td>
+                                              <td>${participants}</td>
+                                              <td class="total-cost">${per.toFixed(2)}</td>
+                                              <td>${action}</td>`;
+                        }
+                        tbody.appendChild(row);
+
+                        if (c.type === 'additional') {
+                            row.querySelector('.edit-cost')?.addEventListener('click', e => { e.stopPropagation(); showEditCostModal(c.id); });
+                            row.querySelector('.delete-cost')?.addEventListener('click', e => { e.stopPropagation(); deleteCost(c.id); });
+                        }
+                    });
+                    const totalRow = document.createElement('tr');
+                    totalRow.innerHTML = `<td colspan="9" style="text-align:right; padding-right:30px; font-weight:bold; background-color: rgba(74,111,165,0.05);">
+                                            類別小計 (${g.title})：${g.totalTWD.toFixed(2)} TWD
+                                         </td>`;
+                    tbody.appendChild(totalRow);
+                });
+            } else {
+                // ========== 依日期分組：維持分組標題行 ==========
+                sortedKeys.forEach(key => {
+                    const g = groups[key];
+                    g.totalTWD = 0;
+                    g.items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+                    g.items.forEach(c => { const r = state.exchangeRates[c.currency||'TWD']||1; g.totalTWD += c.amount * r; });
+                    const header = document.createElement('tr');
+                    header.innerHTML = `<td colspan="9" style="padding:0;border:none;"><div class="cost-group-header"><span class="group-title"><i class="fas fa-calendar-day"></i> ${g.title}</span><span class="group-subtotal">小計: ${g.totalTWD.toFixed(2)} TWD</span></div></td>`;
+                    tbody.appendChild(header);
+                    g.items.forEach(c => {
+                        const row = document.createElement('tr');
+                        const original = c.amount || 0;
+                        const cur = c.currency || 'TWD';
+                        const rate = state.exchangeRates[cur]||1;
+                        const twd = original * rate;
+                        const participants = c.participants || 1;
+                        const per = twd / participants;
+                        let catText = catLabels[c.category] || c.category;
+                        let desc = '';
+                        if (c.type === 'activity') desc = c.name;
+                        else if (c.type === 'transport') { catText = '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
+                        else if (c.type === 'additional') desc = c.description;
+                        let action = '';
+                        if (c.type === 'additional') action = `<button class="btn btn-small btn-secondary edit-cost" data-id="${c.id}"><i class="fas fa-edit"></i></button> <button class="btn btn-small btn-danger delete-cost" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>`;
+                        else action = `<span style="color:#999;font-size:0.8rem;">(由行程管理)</span>`;
+                        row.innerHTML = `<td>${formatDate(new Date(c.date))}</td><td>${catText}</td><td>${desc}</td><td>${cur}</td><td>${original.toFixed(2)}</td><td>${twd.toFixed(2)}</td><td>${participants}</td><td class="total-cost">${per.toFixed(2)}</td><td>${action}</td>`;
+                        tbody.appendChild(row);
+                        if (c.type === 'additional') {
+                            row.querySelector('.edit-cost')?.addEventListener('click', e => { e.stopPropagation(); showEditCostModal(c.id); });
+                            row.querySelector('.delete-cost')?.addEventListener('click', e => { e.stopPropagation(); deleteCost(c.id); });
+                        }
+                    });
+                });
+            }
+
+            const totals = calculateTotalCosts(plan);
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'cost-total-row';
+            totalRow.innerHTML = `<td colspan="5"><strong>總計 (新台幣)</strong></td><td><strong>${totals.totalTWD.toFixed(2)}</strong></td><td></td><td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td><td></td>`;
+            tbody.appendChild(totalRow);
+        }
+
+        // ----- 輔助函數 -----
+        function formatDate(date) {
+            if (!date) return '';
+            const d = new Date(date);
+            return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+        }
+
+        function parseTime(timeStr) {
+            if (!timeStr) return 0;
+            const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+            return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0;
+        }
+
+        function formatTimeDisplay(timeStr) {
+            if (!timeStr) return '';
+            const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+            return m ? `${m[1].padStart(2,'0')}:${m[2]}` : timeStr;
+        }
+
+        function setupTimeFormatting() {
+            document.addEventListener('blur', function(e) {
+                if (e.target.matches('#activityStartTime, #activityEndTime, #transportStartTime, #transportEndTime')) formatTimeInput(e.target);
+            }, true);
+        }
+
+        function formatTimeInput(input) {
+            let val = input.value.trim();
+            if (val.length === 4 && /^\d{4}$/.test(val)) {
+                const h = val.substring(0,2), m = val.substring(2,4);
+                if (parseInt(h)<24 && parseInt(m)<60) input.value = `${h}:${m}`;
+            }
+        }
+
+        function updateDaysTabsScroll() {
+            const cont = document.getElementById('daysTabsContainer');
+            if (cont) cont.scrollLeft = 0;
+        }
+
+        function openDailyMapRoute(planId, day) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan || !plan.activities) return;
+            let acts = plan.activities.filter(a => a.day === day);
+            if (acts.length === 0) { alert('今日尚無行程'); return; }
+            acts.sort((a,b) => parseTime(a.startTime) - parseTime(b.startTime));
+            let points = acts.map(a => (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '')).filter(p => p !== '');
+            if (points.length === 0) { alert('行程中沒有有效的地點或地址'); return; }
+            const route = [points[0]];
+            for (let i=1; i<points.length; i++) if (points[i] !== route[route.length-1]) route.push(points[i]);
+            const base = "https://www.google.com/maps/dir/";
+            window.open(base + route.map(loc => encodeURIComponent(loc)).join('/'), '_blank');
+        }
+
+        // ========== 事件監聽器設定 ==========
+        function setupEventListeners() {
+            document.getElementById('scrollToTopBtn').addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+            document.getElementById('scrollToBottomBtn').addEventListener('click', () => window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}));
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.addEventListener('click', function() {
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.body.className = this.dataset.theme;
+            }));
+            document.getElementById('addPlanBtn').addEventListener('click', showAddPlanModal);
+            document.getElementById('backupBtn').addEventListener('click', backupPlan);
+            document.getElementById('restoreBtn').addEventListener('click', restorePlan);
+            document.getElementById('exchangeRateBtn').addEventListener('click', showExchangeRateModal);
+            document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
+            document.getElementById('quickShareBtn').addEventListener('click', quickSharePlan);
+            document.getElementById('settingsBtn').addEventListener('click', function(e) { e.stopPropagation(); document.getElementById('settingsPanel').classList.toggle('active'); });
+            document.getElementById('aboutBtn').addEventListener('click', function() { document.getElementById('aboutModal').classList.add('active'); });
+            document.getElementById('closeAboutModal').addEventListener('click', function() { document.getElementById('aboutModal').classList.remove('active'); });
+            document.getElementById('cloudManageBtn').addEventListener('click', openCloudManageModal);
+            document.getElementById('closeCloudManageModal').addEventListener('click', () => document.getElementById('cloudManageModal').classList.remove('active'));
+            document.getElementById('backupCurrentPlanBtn').addEventListener('click', async function() {
+                await backupCurrentPlanToCloud();
+                await loadAllVersions();
+                renderCloudPlanList();
+            });
+            document.getElementById('refreshCloudPlansBtn').addEventListener('click', async function() {
+                await loadAllVersions();
+                renderCloudPlanList();
+            });
+            document.getElementById('closeShareCodeResultModal').addEventListener('click', () => document.getElementById('shareCodeResultModal').classList.remove('active'));
+            document.getElementById('copyShareLinkBtn').addEventListener('click', function() {
+                const url = document.getElementById('shareCodeUrl').textContent;
+                navigator.clipboard.writeText(url).then(() => {
+                    const btn = document.getElementById('copyShareLinkBtn');
+                    btn.innerHTML = '<i class="fas fa-check"></i> 已複製';
+                    btn.classList.add('copied');
+                    setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> 複製連結'; btn.classList.remove('copied'); }, 2000);
+                });
+            });
+            document.getElementById('testShareLinkBtn').addEventListener('click', function() {
+                window.open(document.getElementById('shareCodeUrl').textContent, '_blank');
+            });
+            document.addEventListener('click', function(e) {
+                const panel = document.getElementById('settingsPanel');
+                const btn = document.getElementById('settingsBtn');
+                if (!panel.contains(e.target) && !btn.contains(e.target) && panel.classList.contains('active')) panel.classList.remove('active');
+            });
+            document.getElementById('expiredPlansHeader').addEventListener('click', function() {
+                const content = document.getElementById('expiredPlansContent');
+                const icon = document.getElementById('expiredPlansIcon');
+                content.classList.toggle('expanded');
+                icon.className = content.classList.contains('expanded') ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+            });
+            document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+                document.getElementById('plansPanel').classList.toggle('active');
+                document.getElementById('overlay').classList.toggle('active');
+            });
+            document.getElementById('overlay').addEventListener('click', function() {
+                document.getElementById('plansPanel').classList.remove('active');
+                this.classList.remove('active');
+            });
+            document.getElementById('closePlanModal').addEventListener('click', closePlanModal);
+            document.getElementById('cancelPlanBtn').addEventListener('click', closePlanModal);
+            document.getElementById('closeActivityModal').addEventListener('click', closeActivityModal);
+            document.getElementById('cancelActivityBtn').addEventListener('click', closeActivityModal);
+            document.getElementById('closeTransportModal').addEventListener('click', closeTransportModal);
+            document.getElementById('cancelTransportBtn').addEventListener('click', closeTransportModal);
+            document.getElementById('closeCostModal').addEventListener('click', closeCostModal);
+            document.getElementById('cancelCostBtn').addEventListener('click', closeCostModal);
+            document.getElementById('closeExchangeRateModal').addEventListener('click', closeExchangeRateModal);
+            document.getElementById('cancelExchangeRateBtn').addEventListener('click', closeExchangeRateModal);
+            document.getElementById('planForm').addEventListener('submit', e => { e.preventDefault(); savePlan(); });
+            document.getElementById('activityForm').addEventListener('submit', e => { e.preventDefault(); saveActivity(); });
+            document.getElementById('transportForm').addEventListener('submit', e => { e.preventDefault(); saveTransport(); });
+            document.getElementById('costForm').addEventListener('submit', e => { e.preventDefault(); saveCost(); });
+            document.getElementById('saveExchangeRateBtn').addEventListener('click', saveExchangeRates);
+            document.getElementById('autoFetchRateBtn').addEventListener('click', fetchLiveExchangeRates);
+            document.getElementById('addActivityBtn').addEventListener('click', showAddActivityModal);
+            document.getElementById('addTransportBtn').addEventListener('click', showAddTransportModal);
+            document.getElementById('addCostBtn').addEventListener('click', showAddCostModal);
+            document.getElementById('activityCategory').addEventListener('change', function() {
+                const pc = document.getElementById('previousAccommodationContainer');
+                if (this.value === 'accommodation' && state.currentPlanId && state.currentDay > 1) {
+                    loadPreviousAccommodations();
+                    pc.style.display = 'block';
+                } else pc.style.display = 'none';
+            });
+            document.getElementById('previousAccommodation').addEventListener('change', function() {
+                if (this.value) {
+                    const plan = state.plans.find(p => p.id === state.currentPlanId);
+                    if (plan && plan.activities) {
+                        const acc = plan.activities.find(a => a.id === parseInt(this.value));
+                        if (acc) {
+                            document.getElementById('activityLocation').value = acc.location;
+                            document.getElementById('activityAddress').value = acc.address || '';
+                        }
+                    }
+                }
+            });
+            document.getElementById('addActivityLinkBtn').addEventListener('click', function() { addActivityLinkField(); });
+            document.getElementById('addTransportOptionBtn').addEventListener('click', function() { addTransportOptionField(); });
+            document.querySelectorAll('.modal').forEach(modal => modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); }));
+            window.addEventListener('resize', updateDaysTabsScroll);
+        }
+
+        // ----- 初始化 -----
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('編輯程式初始化 (Firebase 穩定版) — 已修正 c.type 錯誤，QR Code 與費用類別合併正常運作');
+            loadPlansFromStorage();
+            loadExchangeRatesFromStorage();
+            setupEventListeners();
+            updatePlansList();
+            updateCostSummary();
+            setupTimeFormatting();
+        });
+    </script>
+</body>
+</html>
