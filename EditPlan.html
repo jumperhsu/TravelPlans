@@ -751,28 +751,30 @@
         }
 
         // ========== 備份目前計劃到 Firebase ==========
-        async function backupCurrentPlanToCloud() {
-            if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return null; }
-            const plan = state.plans.find(p => p.id === state.currentPlanId);
-            if (!plan) return null;
-            const versionId = generateGuid();
-            const timestamp = Date.now();
-            const backupData = {
-                planId: plan.id,
-                planName: plan.name,
-                timestamp: timestamp,
-                planData: JSON.parse(JSON.stringify(plan))
-            };
-            try {
-                await db.ref(`${VERSIONS_NODE}/${versionId}`).set(backupData);
-                alert(`計劃「${plan.name}」已備份成功！版本 ID: ${versionId.substr(0,8)}`);
-                return versionId;
-            } catch (error) {
-                console.error('備份失敗:', error);
-                alert('備份失敗：' + error.message);
-                return null;
-            }
-        }
+		async function backupCurrentPlanToCloud() {
+			if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return null; }
+			const plan = state.plans.find(p => p.id === state.currentPlanId);
+			if (!plan) return null;
+			const versionId = generateGuid();
+			const timestamp = Date.now();
+			const backupData = {
+				planId: plan.id,
+				planName: plan.name,
+				timestamp: timestamp,
+				planData: JSON.parse(JSON.stringify(plan)),
+				exchangeRates: { ...state.exchangeRates }   // ✅ 加入這行
+			};
+			try {
+				await db.ref(`${VERSIONS_NODE}/${versionId}`).set(backupData);
+				alert(`計劃「${plan.name}」已備份成功！版本 ID: ${versionId.substr(0,8)}`);
+				return versionId;
+			} catch (error) {
+				console.error('備份失敗:', error);
+				alert('備份失敗：' + error.message);
+				return null;
+			}
+		}		
+		
 
         // ========== 刪除單一版本 ==========
         async function deleteCloudVersion(versionId) {

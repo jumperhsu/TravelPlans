@@ -28,9 +28,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--background-color); color: var(--text-color); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; width: 100%; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 30px; flex-wrap: wrap; }
-        h1 { color: var(--primary-color); font-size: 2rem; }
-        .tagline { color: var(--light-text); font-size: 1rem; }
+        /* 標題列已完全移除 */
         .itinerary-panel { background-color: var(--card-color); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow); width: 100%; }
         .no-plan-selected { text-align: center; padding: 60px 20px; color: var(--light-text); }
         .no-plan-selected i { font-size: 4rem; color: #e0e0e0; margin-bottom: 20px; }
@@ -85,18 +83,53 @@
         .btn-map-route:hover { background-color: #0b8043; }
         .error-container { text-align: center; padding: 60px; color: var(--danger-color); }
         .back-link { margin-top: 30px; text-align: center; }
+
+        /* ===== 新增：滾動按鈕 (完全複製自編輯模式) ===== */
+        .scroll-buttons {
+            position: fixed;
+            right: clamp(15px, 3vw, 30px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99;
+        }
+        .scroll-btn {
+            width: clamp(40px, 8vw, 50px);
+            height: clamp(40px, 8vw, 50px);
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            border: none;
+            font-size: 1.2rem;
+        }
+        .scroll-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+        @media (max-width: 1024px) {
+            .scroll-buttons { display: none; } /* 手機板隱藏，避免干擾 */
+        }
+
         @media (max-width: 768px) { .container { padding: 15px; } .activity-header { flex-direction: column; } }
     </style>
 </head>
 <body>
+    <!-- 滾動按鈕 ↑↓ -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn" id="scrollToTopBtn"><i class="fas fa-chevron-up"></i></button>
+        <button class="scroll-btn" id="scrollToBottomBtn"><i class="fas fa-chevron-down"></i></button>
+    </div>
+
     <div class="container">
-        <header>
-            <div>
-                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃檢視</h1>
-                <p class="tagline">唯讀模式 - 分享的旅程</p>
-            </div>
-            <!-- 已移除「開啟編輯器」按鈕 -->
-        </header>
+        <!-- 標題列已完全移除（原旅遊計劃檢視／唯讀模式） -->
 
         <div class="itinerary-panel">
             <div id="loadingIndicator" style="text-align: center; padding: 60px;">
@@ -143,6 +176,7 @@
         // ---------- 全域變數 ----------
         let currentPlan = null;
         let currentDay = 1;
+        // 預設匯率（若備份無匯率資料則使用此組）
         let exchangeRates = { USD: 30.5, JPY: 0.22, EUR: 33.5, CNY: 4.3, KRW: 0.023, HKD: 3.9, GBP: 38.5, TWD: 1 };
 
         // ---------- 輔助函數 ----------
@@ -158,7 +192,23 @@
             return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0;
         }
 
-        // ---------- Google 地圖路線規劃 (與編輯模式相同) ----------
+        // ---------- 滾動按鈕功能 (與編輯模式相同) ----------
+        document.addEventListener('DOMContentLoaded', function() {
+            const topBtn = document.getElementById('scrollToTopBtn');
+            const bottomBtn = document.getElementById('scrollToBottomBtn');
+            if (topBtn) {
+                topBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+            if (bottomBtn) {
+                bottomBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                });
+            }
+        });
+
+        // ---------- Google 地圖路線規劃 ----------
         function openDailyMapRoute(day) {
             if (!currentPlan || !currentPlan.activities) return;
             const dayActivities = currentPlan.activities.filter(a => a.day === day);
@@ -166,9 +216,7 @@
                 alert('今日尚無行程');
                 return;
             }
-            // 依開始時間排序
             dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
-            // 收集地址/地點 (優先使用地址，否則使用地點名稱)
             let points = dayActivities.map(a => 
                 (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '')
             ).filter(p => p !== '');
@@ -177,7 +225,6 @@
                 alert('行程中沒有有效的地點或地址');
                 return;
             }
-            // 移除重複的連續相同地點
             const route = [points[0]];
             for (let i = 1; i < points.length; i++) {
                 if (points[i] !== route[route.length - 1]) route.push(points[i]);
@@ -187,7 +234,7 @@
             window.open(url, '_blank');
         }
 
-        // ---------- 載入分享計劃 ----------
+        // ---------- 載入分享計劃（強化匯率合併）----------
         async function loadSharedPlan() {
             const urlParams = new URLSearchParams(window.location.search);
             const versionId = urlParams.get('versionId');
@@ -210,7 +257,15 @@
                 }
 
                 currentPlan = data.planData;
-                if (data.exchangeRates) exchangeRates = { ...exchangeRates, ...data.exchangeRates };
+
+                // ✅ 強化合併匯率：優先使用備份中的匯率，若無則保留預設值
+                if (data.exchangeRates && typeof data.exchangeRates === 'object') {
+                    exchangeRates = { ...exchangeRates, ...data.exchangeRates };
+                    console.log('✅ 已套用備份匯率:', exchangeRates);
+                } else {
+                    console.warn('⚠️ 此備份無匯率資料，使用預設匯率（可能與編輯模式不同）');
+                    console.log('目前使用預設匯率:', exchangeRates);
+                }
 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('planContent').style.display = 'block';
@@ -263,9 +318,7 @@
                 dayDiv.className = `day-content ${i === currentDay ? 'active' : ''}`;
                 dayDiv.dataset.day = i;
 
-                // 標題＋地圖按鈕
                 const dayTitle = currentPlan.dayTitles?.[i] || `第 ${i} 天`;
-                // 檢查是否有行程，決定是否顯示地圖按鈕
                 const hasActivities = (currentPlan.activities || []).some(a => a.day === i);
                 const mapBtn = hasActivities 
                     ? `<button class="btn btn-map-route" onclick="openDailyMapRoute(${i})"><i class="fas fa-map-marked-alt"></i> 查看地圖路線</button>`
@@ -293,7 +346,6 @@
             });
             tabsContainer.appendChild(costTab);
 
-            // 費用內容容器
             const costDiv = document.createElement('div');
             costDiv.className = 'cost-content';
             costDiv.id = 'costContent';
@@ -431,6 +483,7 @@
             return el;
         }
 
+        // ---------- 費用表格渲染（已修正類別中文顯示）----------
         function renderCostContent() {
             const costDiv = document.getElementById('costContent');
             if (!costDiv) return;
@@ -455,6 +508,13 @@
                 return;
             }
 
+            // 類別中文對照表（完整版）
+            const catLabels = { 
+                attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', 
+                shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' 
+            };
+
+            // 依日期分組（與編輯模式一致）
             const groups = {};
             allCosts.forEach(c => {
                 if (!groups[c.date]) groups[c.date] = { title: formatDate(new Date(c.date)), items: [], totalTWD: 0 };
@@ -464,14 +524,17 @@
             Object.keys(groups).sort((a,b) => new Date(a) - new Date(b)).forEach(date => {
                 const g = groups[date];
                 g.items.sort((a,b) => (a.category || '').localeCompare(b.category || ''));
+                // 計算當日小計
                 g.items.forEach(c => {
                     const rate = exchangeRates[c.currency || 'TWD'] || 1;
                     g.totalTWD += c.amount * rate;
                 });
 
+                // 日期分組標題
                 const headerRow = `<tr><td colspan="8" style="padding:0;"><div class="cost-group-header"><span>${g.title}</span><span>小計: ${g.totalTWD.toFixed(2)} TWD</span></div></td></tr>`;
                 tbody.innerHTML += headerRow;
 
+                // 當日每一筆費用
                 g.items.forEach(c => {
                     const original = c.amount || 0;
                     const cur = c.currency || 'TWD';
@@ -480,8 +543,15 @@
                     const participants = c.participants || 1;
                     const per = twd / participants;
 
-                    const catLabels = { attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' };
-                    let catText = catLabels[c.category] || c.category;
+                    // 類別顯示中文（交通費用強制顯示「交通」，其餘從對照表）
+                    let catText = '';
+                    if (c.type === 'transport') {
+                        catText = '交通';
+                    } else {
+                        catText = catLabels[c.category] || c.category;
+                    }
+
+                    // 說明欄位
                     let desc = '';
                     if (c.type === 'activity') desc = c.name;
                     else if (c.type === 'transport') desc = `${c.fromActivityName || ''} → ${c.toActivityName || ''}`;
@@ -500,6 +570,7 @@
                 });
             });
 
+            // 總計（全計劃）
             const totals = calculateTotalCosts(allCosts);
             tbody.innerHTML += `<tr class="cost-total-row">
                                     <td colspan="5"><strong>總計 (新台幣)</strong></td>
@@ -509,13 +580,22 @@
                                 </tr>`;
         }
 
+        // ---------- 蒐集所有費用（與編輯模式完全一致）----------
         function getAllCosts(plan) {
             const costs = [];
             if (plan.activities) plan.activities.forEach(a => {
                 if (a.cost > 0) {
                     const d = new Date(plan.startDate);
                     d.setDate(d.getDate() + a.day - 1);
-                    costs.push({ type:'activity', date: d.toISOString().split('T')[0], category: a.category, name: a.name, amount: a.cost, currency: a.currency||'TWD', participants: a.participants||1 });
+                    costs.push({ 
+                        type:'activity', 
+                        date: d.toISOString().split('T')[0], 
+                        category: a.category, 
+                        name: a.name, 
+                        amount: a.cost, 
+                        currency: a.currency||'TWD', 
+                        participants: a.participants||1 
+                    });
                 }
             });
             if (plan.transports) plan.transports.forEach(t => {
@@ -523,12 +603,29 @@
                     if (opt.isMain && opt.cost > 0) {
                         const d = new Date(plan.startDate);
                         d.setDate(d.getDate() + t.day - 1);
-                        costs.push({ type:'transport', date: d.toISOString().split('T')[0], category: opt.type, fromActivityName: t.fromActivityName, toActivityName: t.toActivityName, amount: opt.cost, currency: opt.currency||'TWD', participants: opt.participants||1 });
+                        costs.push({ 
+                            type:'transport', 
+                            date: d.toISOString().split('T')[0], 
+                            category: opt.type, 
+                            fromActivityName: t.fromActivityName, 
+                            toActivityName: t.toActivityName, 
+                            amount: opt.cost, 
+                            currency: opt.currency||'TWD', 
+                            participants: opt.participants||1 
+                        });
                     }
                 });
             });
             if (plan.additionalCosts) plan.additionalCosts.forEach(c => {
-                costs.push({ type:'additional', date: c.date, category: c.category, description: c.description, amount: c.amount, currency: c.currency||'TWD', participants: c.participants||1 });
+                costs.push({ 
+                    type:'additional', 
+                    date: c.date, 
+                    category: c.category, 
+                    description: c.description, 
+                    amount: c.amount, 
+                    currency: c.currency||'TWD', 
+                    participants: c.participants||1 
+                });
             });
             return costs;
         }
