@@ -84,7 +84,7 @@
         .error-container { text-align: center; padding: 60px; color: var(--danger-color); }
         .back-link { margin-top: 30px; text-align: center; }
 
-        /* ===== 新增：滾動按鈕 (完全複製自編輯模式) ===== */
+        /* ===== 滾動按鈕 ===== */
         .scroll-buttons {
             position: fixed;
             right: clamp(15px, 3vw, 30px);
@@ -115,10 +115,22 @@
             transform: scale(1.1);
         }
         @media (max-width: 1024px) {
-            .scroll-buttons { display: none; } /* 手機板隱藏，避免干擾 */
+            .scroll-buttons { display: none; }
         }
-
         @media (max-width: 768px) { .container { padding: 15px; } .activity-header { flex-direction: column; } }
+
+        /* ----- 最新版本提示（極簡，不佔空間）----- */
+        .version-hint {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
@@ -129,8 +141,6 @@
     </div>
 
     <div class="container">
-        <!-- 標題列已完全移除（原旅遊計劃檢視／唯讀模式） -->
-
         <div class="itinerary-panel">
             <div id="loadingIndicator" style="text-align: center; padding: 60px;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary-color);"></i>
@@ -147,6 +157,8 @@
                 </div>
             </div>
             <div id="planContent" style="display: none;">
+                <!-- 最新版本提示會動態插入此處 -->
+                <div id="versionHintContainer" style="min-height: 30px;"></div>
                 <div class="plan-header">
                     <h2 id="planName"></h2>
                     <p id="planDates"></p>
@@ -172,11 +184,11 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const VERSIONS_NODE = 'plan_versions';
 
         // ---------- 全域變數 ----------
         let currentPlan = null;
         let currentDay = 1;
-        // 預設匯率（若備份無匯率資料則使用此組）
         let exchangeRates = { USD: 30.5, JPY: 0.22, EUR: 33.5, CNY: 4.3, KRW: 0.023, HKD: 3.9, GBP: 38.5, TWD: 1 };
 
         // ---------- 輔助函數 ----------
@@ -192,39 +204,24 @@
             return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0;
         }
 
-        // ---------- 滾動按鈕功能 (與編輯模式相同) ----------
+        // ---------- 滾動按鈕功能 ----------
         document.addEventListener('DOMContentLoaded', function() {
             const topBtn = document.getElementById('scrollToTopBtn');
             const bottomBtn = document.getElementById('scrollToBottomBtn');
-            if (topBtn) {
-                topBtn.addEventListener('click', () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            }
-            if (bottomBtn) {
-                bottomBtn.addEventListener('click', () => {
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                });
-            }
+            if (topBtn) topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            if (bottomBtn) bottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         });
 
         // ---------- Google 地圖路線規劃 ----------
         function openDailyMapRoute(day) {
             if (!currentPlan || !currentPlan.activities) return;
             const dayActivities = currentPlan.activities.filter(a => a.day === day);
-            if (dayActivities.length === 0) {
-                alert('今日尚無行程');
-                return;
-            }
+            if (dayActivities.length === 0) { alert('今日尚無行程'); return; }
             dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
             let points = dayActivities.map(a => 
                 (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '')
             ).filter(p => p !== '');
-            
-            if (points.length === 0) {
-                alert('行程中沒有有效的地點或地址');
-                return;
-            }
+            if (points.length === 0) { alert('行程中沒有有效的地點或地址'); return; }
             const route = [points[0]];
             for (let i = 1; i < points.length; i++) {
                 if (points[i] !== route[route.length - 1]) route.push(points[i]);
@@ -234,7 +231,51 @@
             window.open(url, '_blank');
         }
 
-        // ---------- 載入分享計劃（強化匯率合併）----------
+        // ---------- 🔍 查詢同一計劃的最新版本 ----------
+        async function findLatestVersionByPlanId(planId, currentVersionId) {
+            try {
+                const snapshot = await db.ref(VERSIONS_NODE)
+                    .orderByChild('planId')
+                    .equalTo(planId)
+                    .once('value');
+                
+                if (!snapshot.exists()) return null;
+
+                let latestVersion = null;
+                let latestTimestamp = 0;
+
+                snapshot.forEach(child => {
+                    const ver = child.val();
+                    if (ver.timestamp && ver.timestamp > latestTimestamp) {
+                        latestTimestamp = ver.timestamp;
+                        latestVersion = {
+                            versionId: child.key,
+                            ...ver
+                        };
+                    }
+                });
+
+                // 如果最新版本的 ID 與目前版本不同，則回傳最新版本
+                if (latestVersion && latestVersion.versionId !== currentVersionId) {
+                    console.log(`📌 發現更新版本：${latestVersion.versionId.substr(0,8)}，時間戳 ${new Date(latestTimestamp).toLocaleString()}`);
+                    return latestVersion;
+                }
+                return null; // 已是最新
+            } catch (error) {
+                console.warn('查詢最新版本失敗，將使用原版本', error);
+                return null;
+            }
+        }
+
+        // ---------- 顯示「已為您跳轉至最新版本」提示 ----------
+        function showVersionHint(message) {
+            const container = document.getElementById('versionHintContainer');
+            if (container) {
+                container.innerHTML = `<div class="version-hint"><i class="fas fa-cloud-upload-alt"></i> ${message}</div>`;
+            }
+        }
+
+        // ---------- 載入分享計劃（自動跳轉最新版）----------
         async function loadSharedPlan() {
             const urlParams = new URLSearchParams(window.location.search);
             const versionId = urlParams.get('versionId');
@@ -244,31 +285,59 @@
             }
 
             try {
-                const snapshot = await db.ref(`plan_versions/${versionId}`).once('value');
+                // 1. 先取得原始版本資料
+                const snapshot = await db.ref(`${VERSIONS_NODE}/${versionId}`).once('value');
                 if (!snapshot.exists()) {
                     showError('找不到對應的旅遊計劃，可能已被刪除。');
                     return;
                 }
 
-                const data = snapshot.val();
-                if (!data.planData) {
+                const originalData = snapshot.val();
+                if (!originalData.planData) {
                     showError('計劃資料格式錯誤。');
                     return;
                 }
 
-                currentPlan = data.planData;
-
-                // ✅ 強化合併匯率：優先使用備份中的匯率，若無則保留預設值
-                if (data.exchangeRates && typeof data.exchangeRates === 'object') {
-                    exchangeRates = { ...exchangeRates, ...data.exchangeRates };
-                    console.log('✅ 已套用備份匯率:', exchangeRates);
-                } else {
-                    console.warn('⚠️ 此備份無匯率資料，使用預設匯率（可能與編輯模式不同）');
-                    console.log('目前使用預設匯率:', exchangeRates);
+                // 2. 取得 planId（備份時直接儲存的欄位，若無則從 planData.id 取得）
+                const planId = originalData.planId || originalData.planData?.id;
+                if (!planId) {
+                    console.warn('無法從備份中取得 planId，將使用原始版本');
                 }
 
+                let targetData = originalData;
+                let targetVersionId = versionId;
+                let isLatest = true;
+
+                // 3. 如果有 planId，查詢該計劃的最新版本
+                if (planId) {
+                    const latestVersion = await findLatestVersionByPlanId(planId, versionId);
+                    if (latestVersion) {
+                        targetData = latestVersion;
+                        targetVersionId = latestVersion.versionId;
+                        isLatest = false;
+                        showVersionHint(`已為您跳轉至最新版本 (${new Date(latestVersion.timestamp).toLocaleDateString()})`);
+                    }
+                }
+
+                // 4. 使用最終確定的版本資料
+                currentPlan = targetData.planData;
+
+                // 5. 合併匯率（優先使用備份中的匯率）
+                if (targetData.exchangeRates && typeof targetData.exchangeRates === 'object') {
+                    exchangeRates = { ...exchangeRates, ...targetData.exchangeRates };
+                    console.log('✅ 已套用備份匯率:', exchangeRates);
+                } else {
+                    console.warn('⚠️ 此備份無匯率資料，使用預設匯率');
+                }
+
+                // 6. 隱藏載入、顯示內容
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('planContent').style.display = 'block';
+
+                // 若已是最新，可顯示簡短提示（選用）
+                if (isLatest && planId) {
+                    showVersionHint('✔ 您正在檢視最新版本');
+                }
 
                 renderPlan();
             } catch (error) {
@@ -283,7 +352,7 @@
             document.getElementById('errorDetail').textContent = msg;
         }
 
-        // ---------- 渲染計劃 ----------
+        // ---------- 渲染計劃（以下完全沿用先前已修正版本）----------
         function renderPlan() {
             if (!currentPlan) return;
 
@@ -305,7 +374,6 @@
             daysContent.innerHTML = '';
 
             for (let i = 1; i <= currentPlan.days; i++) {
-                // 頁籤
                 const tab = document.createElement('div');
                 tab.className = `day-tab ${i === currentDay ? 'active' : ''}`;
                 tab.textContent = `Day ${i}`;
@@ -313,7 +381,6 @@
                 tab.addEventListener('click', () => showDay(i));
                 tabsContainer.appendChild(tab);
 
-                // 每日內容容器
                 const dayDiv = document.createElement('div');
                 dayDiv.className = `day-content ${i === currentDay ? 'active' : ''}`;
                 dayDiv.dataset.day = i;
@@ -334,7 +401,6 @@
                 daysContent.appendChild(dayDiv);
             }
 
-            // 費用頁籤
             const costTab = document.createElement('div');
             costTab.className = 'day-tab cost-tab';
             costTab.textContent = '費用';
@@ -483,7 +549,7 @@
             return el;
         }
 
-        // ---------- 費用表格渲染（已修正類別中文顯示）----------
+        // ---------- 費用表格渲染（中文類別、正確匯率）----------
         function renderCostContent() {
             const costDiv = document.getElementById('costContent');
             if (!costDiv) return;
@@ -508,13 +574,11 @@
                 return;
             }
 
-            // 類別中文對照表（完整版）
             const catLabels = { 
                 attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', 
                 shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' 
             };
 
-            // 依日期分組（與編輯模式一致）
             const groups = {};
             allCosts.forEach(c => {
                 if (!groups[c.date]) groups[c.date] = { title: formatDate(new Date(c.date)), items: [], totalTWD: 0 };
@@ -524,17 +588,14 @@
             Object.keys(groups).sort((a,b) => new Date(a) - new Date(b)).forEach(date => {
                 const g = groups[date];
                 g.items.sort((a,b) => (a.category || '').localeCompare(b.category || ''));
-                // 計算當日小計
                 g.items.forEach(c => {
                     const rate = exchangeRates[c.currency || 'TWD'] || 1;
                     g.totalTWD += c.amount * rate;
                 });
 
-                // 日期分組標題
                 const headerRow = `<tr><td colspan="8" style="padding:0;"><div class="cost-group-header"><span>${g.title}</span><span>小計: ${g.totalTWD.toFixed(2)} TWD</span></div></td></tr>`;
                 tbody.innerHTML += headerRow;
 
-                // 當日每一筆費用
                 g.items.forEach(c => {
                     const original = c.amount || 0;
                     const cur = c.currency || 'TWD';
@@ -543,7 +604,6 @@
                     const participants = c.participants || 1;
                     const per = twd / participants;
 
-                    // 類別顯示中文（交通費用強制顯示「交通」，其餘從對照表）
                     let catText = '';
                     if (c.type === 'transport') {
                         catText = '交通';
@@ -551,7 +611,6 @@
                         catText = catLabels[c.category] || c.category;
                     }
 
-                    // 說明欄位
                     let desc = '';
                     if (c.type === 'activity') desc = c.name;
                     else if (c.type === 'transport') desc = `${c.fromActivityName || ''} → ${c.toActivityName || ''}`;
@@ -570,7 +629,6 @@
                 });
             });
 
-            // 總計（全計劃）
             const totals = calculateTotalCosts(allCosts);
             tbody.innerHTML += `<tr class="cost-total-row">
                                     <td colspan="5"><strong>總計 (新台幣)</strong></td>
@@ -580,7 +638,6 @@
                                 </tr>`;
         }
 
-        // ---------- 蒐集所有費用（與編輯模式完全一致）----------
         function getAllCosts(plan) {
             const costs = [];
             if (plan.activities) plan.activities.forEach(a => {
