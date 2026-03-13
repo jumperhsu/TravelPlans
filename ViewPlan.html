@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>旅遊計劃規劃 - 檢視模式</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
@@ -134,7 +133,6 @@
     </style>
 </head>
 <body>
-    <!-- 滾動按鈕 ↑↓ -->
     <div class="scroll-buttons">
         <button class="scroll-btn" id="scrollToTopBtn"><i class="fas fa-chevron-up"></i></button>
         <button class="scroll-btn" id="scrollToBottomBtn"><i class="fas fa-chevron-down"></i></button>
@@ -157,7 +155,6 @@
                 </div>
             </div>
             <div id="planContent" style="display: none;">
-                <!-- 最新版本提示會動態插入此處 -->
                 <div id="versionHintContainer" style="min-height: 30px;"></div>
                 <div class="plan-header">
                     <h2 id="planName"></h2>
@@ -352,7 +349,7 @@
             document.getElementById('errorDetail').textContent = msg;
         }
 
-        // ---------- 渲染計劃（以下完全沿用先前已修正版本）----------
+        // ---------- 渲染計劃 ----------
         function renderPlan() {
             if (!currentPlan) return;
 
@@ -373,10 +370,18 @@
             tabsContainer.innerHTML = '';
             daysContent.innerHTML = '';
 
+            const startDateObj = new Date(currentPlan.startDate);
+
             for (let i = 1; i <= currentPlan.days; i++) {
+                const currentDayDate = new Date(startDateObj);
+                currentDayDate.setDate(startDateObj.getDate() + i - 1);
+                const month = currentDayDate.getMonth() + 1;
+                const date = currentDayDate.getDate();
+                const dateStr = `${month}/${date}`;
+
                 const tab = document.createElement('div');
                 tab.className = `day-tab ${i === currentDay ? 'active' : ''}`;
-                tab.textContent = `Day ${i}`;
+                tab.textContent = `第 ${i} 天 (${dateStr})`;
                 tab.dataset.day = i;
                 tab.addEventListener('click', () => showDay(i));
                 tabsContainer.appendChild(tab);
@@ -393,7 +398,7 @@
 
                 dayDiv.innerHTML = `
                     <div class="day-header">
-                        <h4 class="day-title">${dayTitle}</h4>
+                        <h4 class="day-title">${dayTitle} (${dateStr})</h4>
                         ${mapBtn}
                     </div>
                     <div class="activities-container" data-day="${i}"></div>
@@ -507,7 +512,7 @@
             const el = document.createElement('div');
             el.className = `transport-item ${transport.isMain ? 'transport-main' : 'transport-alternate'}`;
 
-            const transportLabels = { taxi:'計程車', subway:'地鐵', bus:'公交', train:'高鐵', walking:'步行', flight:'飛機', ship:'輪船', coach:'巴士', selfdrive:'自駕', other:'其他' };
+            const transportLabels = { taxi:'計程車', subway:'地鐵', bus:'公車', train:'高鐵/火車', walking:'步行', flight:'飛機', ship:'輪船', coach:'客運/巴士', selfdrive:'自駕', other:'其他' };
             const routeDesc = transport.fromLocation && transport.toLocation ? `${transport.fromLocation} → ${transport.toLocation}` : `${transport.fromActivityName} → ${transport.toActivityName}`;
 
             let totalCostTWD = 0, totalPersonalTWD = 0;
@@ -549,7 +554,7 @@
             return el;
         }
 
-        // ---------- 費用表格渲染（中文類別、正確匯率）----------
+        // ---------- 費用表格渲染（中文類別、正確匯率、說明換行）----------
         function renderCostContent() {
             const costDiv = document.getElementById('costContent');
             if (!costDiv) return;
@@ -576,7 +581,8 @@
 
             const catLabels = { 
                 attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', 
-                shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' 
+                shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路',
+                taxi:'計程車', subway:'地鐵', bus:'公車', train:'高鐵/火車', walking:'步行', flight:'飛機', ship:'輪船', coach:'客運/巴士', selfdrive:'自駕'
             };
 
             const groups = {};
@@ -606,7 +612,7 @@
 
                     let catText = '';
                     if (c.type === 'transport') {
-                        catText = '交通';
+                        catText = catLabels[c.category] || '交通';
                     } else {
                         catText = catLabels[c.category] || c.category;
                     }
@@ -616,10 +622,12 @@
                     else if (c.type === 'transport') desc = `${c.fromActivityName || ''} → ${c.toActivityName || ''}`;
                     else desc = c.description || '';
 
+                    const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${desc}</td>`;
+
                     tbody.innerHTML += `<tr>
                                             <td>${formatDate(new Date(c.date))}</td>
                                             <td>${catText}</td>
-                                            <td>${desc}</td>
+                                            ${descTd}
                                             <td>${cur}</td>
                                             <td>${original.toFixed(2)}</td>
                                             <td>${twd.toFixed(2)}</td>
@@ -630,11 +638,10 @@
             });
 
             const totals = calculateTotalCosts(allCosts);
+            const roundedPersonalTotal = Math.round(totals.totalPersonalTWD);
             tbody.innerHTML += `<tr class="cost-total-row">
-                                    <td colspan="5"><strong>總計 (新台幣)</strong></td>
-                                    <td><strong>${totals.totalTWD.toFixed(2)}</strong></td>
-                                    <td></td>
-                                    <td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td>
+                                    <td colspan="7" style="text-align:right; padding-right:15px;"><strong>個人總計 (新台幣)</strong></td>
+                                    <td class="total-cost"><strong>${roundedPersonalTotal}</strong></td>
                                 </tr>`;
         }
 
