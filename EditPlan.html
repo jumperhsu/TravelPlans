@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>旅遊計劃規劃應用程式 - 編輯模式 (終極完整版)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    <!-- QR Code 產生器 -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-    <!-- EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- 引入加密函式庫 (用於安全儲存驗證碼) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         /* ----- 您的所有原始樣式，一字未刪 ----- */
@@ -267,10 +263,8 @@
     </style>
 </head>
 <body class="theme-blue scroll-prevention">
-    <!-- 手機選單按鈕 -->
     <div class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></div>
     <div class="overlay" id="overlay"></div>
-    <!-- 滾動到頂部/底部按鈕 -->
     <div class="scroll-buttons">
         <button class="scroll-btn" id="scrollToTopBtn"><i class="fas fa-chevron-up"></i></button>
         <button class="scroll-btn" id="scrollToBottomBtn"><i class="fas fa-chevron-down"></i></button>
@@ -279,20 +273,16 @@
     <div class="container scroll-prevention">
         <header>
             <div class="header-left">
-                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260213.04 (完整版)</span></h1>                
+                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260314.05 (優化版)</span></h1>                
             </div>
             <div class="header-right">
-                <!-- 主題選擇器 -->
                 <div class="theme-selector">
                     <div class="theme-btn blue active" data-theme="theme-blue"></div>
                     <div class="theme-btn green" data-theme="theme-green"></div>
                     <div class="theme-btn purple" data-theme="theme-purple"></div>
                 </div>
-                <!-- 關於按鈕 -->
                 <div class="about-btn" id="aboutBtn"><i class="fas fa-info-circle"></i></div>
-                <!-- ===== 登入/登出 整合按鈕 ===== -->
                 <button class="login-btn" id="loginToggleBtn"><i class="fas fa-sign-in-alt"></i> <span id="loginBtnText">登入</span></button>
-                <!-- 設定面板（雲端管理入口） -->
                 <div class="settings-container">
                     <div class="settings-btn connected" id="settingsBtn"><i class="fas fa-cloud"></i></div>
                     <div class="settings-panel" id="settingsPanel">
@@ -308,7 +298,6 @@
         </header>
 
         <div class="app-container">
-            <!-- 左側旅遊計劃面板 -->
             <div class="plans-panel" id="plansPanel">
                 <h2><i class="fas fa-calendar-alt"></i> 旅遊計劃</h2>
                 <div class="plan-actions">
@@ -319,7 +308,6 @@
                     <button class="btn btn-view-mode" id="quickShareBtn"><i class="fas fa-share-alt"></i> 快速分享</button>
                 </div>
                 <div class="plans-list" id="plansList"></div>
-                <!-- 已過期計劃區域 -->
                 <div id="expiredPlansContainer" style="display: none;">
                     <div class="expired-plans-header" id="expiredPlansHeader">
                         <div class="expired-plans-title"><i class="fas fa-chevron-down" id="expiredPlansIcon"></i><span>已過期旅遊計劃</span><span class="expired-plans-count" id="expiredPlansCount">0</span></div>
@@ -328,7 +316,6 @@
                 </div>
             </div>
 
-            <!-- 右側行程面板 -->
             <div class="itinerary-panel scroll-prevention">
                 <div id="noPlanSelected" class="no-plan-selected">
                     <i class="fas fa-plane"></i>
@@ -356,20 +343,17 @@
         </div>
     </div>
 
-    <!-- 浮動按鈕 -->
     <div class="floating-buttons">
         <div class="floating-btn add-activity" id="addActivityBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+行程</span></div>
         <div class="floating-btn add-transport" id="addTransportBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+交通</span></div>
         <div class="floating-btn add-cost" id="addCostBtn"><i class="fas fa-plus"></i><span class="floating-btn-text">+費用</span></div>
     </div>
 
-    <!-- ========== 模態框 ========== -->
-    <!-- 新增/編輯計劃模態框 -->
     <div class="modal" id="planModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="planModalTitle">新增旅遊計劃</h3>
-                <button class="btn btn-secondary" id="closePlanModal">&times;</button>
+                <button class="btn btn-secondary" id="closePlanModal">×</button>
             </div>
             <div class="modal-body">
                 <form id="planForm">
@@ -396,12 +380,11 @@
         </div>
     </div>
 
-    <!-- 新增/編輯行程模態框 -->
     <div class="modal" id="activityModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="activityModalTitle">新增行程</h3>
-                <button class="btn btn-secondary" id="closeActivityModal">&times;</button>
+                <button class="btn btn-secondary" id="closeActivityModal">×</button>
             </div>
             <div class="modal-body">
                 <form id="activityForm">
@@ -430,7 +413,6 @@
                             <option value="other">其他</option>
                         </select>
                     </div>
-                    <!-- 前一晚住宿選擇（僅當類別為住宿時顯示） -->
                     <div id="previousAccommodationContainer" class="previous-accommodation" style="display: none;">
                         <label for="previousAccommodation">選擇前一晚住宿地點</label>
                         <select id="previousAccommodation"><option value="">無（新住宿地點）</option></select>
@@ -470,7 +452,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- 多連結區域 -->
                     <div class="links-container">
                         <div class="links-title">
                             <label>相關連結</label>
@@ -491,12 +472,11 @@
         </div>
     </div>
 
-    <!-- 新增/編輯交通方式模態框 -->
     <div class="modal" id="transportModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="transportModalTitle">新增交通方式</h3>
-                <button class="btn btn-secondary" id="closeTransportModal">&times;</button>
+                <button class="btn btn-secondary" id="closeTransportModal">×</button>
             </div>
             <div class="modal-body">
                 <form id="transportForm">
@@ -520,7 +500,6 @@
                             <input type="text" id="transportEndTime" placeholder="例如：0930" required>
                         </div>
                     </div>
-                    <!-- 多交通方式區域 -->
                     <div class="transport-options-container">
                         <div class="links-title">
                             <label>交通方式選項</label>
@@ -537,12 +516,11 @@
         </div>
     </div>
 
-    <!-- 新增/編輯費用模態框 -->
     <div class="modal" id="costModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="costModalTitle">新增費用</h3>
-                <button class="btn btn-secondary" id="closeCostModal">&times;</button>
+                <button class="btn btn-secondary" id="closeCostModal">×</button>
             </div>
             <div class="modal-body">
                 <form id="costForm">
@@ -603,12 +581,11 @@
         </div>
     </div>
 
-    <!-- 匯率設定模態框 -->
     <div class="modal" id="exchangeRateModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-exchange-alt"></i> 匯率設定</h3>
-                <button class="btn btn-secondary" id="closeExchangeRateModal">&times;</button>
+                <button class="btn btn-secondary" id="closeExchangeRateModal">×</button>
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 20px; color: var(--light-text);">設定外幣對新台幣(TWD)的匯率，用於費用統計計算。</p>
@@ -630,30 +607,29 @@
         </div>
     </div>
 
-    <!-- 關於模態框 -->
     <div class="modal" id="aboutModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-info-circle"></i> 關於旅遊計劃規劃</h3>
-                <button class="btn btn-secondary" id="closeAboutModal">&times;</button>
+                <button class="btn btn-secondary" id="closeAboutModal">×</button>
             </div>
             <div class="modal-body">
                 <div class="about-content">
                     <h3>旅遊計劃規劃應用程式</h3>
-                    <div class="version">版本：v20260213.04 (完整版)</div>
+                    <div class="version">版本：v20260314.05 (優化版)</div>
                     <p>這是一個功能完整的旅遊計劃規劃工具，幫助您輕鬆規劃完美的旅程。</p>
                     <div class="credit">
                         <h4>開發團隊</h4>
                         <p><strong>構想：</strong>Jumper.Hsu@gmail.com</p>
-                        <p><strong>程式：</strong>DeepSeek</p>
+                        <p><strong>程式：</strong>DeepSeek / Gemini</p>
 						<p><strong>資料庫：</strong>FireBase</p>
                     </div>
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                         <h4>主要功能</h4>
                         <ul style="text-align: left; margin-left: 20px; margin-top: 10px;">
                             <li>建立和管理多個旅遊計劃</li>
-                            <li>詳細的每日行程規劃</li>
-                            <li>費用統計和管理</li>
+                            <li>詳細的每日行程規劃與日期顯示</li>
+                            <li>費用統計和管理 (自動歸類與個人費用計算)</li>
                             <li>Firebase 雲端備份／版本控制</li>
                             <li>一鍵分享版本連結＋QR Code</li>                            
                             <li>響應式設計，支援行動裝置</li>
@@ -665,12 +641,11 @@
         </div>
     </div>
 
-    <!-- ===== Firebase 雲端管理模態框 ===== -->
     <div class="modal" id="cloudManageModal">
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h3><i class="fas fa-cloud-upload-alt"></i> Firebase 雲端管理</h3>
-                <button class="btn btn-secondary" id="closeCloudManageModal">&times;</button>
+                <button class="btn btn-secondary" id="closeCloudManageModal">×</button>
             </div>
             <div class="modal-body">
                 <button class="backup-current-btn" id="backupCurrentPlanBtn">
@@ -695,12 +670,11 @@
         </div>
     </div>
 
-    <!-- 分享代碼結果模態框 -->
     <div class="modal" id="shareCodeResultModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-share-alt"></i> 分享代碼已生成</h3>
-                <button class="btn btn-secondary" id="closeShareCodeResultModal">&times;</button>
+                <button class="btn btn-secondary" id="closeShareCodeResultModal">×</button>
             </div>
             <div class="modal-body">
                 <div class="share-code-container">
@@ -727,12 +701,11 @@
         </div>
     </div>
 
-    <!-- ===== 登入/驗證模態框 ===== -->
     <div class="modal" id="loginModal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3><i class="fas fa-envelope"></i> 電子郵件驗證</h3>
-                <button class="btn btn-secondary" id="closeLoginModal">&times;</button>
+                <button class="btn btn-secondary" id="closeLoginModal">×</button>
             </div>
             <div class="modal-body">
                 <div id="loginStep1">
@@ -1151,7 +1124,7 @@
             });
         }
 
-        // ----- 本地儲存 -----
+        // ----- 本地儲存與自動整理 -----
         function loadPlansFromStorage() {
             const saved = localStorage.getItem('travelPlans');
             if (saved) {
@@ -1162,8 +1135,35 @@
             }
         }
 
+        // 存檔前清除無用資料，並重新排序
+        function cleanAndSortPlan(plan) {
+            if (plan.activities) {
+                plan.activities.sort((a, b) => {
+                    if (a.day !== b.day) return a.day - b.day;
+                    return parseTime(a.startTime) - parseTime(b.startTime);
+                });
+                plan.activities.forEach((a, idx) => a.order = idx);
+            }
+            if (plan.transports) {
+                if (plan.activities) {
+                    const actIds = new Set(plan.activities.map(a => a.id));
+                    plan.transports = plan.transports.filter(t => actIds.has(t.fromActivityId) && actIds.has(t.toActivityId));
+                }
+                plan.transports.sort((a, b) => {
+                    if (a.day !== b.day) return a.day - b.day;
+                    return parseTime(a.startTime) - parseTime(b.startTime);
+                });
+            }
+            if (plan.additionalCosts) {
+                plan.additionalCosts.sort((a, b) => new Date(a.date) - new Date(b.date));
+            }
+        }
+
         function savePlansToStorage() {
             try {
+                if (state.plans) {
+                    state.plans.forEach(plan => cleanAndSortPlan(plan));
+                }
                 localStorage.setItem('travelPlans', JSON.stringify(state.plans));
                 updateCostSummary();
             } catch (e) { console.error(e); }
@@ -1337,10 +1337,18 @@
             daysTabs.innerHTML = '';
             daysContent.innerHTML = '';
 
+            const startDateObj = new Date(plan.startDate);
+
             for (let i = 1; i <= plan.days; i++) {
+                const currentDayDate = new Date(startDateObj);
+                currentDayDate.setDate(startDateObj.getDate() + i - 1);
+                const month = currentDayDate.getMonth() + 1;
+                const date = currentDayDate.getDate();
+                const dateStr = `${month}/${date}`;
+
                 const tab = document.createElement('div');
                 tab.className = `day-tab ${i === state.currentDay ? 'active' : ''}`;
-                tab.textContent = `Day ${i}`;
+                tab.textContent = `第 ${i} 天 (${dateStr})`;
                 tab.dataset.day = i;
                 tab.addEventListener('click', function() {
                     state.currentDay = parseInt(this.dataset.day);
@@ -1357,7 +1365,7 @@
                 const dayTitle = plan.dayTitles?.[i] || `第 ${i} 天`;
                 const mapBtn = `<button class="btn btn-sm btn-map-route" onclick="openDailyMapRoute(${plan.id}, ${i})"><i class="fas fa-map-marked-alt"></i> 查看地圖路線</button>`;
 
-                content.innerHTML = `<div class="day-header d-flex align-items-center mb-3"><h4 class="mb-0">第 ${i} 天</h4>${mapBtn}</div>
+                content.innerHTML = `<div class="day-header d-flex align-items-center mb-3"><h4 class="mb-0">第 ${i} 天 (${dateStr})</h4>${mapBtn}</div>
                                      <input type="text" class="day-title-input" value="${dayTitle}" data-day="${i}" placeholder="輸入當日標題">
                                      <div class="activities-container" data-day="${i}"></div>`;
 
@@ -1536,7 +1544,7 @@
             el.dataset.id = transport.id;
             el.dataset.type = 'transport';
 
-            const transportLabels = { taxi:'計程車', subway:'地鐵', bus:'公交', train:'高鐵', walking:'步行', flight:'飛機', ship:'輪船', coach:'巴士', selfdrive:'自駕', other:'其他' };
+            const transportLabels = { taxi:'計程車', subway:'地鐵', bus:'公車', train:'高鐵/火車', walking:'步行', flight:'飛機', ship:'輪船', coach:'客運/巴士', selfdrive:'自駕', other:'其他' };
             const routeDesc = transport.fromLocation && transport.toLocation ? `${transport.fromLocation} → ${transport.toLocation}` : `${transport.fromActivityName} → ${transport.toActivityName}`;
 
             let totalCostTWD = 0, totalPersonalTWD = 0;
@@ -1697,7 +1705,7 @@
                             <label for="transportOptionType_${optId}">交通類別</label>
                             <select id="transportOptionType_${optId}" class="transport-option-type">`;
             const types = ['taxi','subway','bus','train','walking','flight','ship','coach','selfdrive','other'];
-            const labels = ['計程車','地鐵','公交','高鐵','步行','飛機','輪船','巴士','自駕','其他'];
+            const labels = ['計程車','地鐵','公車','高鐵/火車','步行','飛機','輪船','客運/巴士','自駕','其他'];
             types.forEach((t,i) => {
                 const selected = (optionData && optionData.type === t) ? 'selected' : '';
                 html += `<option value="${t}" ${selected}>${labels[i]}</option>`;
@@ -1840,26 +1848,42 @@
             if (!state.currentPlanId) { alert('請先選擇一個旅遊計劃'); return; }
             const plan = state.plans.find(p => p.id === state.currentPlanId);
             if (!plan || !plan.activities) { alert('請先添加行程，然後才能添加交通方式'); return; }
-            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            
+            let dayActs = plan.activities.filter(a => a.day === state.currentDay);
             if (dayActs.length < 2) { alert('需要至少兩個行程才能添加交通方式'); return; }
+            
+            // 依照時間排序
+            dayActs.sort((a,b) => parseTime(a.startTime) - parseTime(b.startTime));
+            
             const fromSel = document.getElementById('transportFromActivity');
             const toSel = document.getElementById('transportToActivity');
-            fromSel.innerHTML = ''; toSel.innerHTML = '';
+            
+            fromSel.innerHTML = ''; 
             dayActs.forEach(a => {
                 fromSel.innerHTML += `<option value="${a.id}">${a.startTime||''} ${a.name} (${a.location})</option>`;
-                toSel.innerHTML += `<option value="${a.id}">${a.startTime||''} ${a.name} (${a.location})</option>`;
             });
-            fromSel.selectedIndex = 0; toSel.selectedIndex = Math.min(1, dayActs.length-1);
+            fromSel.selectedIndex = 0; 
+            
+            const initialFromId = parseInt(fromSel.value);
+            toSel.innerHTML = '';
+            dayActs.forEach(a => {
+                if (a.id !== initialFromId) {
+                    toSel.innerHTML += `<option value="${a.id}">${a.startTime||''} ${a.name} (${a.location})</option>`;
+                }
+            });
+
             const fromAct = dayActs[fromSel.selectedIndex];
-            const toAct = dayActs[toSel.selectedIndex];
+            const toAct = dayActs.find(a => a.id === parseInt(toSel.value));
             document.getElementById('transportStartTime').value = fromAct.endTime || fromAct.startTime || '';
-            document.getElementById('transportEndTime').value = toAct.startTime || '';
+            document.getElementById('transportEndTime').value = toAct ? (toAct.startTime || '') : '';
+            
             document.getElementById('transportModalTitle').textContent = '新增交通方式';
             document.getElementById('transportForm').reset();
             document.getElementById('transportOptionsContainer').innerHTML = '';
             addTransportOptionField();
             document.getElementById('transportModal').classList.add('active');
             delete document.getElementById('transportForm').dataset.editingId;
+            
             fromSel.addEventListener('change', updateTransportTimes);
             toSel.addEventListener('change', updateTransportTimes);
             setTimeout(() => document.getElementById('transportStartTime').focus(), 100);
@@ -1871,22 +1895,36 @@
             if (!plan || !plan.transports) return;
             const trans = plan.transports.find(t => t.id === transportId);
             if (!trans) return;
-            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            
+            let dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            dayActs.sort((a,b) => parseTime(a.startTime) - parseTime(b.startTime));
+            
             const fromSel = document.getElementById('transportFromActivity');
             const toSel = document.getElementById('transportToActivity');
-            fromSel.innerHTML = ''; toSel.innerHTML = '';
+            
+            fromSel.innerHTML = ''; 
             dayActs.forEach(a => {
-                fromSel.innerHTML += `<option value="${a.id}" ${a.id===trans.fromActivityId?'selected':''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
-                toSel.innerHTML += `<option value="${a.id}" ${a.id===trans.toActivityId?'selected':''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
+                fromSel.innerHTML += `<option value="${a.id}" ${a.id === trans.fromActivityId ? 'selected' : ''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
             });
+            
+            const selectedFromId = parseInt(fromSel.value);
+            toSel.innerHTML = '';
+            dayActs.forEach(a => {
+                if (a.id !== selectedFromId) {
+                    toSel.innerHTML += `<option value="${a.id}" ${a.id === trans.toActivityId ? 'selected' : ''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
+                }
+            });
+
             document.getElementById('transportModalTitle').textContent = '編輯交通方式';
             document.getElementById('transportStartTime').value = trans.startTime;
             document.getElementById('transportEndTime').value = trans.endTime;
             document.getElementById('transportOptionsContainer').innerHTML = '';
             if (trans.options && trans.options.length) trans.options.forEach(opt => addTransportOptionField(opt));
             else addTransportOptionField();
+            
             document.getElementById('transportModal').classList.add('active');
             document.getElementById('transportForm').dataset.editingId = transportId;
+            
             fromSel.addEventListener('change', updateTransportTimes);
             toSel.addEventListener('change', updateTransportTimes);
         }
@@ -1905,11 +1943,26 @@
         function updateTransportTimes() {
             const plan = state.plans.find(p => p.id === state.currentPlanId);
             if (!plan || !plan.activities) return;
-            const dayActs = plan.activities.filter(a => a.day === state.currentDay);
-            const fromId = parseInt(document.getElementById('transportFromActivity').value);
-            const toId = parseInt(document.getElementById('transportToActivity').value);
+            let dayActs = plan.activities.filter(a => a.day === state.currentDay);
+            dayActs.sort((a,b) => parseTime(a.startTime) - parseTime(b.startTime));
+            
+            const fromSel = document.getElementById('transportFromActivity');
+            const toSel = document.getElementById('transportToActivity');
+            const fromId = parseInt(fromSel.value);
+            const oldToId = parseInt(toSel.value);
+            
+            // 動態排除已選擇的起始行程
+            toSel.innerHTML = '';
+            dayActs.forEach(a => {
+                if (a.id !== fromId) {
+                    toSel.innerHTML += `<option value="${a.id}" ${a.id === oldToId ? 'selected' : ''}>${a.startTime||''} ${a.name} (${a.location})</option>`;
+                }
+            });
+            
+            const toId = parseInt(toSel.value);
             const fromAct = dayActs.find(a => a.id === fromId);
             const toAct = dayActs.find(a => a.id === toId);
+            
             if (fromAct) document.getElementById('transportStartTime').value = fromAct.endTime || fromAct.startTime || '';
             if (toAct) document.getElementById('transportEndTime').value = toAct.startTime || '';
         }
@@ -2231,7 +2284,7 @@
             });
             if (all.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">暫無費用資料</td></tr>'; return; }
 
-            const catLabels = { attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路' };
+            const catLabels = { attraction:'景點', transport:'交通', activity:'活動', accommodation:'住宿', shopping:'購物', other:'其他', food:'飲食', insurance:'保險', internet:'網路', taxi:'計程車', subway:'地鐵', bus:'公車', train:'高鐵/火車', walking:'步行', flight:'飛機', ship:'輪船', coach:'客運/巴士', selfdrive:'自駕' };
             const groups = {};
             const mode = state.costSortMode || 'date';
             all.forEach(c => {
@@ -2260,16 +2313,18 @@
                         let catText = catLabels[c.category] || c.category;
                         let desc = '';
                         if (c.type === 'activity') desc = c.name;
-                        else if (c.type === 'transport') { catText = '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
+                        else if (c.type === 'transport') { catText = catLabels[c.category] || '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
                         else if (c.type === 'additional') desc = c.description;
                         let action = '';
                         if (c.type === 'additional') action = `<button class="btn btn-small btn-secondary edit-cost" data-id="${c.id}"><i class="fas fa-edit"></i></button> <button class="btn btn-small btn-danger delete-cost" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>`;
                         else action = `<span style="color:#999;font-size:0.8rem;">(由行程管理)</span>`;
 
+                        const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${desc}</td>`;
+
                         if (index === 0) {
                             row.innerHTML = `<td>${formatDate(new Date(c.date))}</td>
                                               <td rowspan="${g.items.length}">${g.title}</td>
-                                              <td>${desc}</td>
+                                              ${descTd}
                                               <td>${cur}</td>
                                               <td>${original.toFixed(2)}</td>
                                               <td>${twd.toFixed(2)}</td>
@@ -2278,7 +2333,7 @@
                                               <td>${action}</td>`;
                         } else {
                             row.innerHTML = `<td>${formatDate(new Date(c.date))}</td>
-                                              <td>${desc}</td>
+                                              ${descTd}
                                               <td>${cur}</td>
                                               <td>${original.toFixed(2)}</td>
                                               <td>${twd.toFixed(2)}</td>
@@ -2318,12 +2373,15 @@
                         let catText = catLabels[c.category] || c.category;
                         let desc = '';
                         if (c.type === 'activity') desc = c.name;
-                        else if (c.type === 'transport') { catText = '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
+                        else if (c.type === 'transport') { catText = catLabels[c.category] || '交通'; desc = `${c.fromActivityName} → ${c.toActivityName}`; }
                         else if (c.type === 'additional') desc = c.description;
                         let action = '';
                         if (c.type === 'additional') action = `<button class="btn btn-small btn-secondary edit-cost" data-id="${c.id}"><i class="fas fa-edit"></i></button> <button class="btn btn-small btn-danger delete-cost" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>`;
                         else action = `<span style="color:#999;font-size:0.8rem;">(由行程管理)</span>`;
-                        row.innerHTML = `<td>${formatDate(new Date(c.date))}</td><td>${catText}</td><td>${desc}</td><td>${cur}</td><td>${original.toFixed(2)}</td><td>${twd.toFixed(2)}</td><td>${participants}</td><td class="total-cost">${per.toFixed(2)}</td><td>${action}</td>`;
+                        
+                        const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${desc}</td>`;
+
+                        row.innerHTML = `<td>${formatDate(new Date(c.date))}</td><td>${catText}</td>${descTd}<td>${cur}</td><td>${original.toFixed(2)}</td><td>${twd.toFixed(2)}</td><td>${participants}</td><td class="total-cost">${per.toFixed(2)}</td><td>${action}</td>`;
                         tbody.appendChild(row);
                         if (c.type === 'additional') {
                             row.querySelector('.edit-cost')?.addEventListener('click', e => { e.stopPropagation(); showEditCostModal(c.id); });
@@ -2336,7 +2394,8 @@
             const totals = calculateTotalCosts(plan);
             const totalRow = document.createElement('tr');
             totalRow.className = 'cost-total-row';
-            totalRow.innerHTML = `<td colspan="5"><strong>總計 (新台幣)</strong></td><td><strong>${totals.totalTWD.toFixed(2)}</strong></td><td></td><td class="total-cost"><strong>${totals.totalPersonalTWD.toFixed(2)}</strong></td><td></td>`;
+            const roundedPersonalTotal = Math.round(totals.totalPersonalTWD);
+            totalRow.innerHTML = `<td colspan="7" style="text-align:right; padding-right:15px;"><strong>個人總計 (新台幣)</strong></td><td class="total-cost"><strong>${roundedPersonalTotal}</strong></td><td></td>`;
             tbody.appendChild(totalRow);
         }
 
