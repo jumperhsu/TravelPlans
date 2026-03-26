@@ -44,7 +44,7 @@
         .day-content.active { display: block; }
         .cost-content { display: none; }
         .cost-content.active { display: block; }
-        .day-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .day-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .day-title { font-size: 1.2rem; font-weight: bold; color: var(--primary-color); margin: 0; }
         .activities-container { min-height: 300px; }
         .activity-item { background-color: #f9f9f9; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; }
@@ -78,7 +78,7 @@
         .btn-primary:hover { background-color: var(--secondary-color); }
         .btn-accent { background-color: var(--accent-color); color: white; }
         .btn-accent:hover { background-color: #ff6b4a; }
-        .btn-map-route { background-color: #0F9D58; color: white; border: none; padding: 4px 12px; font-size: 0.85rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-map-route { background-color: #0F9D58; color: white; border: none; padding: 4px 12px; font-size: 0.85rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s; }
         .btn-map-route:hover { background-color: #0b8043; }
         .error-container { text-align: center; padding: 60px; color: var(--danger-color); }
         .back-link { margin-top: 30px; text-align: center; }
@@ -209,26 +209,83 @@
             if (bottomBtn) bottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         });
 
-        // ---------- Google 地圖路線規劃 ----------
+        // ========== ✨ 全新 Google Maps 路線規劃 API（支援起點、終點、中途點） ==========
         function openDailyMapRoute(day) {
-            if (!currentPlan || !currentPlan.activities) return;
-            const dayActivities = currentPlan.activities.filter(a => a.day === day);
-            if (dayActivities.length === 0) { alert('今日尚無行程'); return; }
-            dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
-            let points = dayActivities.map(a => 
-                (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '')
-            ).filter(p => p !== '');
-            if (points.length === 0) { alert('行程中沒有有效的地點或地址'); return; }
-            const route = [points[0]];
-            for (let i = 1; i < points.length; i++) {
-                if (points[i] !== route[route.length - 1]) route.push(points[i]);
+            if (!currentPlan || !currentPlan.activities) {
+                alert('無法取得行程資料');
+                return;
             }
-            const base = "https://www.google.com/maps/dir/";
-            const url = base + route.map(loc => encodeURIComponent(loc)).join('/');
+            
+            // 取得當天活動，並按開始時間排序
+            const dayActivities = currentPlan.activities.filter(a => a.day === day);
+            if (dayActivities.length === 0) {
+                alert('今日尚無行程，無法規劃路線');
+                return;
+            }
+            
+            dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+            
+            // 提取有效的地址或地點名稱 (優先使用 address，其次 location)
+            let points = dayActivities.map(a => {
+                let addr = (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '');
+                return addr;
+            }).filter(p => p !== '');
+            
+            if (points.length === 0) {
+                alert('行程中沒有任何有效的地點或地址，無法規劃路線');
+                return;
+            }
+            
+            // 去除相鄰重複的地點 (避免路線出現連續相同點)
+            const uniquePoints = [];
+            for (let i = 0; i < points.length; i++) {
+                if (i === 0 || points[i] !== points[i-1]) {
+                    uniquePoints.push(points[i]);
+                }
+            }
+            points = uniquePoints;
+            
+            // 至少需要 2 個不同地點才能規劃路線
+            if (points.length < 2) {
+                alert('至少需要兩個不同的地點才能規劃路線，目前有效地點不足');
+                return;
+            }
+            
+            // 第一個點作為起點 (origin)
+            const origin = points[0];
+            // 最後一個點作為終點 (destination)
+            const destination = points[points.length - 1];
+            
+            // 中間的點作為中途點 (waypoints)，不包含起點和終點
+            let waypoints = [];
+            if (points.length > 2) {
+                waypoints = points.slice(1, -1);
+            }
+            
+            // 建構 Google Maps Directions API 格式 URL
+            // 基礎 URL: https://www.google.com/maps/dir/?api=1
+            let url = 'https://www.google.com/maps/dir/?api=1';
+            
+            // 加入起點 (origin)
+            url += `&origin=${encodeURIComponent(origin)}`;
+            // 加入終點 (destination)
+            url += `&destination=${encodeURIComponent(destination)}`;
+            
+            // 加入中途點 (waypoints) 用 | 分隔，每個中途點需獨立編碼
+            if (waypoints.length > 0) {
+                const waypointsStr = waypoints.map(wp => encodeURIComponent(wp)).join('|');
+                url += `&waypoints=${waypointsStr}`;
+            }
+            
+            // 設定交通模式：driving (開車)，可依需求改為 walking / transit / bicycling
+            // 為符合大多數使用情境，使用 driving，使用者仍可在地圖上手動切換
+            url += `&travelmode=driving`;
+            
+            // 開啟新視窗
             window.open(url, '_blank');
         }
 
-        // ---------- 🔍 查詢同一計劃的最新版本 ----------
+        // ---------- 查詢同一計劃的最新版本 ----------
         async function findLatestVersionByPlanId(planId, currentVersionId) {
             try {
                 const snapshot = await db.ref(VERSIONS_NODE)
@@ -252,19 +309,18 @@
                     }
                 });
 
-                // 如果最新版本的 ID 與目前版本不同，則回傳最新版本
                 if (latestVersion && latestVersion.versionId !== currentVersionId) {
                     console.log(`📌 發現更新版本：${latestVersion.versionId.substr(0,8)}，時間戳 ${new Date(latestTimestamp).toLocaleString()}`);
                     return latestVersion;
                 }
-                return null; // 已是最新
+                return null;
             } catch (error) {
                 console.warn('查詢最新版本失敗，將使用原版本', error);
                 return null;
             }
         }
 
-        // ---------- 顯示「已為您跳轉至最新版本」提示 ----------
+        // ---------- 顯示版本提示 ----------
         function showVersionHint(message) {
             const container = document.getElementById('versionHintContainer');
             if (container) {
@@ -282,7 +338,6 @@
             }
 
             try {
-                // 1. 先取得原始版本資料
                 const snapshot = await db.ref(`${VERSIONS_NODE}/${versionId}`).once('value');
                 if (!snapshot.exists()) {
                     showError('找不到對應的旅遊計劃，可能已被刪除。');
@@ -295,17 +350,11 @@
                     return;
                 }
 
-                // 2. 取得 planId（備份時直接儲存的欄位，若無則從 planData.id 取得）
                 const planId = originalData.planId || originalData.planData?.id;
-                if (!planId) {
-                    console.warn('無法從備份中取得 planId，將使用原始版本');
-                }
-
                 let targetData = originalData;
                 let targetVersionId = versionId;
                 let isLatest = true;
 
-                // 3. 如果有 planId，查詢該計劃的最新版本
                 if (planId) {
                     const latestVersion = await findLatestVersionByPlanId(planId, versionId);
                     if (latestVersion) {
@@ -316,10 +365,8 @@
                     }
                 }
 
-                // 4. 使用最終確定的版本資料
                 currentPlan = targetData.planData;
 
-                // 5. 合併匯率（優先使用備份中的匯率）
                 if (targetData.exchangeRates && typeof targetData.exchangeRates === 'object') {
                     exchangeRates = { ...exchangeRates, ...targetData.exchangeRates };
                     console.log('✅ 已套用備份匯率:', exchangeRates);
@@ -327,11 +374,9 @@
                     console.warn('⚠️ 此備份無匯率資料，使用預設匯率');
                 }
 
-                // 6. 隱藏載入、顯示內容
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('planContent').style.display = 'block';
 
-                // 若已是最新，可顯示簡短提示（選用）
                 if (isLatest && planId) {
                     showVersionHint('✔ 您正在檢視最新版本');
                 }
@@ -491,18 +536,18 @@
 
             el.innerHTML = `<div class="activity-header">
                                 <div>
-                                    <span class="activity-name">${activity.name}</span>
+                                    <span class="activity-name">${escapeHtml(activity.name)}</span>
                                     <span class="activity-category ${categoryClasses[activity.category]}">${categoryLabels[activity.category]}</span>
                                 </div>
                                 <div class="activity-time">${activity.startTime || ''} ${activity.endTime ? `- ${activity.endTime}` : ''}</div>
                             </div>
                             <div style="margin-bottom: 10px;">
-                                <div><i class="fas fa-map-marker-alt"></i> ${activity.location}</div>
-                                ${activity.address ? `<div class="activity-address"><i class="fas fa-map-pin"></i> ${activity.address}</div>` : ''}
+                                <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(activity.location)}</div>
+                                ${activity.address ? `<div class="activity-address"><i class="fas fa-map-pin"></i> ${escapeHtml(activity.address)}</div>` : ''}
                             </div>
                             <div class="activity-details">
                                 ${originalCost > 0 ? `<div class="activity-cost"><i class="fas fa-money-bill-wave"></i> ${currency} ${originalCost.toFixed(2)} (${Math.round(twdCost)} TWD)</div>` : ''}
-                                ${activity.notes ? `<div class="activity-notes"><i class="fas fa-sticky-note"></i> ${activity.notes}</div>` : ''}
+                                ${activity.notes ? `<div class="activity-notes"><i class="fas fa-sticky-note"></i> ${escapeHtml(activity.notes)}</div>` : ''}
                                 ${linksHtml}
                             </div>`;
             return el;
@@ -548,13 +593,26 @@
                                 ${transport.isMain ? '<i class="fas fa-star" style="color: #4caf50;"></i> 主要' : '<i class="far fa-star" style="color: #ff9800;"></i> 備用'}
                             </div>
                             <div><i class="fas fa-clock"></i> ${transport.startTime} - ${transport.endTime}</div>
-                            <div><i class="fas fa-route"></i> ${routeDesc}</div>
+                            <div><i class="fas fa-route"></i> ${escapeHtml(routeDesc)}</div>
                             <div style="margin: 15px 0;">${optionsHtml}</div>
                             ${totalCostTWD > 0 ? `<div style="margin: 8px 0; padding: 10px; background: #e8f5e9; border-radius: 4px;"><i class="fas fa-money-bill-wave"></i> <strong>總費用: ${totalCostTWD.toFixed(2)} TWD</strong> <small>(每人 ${totalPersonalTWD.toFixed(2)} TWD)</small></div>` : ''}`;
             return el;
         }
+        
+        // 簡易防XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
+        }
 
-        // ---------- 費用表格渲染（中文類別、正確匯率、說明換行）----------
+        // ---------- 費用表格渲染 ----------
         function renderCostContent() {
             const costDiv = document.getElementById('costContent');
             if (!costDiv) return;
@@ -565,7 +623,7 @@
                             <div style="overflow-x: auto;">
                                 <table class="cost-table">
                                     <thead>
-                                        <tr><th>日期</th><th>類別</th><th>說明</th><th>幣別</th><th>原幣費用</th><th>換算台幣</th><th>分攤人數</th><th>每人費用(台幣)</th></tr>
+                                        <tr><th>日期</th><th>類別</th><th>說明</th><th>幣別</th><th>原幣費用</th><th>換算台幣</th><th>分攤人數</th><th>每人費用(台幣)</th>
                                     </thead>
                                     <tbody id="costTableBody"></tbody>
                                 </table>
@@ -622,8 +680,7 @@
                     else if (c.type === 'transport') desc = `${c.fromActivityName || ''} → ${c.toActivityName || ''}`;
                     else desc = c.description || '';
 
-                    const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${desc}</td>`;
-
+                    const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${escapeHtml(desc)}</td>`;
                     tbody.innerHTML += `<tr>
                                             <td>${formatDate(new Date(c.date))}</td>
                                             <td>${catText}</td>
@@ -633,7 +690,7 @@
                                             <td>${twd.toFixed(2)}</td>
                                             <td>${participants}</td>
                                             <td class="total-cost">${per.toFixed(2)}</td>
-                                        </tr>`;
+                                         </tr>`;
                 });
             });
 
@@ -642,7 +699,7 @@
             tbody.innerHTML += `<tr class="cost-total-row">
                                     <td colspan="7" style="text-align:right; padding-right:15px;"><strong>個人總計 (新台幣)</strong></td>
                                     <td class="total-cost"><strong>${roundedPersonalTotal}</strong></td>
-                                </tr>`;
+                                 </tr>`;
         }
 
         function getAllCosts(plan) {
