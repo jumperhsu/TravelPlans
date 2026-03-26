@@ -273,7 +273,7 @@
     <div class="container scroll-prevention">
         <header>
             <div class="header-left">
-                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260314.05 (優化版)</span></h1>                
+                <h1><i class="fas fa-map-marked-alt"></i> 旅遊計劃規劃 <span style="font-size: 14px; color: #999; font-weight: normal; vertical-align: middle; margin-left: 5px;">v20260314.06 (地圖路線優化)</span></h1>                
             </div>
             <div class="header-right">
                 <div class="theme-selector">
@@ -616,7 +616,7 @@
             <div class="modal-body">
                 <div class="about-content">
                     <h3>旅遊計劃規劃應用程式</h3>
-                    <div class="version">版本：v20260314.05 (優化版)</div>
+                    <div class="version">版本：v20260314.06 (地圖路線優化)</div>
                     <p>這是一個功能完整的旅遊計劃規劃工具，幫助您輕鬆規劃完美的旅程。</p>
                     <div class="credit">
                         <h4>開發團隊</h4>
@@ -2350,7 +2350,7 @@
                     const totalRow = document.createElement('tr');
                     totalRow.innerHTML = `<td colspan="9" style="text-align:right; padding-right:30px; font-weight:bold; background-color: rgba(74,111,165,0.05);">
                                             類別小計 (${g.title})：${g.totalTWD.toFixed(2)} TWD
-                                         </td>`;
+                                          </td>`;
                     tbody.appendChild(totalRow);
                 });
             } else {
@@ -2437,19 +2437,49 @@
             if (cont) cont.scrollLeft = 0;
         }
 
-        function openDailyMapRoute(planId, day) {
+        // ========== 優化後的地圖路線函數 (使用 Google Maps Directions API 標準格式) ==========
+        window.openDailyMapRoute = function(planId, day) {
             const plan = state.plans.find(p => p.id === planId);
-            if (!plan || !plan.activities) return;
+            if (!plan || !plan.activities) {
+                alert('找不到計劃資料');
+                return;
+            }
             let acts = plan.activities.filter(a => a.day === day);
-            if (acts.length === 0) { alert('今日尚無行程'); return; }
+            if (acts.length === 0) {
+                alert('今日尚無行程');
+                return;
+            }
+            // 依開始時間排序
             acts.sort((a,b) => parseTime(a.startTime) - parseTime(b.startTime));
+            // 提取地址或地點 (優先使用 address，若無則使用 location)
             let points = acts.map(a => (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '')).filter(p => p !== '');
-            if (points.length === 0) { alert('行程中沒有有效的地點或地址'); return; }
-            const route = [points[0]];
-            for (let i=1; i<points.length; i++) if (points[i] !== route[route.length-1]) route.push(points[i]);
-            const base = "https://www.google.com/maps/dir/";
-            window.open(base + route.map(loc => encodeURIComponent(loc)).join('/'), '_blank');
-        }
+            if (points.length === 0) {
+                alert('行程中沒有有效的地點或地址');
+                return;
+            }
+            // 去除相鄰重複地點 (避免連續相同點)
+            const uniquePoints = [];
+            for (let i = 0; i < points.length; i++) {
+                if (i === 0 || points[i] !== points[i-1]) uniquePoints.push(points[i]);
+            }
+            if (uniquePoints.length < 2) {
+                alert('需要至少兩個不同地點才能產生路線');
+                return;
+            }
+            // 編碼每個地點
+            const encoded = uniquePoints.map(p => encodeURIComponent(p));
+            const origin = encoded[0];
+            const destination = encoded[encoded.length - 1];
+            let waypoints = '';
+            if (encoded.length > 2) {
+                const middle = encoded.slice(1, -1);
+                waypoints = '&waypoints=' + middle.join('|');
+            }
+            // 固定交通模式為 driving (開車)
+            const travelMode = 'driving';
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints}&travelmode=${travelMode}`;
+            window.open(url, '_blank');
+        };
 
         // ========== 事件監聽器設定 ==========
         function setupEventListeners() {
