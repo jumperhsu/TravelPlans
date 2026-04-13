@@ -195,10 +195,37 @@
             return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
         }
 
+        function formatShortDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
+        }
+
         function parseTime(timeStr) {
             if (!timeStr) return 0;
             const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
             return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0;
+        }
+
+        // ---------- 計算今日對應的旅行天數 (若在區間內) ----------
+        function getTodayDayIndex(plan) {
+            if (!plan || !plan.startDate || !plan.days) return 1;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const start = new Date(plan.startDate);
+            start.setHours(0, 0, 0, 0);
+            
+            const end = new Date(start);
+            end.setDate(start.getDate() + plan.days - 1);
+            
+            if (today >= start && today <= end) {
+                const diffTime = today - start;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays + 1;
+            }
+            return 1; // 預設第一天
         }
 
         // ---------- 滾動按鈕功能 ----------
@@ -209,14 +236,13 @@
             if (bottomBtn) bottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         });
 
-        // ========== ✨ 全新 Google Maps 路線規劃 API（支援起點、終點、中途點） ==========
+        // ========== Google Maps 路線規劃 API ==========
         function openDailyMapRoute(day) {
             if (!currentPlan || !currentPlan.activities) {
                 alert('無法取得行程資料');
                 return;
             }
             
-            // 取得當天活動，並按開始時間排序
             const dayActivities = currentPlan.activities.filter(a => a.day === day);
             if (dayActivities.length === 0) {
                 alert('今日尚無行程，無法規劃路線');
@@ -225,7 +251,6 @@
             
             dayActivities.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
             
-            // 提取有效的地址或地點名稱 (優先使用 address，其次 location)
             let points = dayActivities.map(a => {
                 let addr = (a.address && a.address.trim()) ? a.address.trim() : (a.location ? a.location.trim() : '');
                 return addr;
@@ -236,7 +261,6 @@
                 return;
             }
             
-            // 去除相鄰重複的地點 (避免路線出現連續相同點)
             const uniquePoints = [];
             for (let i = 0; i < points.length; i++) {
                 if (i === 0 || points[i] !== points[i-1]) {
@@ -245,43 +269,30 @@
             }
             points = uniquePoints;
             
-            // 至少需要 2 個不同地點才能規劃路線
             if (points.length < 2) {
                 alert('至少需要兩個不同的地點才能規劃路線，目前有效地點不足');
                 return;
             }
             
-            // 第一個點作為起點 (origin)
             const origin = points[0];
-            // 最後一個點作為終點 (destination)
             const destination = points[points.length - 1];
             
-            // 中間的點作為中途點 (waypoints)，不包含起點和終點
             let waypoints = [];
             if (points.length > 2) {
                 waypoints = points.slice(1, -1);
             }
             
-            // 建構 Google Maps Directions API 格式 URL
-            // 基礎 URL: https://www.google.com/maps/dir/?api=1
             let url = 'https://www.google.com/maps/dir/?api=1';
-            
-            // 加入起點 (origin)
             url += `&origin=${encodeURIComponent(origin)}`;
-            // 加入終點 (destination)
             url += `&destination=${encodeURIComponent(destination)}`;
             
-            // 加入中途點 (waypoints) 用 | 分隔，每個中途點需獨立編碼
             if (waypoints.length > 0) {
                 const waypointsStr = waypoints.map(wp => encodeURIComponent(wp)).join('|');
                 url += `&waypoints=${waypointsStr}`;
             }
             
-            // 設定交通模式：driving (開車)，可依需求改為 walking / transit / bicycling
-            // 為符合大多數使用情境，使用 driving，使用者仍可在地圖上手動切換
             url += `&travelmode=driving`;
             
-            // 開啟新視窗
             window.open(url, '_blank');
         }
 
@@ -310,7 +321,6 @@
                 });
 
                 if (latestVersion && latestVersion.versionId !== currentVersionId) {
-                    console.log(`📌 發現更新版本：${latestVersion.versionId.substr(0,8)}，時間戳 ${new Date(latestTimestamp).toLocaleString()}`);
                     return latestVersion;
                 }
                 return null;
@@ -367,11 +377,11 @@
 
                 currentPlan = targetData.planData;
 
+                // ★ 設定預設顯示天數為今日（若在旅行區間內）
+                currentDay = getTodayDayIndex(currentPlan);
+
                 if (targetData.exchangeRates && typeof targetData.exchangeRates === 'object') {
                     exchangeRates = { ...exchangeRates, ...targetData.exchangeRates };
-                    console.log('✅ 已套用備份匯率:', exchangeRates);
-                } else {
-                    console.warn('⚠️ 此備份無匯率資料，使用預設匯率');
                 }
 
                 document.getElementById('loadingIndicator').style.display = 'none';
@@ -405,7 +415,7 @@
             document.getElementById('planDates').textContent = `${formatDate(start)} - ${formatDate(end)} (${currentPlan.days} 天)`;
 
             renderDaysTabs();
-            showDay(1);
+            showDay(currentDay);
             renderCostContent();
         }
 
@@ -612,7 +622,7 @@
             });
         }
 
-        // ---------- 費用表格渲染 ----------
+        // ---------- 費用表格渲染 (更新標題與日期格式) ----------
         function renderCostContent() {
             const costDiv = document.getElementById('costContent');
             if (!costDiv) return;
@@ -623,7 +633,10 @@
                             <div style="overflow-x: auto;">
                                 <table class="cost-table">
                                     <thead>
-                                        <tr><th>日期</th><th>類別</th><th>說明</th><th>幣別</th><th>原幣費用</th><th>換算台幣</th><th>分攤人數</th><th>每人費用(台幣)</th>
+                                        <tr>
+                                            <th>日期</th><th>類別</th><th>說明</th><th>幣別</th>
+                                            <th>原幣</th><th>台幣</th><th>人數</th><th>台幣/人</th>
+                                        </tr>
                                     </thead>
                                     <tbody id="costTableBody"></tbody>
                                 </table>
@@ -681,8 +694,9 @@
                     else desc = c.description || '';
 
                     const descTd = `<td style="white-space: normal; word-break: break-all; min-width: 150px;">${escapeHtml(desc)}</td>`;
+                    const shortDate = formatShortDate(c.date);
                     tbody.innerHTML += `<tr>
-                                            <td>${formatDate(new Date(c.date))}</td>
+                                            <td>${shortDate}</td>
                                             <td>${catText}</td>
                                             ${descTd}
                                             <td>${cur}</td>
